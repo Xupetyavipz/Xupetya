@@ -1,6 +1,7 @@
 -- Functions.lua - Todas as Funcionalidades do Menu
 -- Biblioteca completa de funções para Roblox
 
+print("🔄 Functions.lua iniciando...")
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -14,6 +15,7 @@ local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
 local Functions = {}
+print("📦 Functions table criado")
 
 -- Variáveis globais para controle
 local connections = {}
@@ -535,4 +537,6 @@ function Functions.cleanup()
     print("🧹 Cleanup completo!")
 end
 
+print("✅ Functions.lua carregado completamente!")
+print("🔧 Funções disponíveis:", Functions.toggleAimbot and "toggleAimbot ✓" or "toggleAimbot ❌")
 return Functions
