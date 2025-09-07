@@ -11,8 +11,31 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 -- Carregar Functions
 print("🔄 Carregando Functions...")
-local Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/Xupetyavipz/Xupetya/refs/heads/main/functions.lua"))()
+local Functions
+pcall(function()
+    Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/Xupetyavipz/Xupetya/refs/heads/main/functions.lua"))()
+end)
 print("✅ Functions carregado:", Functions and "SUCCESS" or "FAILED")
+
+-- Fallback se Functions não carregar
+if not Functions then
+    print("❌ Erro ao carregar Functions, usando fallback...")
+    Functions = {
+        toggleAimbot = function(enabled) print("Aimbot:", enabled) end,
+        toggleESP = function(enabled) print("ESP:", enabled) end,
+        setWalkSpeed = function(speed) 
+            if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
+            end
+        end,
+        setJumpPower = function(power)
+            if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+                game.Players.LocalPlayer.Character.Humanoid.JumpPower = power
+            end
+        end,
+        cleanup = function() print("Cleanup executado") end
+    }
+end
 
 -- Configurações
 local config = {
