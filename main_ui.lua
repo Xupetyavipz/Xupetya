@@ -9,6 +9,11 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Carregar Functions
+print("🔄 Carregando Functions...")
+local Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/Xupetyavipz/Xupetya/refs/heads/main/functions.lua"))()
+print("✅ Functions carregado:", Functions and "SUCCESS" or "FAILED")
+
 -- Configurações
 local config = {
     menuKey = Enum.KeyCode.Insert,
@@ -344,38 +349,53 @@ local function showTabContent(tabName)
     
     -- Conteúdo específico de cada aba
     if tabName == "Aimbot" then
-        createElement("toggle", "Enable Aimbot", scrollFrame)
-        createElement("slider", "Aimbot FOV: 100", scrollFrame)
-        createElement("toggle", "Silent Aim", scrollFrame)
-        createElement("toggle", "Triggerbot", scrollFrame)
-        createElement("slider", "Smoothness: 5", scrollFrame)
-        createElement("toggle", "Target Visible Only", scrollFrame)
-        createElement("button", "Reset Aimbot", scrollFrame)
-        
-    elseif tabName == "Visual" then
-        createElement("toggle", "ESP Players", scrollFrame)
-        createElement("toggle", "ESP Items", scrollFrame)
-        createElement("toggle", "ESP Boxes", scrollFrame)
-        createElement("slider", "FOV: 90", scrollFrame)
-        createElement("toggle", "Fullbright", scrollFrame)
-        createElement("toggle", "Remove Fog", scrollFrame)
-        createElement("toggle", "Chams", scrollFrame)
-        createElement("slider", "ESP Distance: 1000", scrollFrame)
-        
-    elseif tabName == "Misc" then
-        createElement("slider", "Walk Speed: 16", scrollFrame)
-        createElement("slider", "Jump Power: 50", scrollFrame)
-        createElement("toggle", "Infinite Jump", scrollFrame)
-        createElement("toggle", "No Clip", scrollFrame)
-        createElement("toggle", "Fly", scrollFrame)
-        createElement("button", "Reset Character", scrollFrame, function()
-            if player.Character then
-                player.Character:BreakJoints()
+        createElement("toggle", "Enable Aimbot", scrollFrame, function(enabled)
+            print("🔧 UI Toggle clicked - Aimbot:", enabled)
+            if Functions and Functions.toggleAimbot then
+                Functions.toggleAimbot(enabled)
+            else
+                print("❌ Functions.toggleAimbot not found!")
             end
         end)
-        createElement("button", "Save Config", scrollFrame)
-        createElement("button", "Load Config", scrollFrame)
+        createElement("slider", "Aimbot FOV: 100", scrollFrame, Functions.setAimbotFOV)
+        createElement("toggle", "Silent Aim", scrollFrame, Functions.toggleSilentAim)
+        createElement("toggle", "Triggerbot", scrollFrame, Functions.toggleTriggerbot)
+        createElement("slider", "Smoothness: 5", scrollFrame, Functions.setAimbotSmoothness)
+        createElement("toggle", "Target Visible Only", scrollFrame, function(enabled)
+            Functions.Aimbot.targetVisible = enabled
+        end)
+        createElement("button", "Reset Aimbot", scrollFrame, function()
+            Functions.toggleAimbot(false)
+        end)
+        
+    elseif tabName == "Visual" then
+        createElement("toggle", "ESP Players", scrollFrame, function(enabled)
+            print("🔧 UI Toggle clicked - ESP:", enabled)
+            if Functions and Functions.toggleESP then
+                Functions.toggleESP(enabled)
+            else
+                print("❌ Functions.toggleESP not found!")
+            end
+        end)
+        createElement("toggle", "ESP Items", scrollFrame, Functions.toggleESPItems)
+        createElement("toggle", "ESP Boxes", scrollFrame, Functions.toggleESPBoxes)
+        createElement("slider", "FOV: 90", scrollFrame, Functions.setFOV)
+        createElement("toggle", "Fullbright", scrollFrame, Functions.toggleFullbright)
+        createElement("toggle", "Remove Fog", scrollFrame, Functions.toggleRemoveFog)
+        createElement("toggle", "Chams", scrollFrame, Functions.toggleChams)
+        createElement("slider", "ESP Distance: 1000", scrollFrame, Functions.setESPDistance)
+        
+    elseif tabName == "Misc" then
+        createElement("slider", "Walk Speed: 16", scrollFrame, Functions.setWalkSpeed)
+        createElement("slider", "Jump Power: 50", scrollFrame, Functions.setJumpPower)
+        createElement("toggle", "Infinite Jump", scrollFrame, Functions.toggleInfiniteJump)
+        createElement("toggle", "No Clip", scrollFrame, Functions.toggleNoClip)
+        createElement("toggle", "Fly", scrollFrame, Functions.toggleFly)
+        createElement("button", "Reset Character", scrollFrame, Functions.resetCharacter)
+        createElement("button", "Save Config", scrollFrame, Functions.saveConfig)
+        createElement("button", "Load Config", scrollFrame, Functions.loadConfig)
         createElement("button", "Unload Script", scrollFrame, function()
+            Functions.cleanup()
             screenGui:Destroy()
         end)
     end
