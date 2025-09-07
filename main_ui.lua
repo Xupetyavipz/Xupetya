@@ -9,6 +9,14 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Verificar se UI já existe
+if _G.MenuLoaded then
+    print("♻️ Menu já carregado, destruindo instância anterior...")
+    if _G.ScreenGui then
+        _G.ScreenGui:Destroy()
+    end
+end
+
 -- Carregar Functions (apenas uma vez)
 if not _G.FunctionsLoaded then
     print("🔄 Carregando Functions...")
@@ -62,6 +70,10 @@ local config = {
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MainUI"
 screenGui.Parent = playerGui
+
+-- Marcar menu como carregado e salvar referência
+_G.MenuLoaded = true
+_G.ScreenGui = screenGui
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -300,12 +312,25 @@ local function createElement(type, text, parent, callback, minValue, maxValue, d
         toggleCorner.CornerRadius = UDim.new(0, 10)
         toggleCorner.Parent = toggle
         
+        -- Verificar estado inicial da função
         local isEnabled = false
+        if callback and callback.getState then
+            isEnabled = callback.getState()
+        end
+        
+        -- Atualizar visual inicial
+        toggle.Text = isEnabled and "ON" or "OFF"
+        toggle.BackgroundColor3 = isEnabled and Color3.fromRGB(140, 100, 200) or Color3.fromRGB(120, 60, 140)
+        
         toggle.MouseButton1Click:Connect(function()
             isEnabled = not isEnabled
             toggle.Text = isEnabled and "ON" or "OFF"
             toggle.BackgroundColor3 = isEnabled and Color3.fromRGB(140, 100, 200) or Color3.fromRGB(120, 60, 140)
-            if callback then callback(isEnabled) end
+            if callback and callback.toggle then 
+                callback.toggle(isEnabled) 
+            elseif callback then 
+                callback(isEnabled) 
+            end
         end)
         
     elseif type == "slider" then
@@ -342,25 +367,52 @@ local function createElement(type, text, parent, callback, minValue, maxValue, d
         
         -- Sistema de drag funcional
         local dragging = false
+        local dragStart = nil
+        local startPos = nil
         
+        -- Detectar clique no handle
         handle.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = true
+                dragStart = input.Position
+                startPos = handle.Position
             end
         end)
         
-        UserInputService.InputEnded:Connect(function(input)
+        -- Detectar clique no slider para mover handle
+        slider.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-        
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                 local relativePos = math.clamp((input.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
                 currentValue = math.floor(minValue + (maxValue - minValue) * relativePos)
                 
                 handle.Position = UDim2.new(relativePos, -6, 0.5, -6)
+                label.Text = text:gsub("%d+", tostring(currentValue))
+                
+                if callback then
+                    callback(currentValue)
+                end
+            end
+        end)
+        
+        -- Parar drag
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+                dragStart = nil
+                startPos = nil
+            end
+        end)
+        
+        -- Movimento do drag
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement and dragStart and startPos then
+                local delta = input.Position.X - dragStart.X
+                local newPosX = startPos.X.Scale + (delta / slider.AbsoluteSize.X)
+                newPosX = math.clamp(newPosX, 0, 1)
+                
+                currentValue = math.floor(minValue + (maxValue - minValue) * newPosX)
+                
+                handle.Position = UDim2.new(newPosX, -6, 0.5, -6)
                 label.Text = text:gsub("%d+", tostring(currentValue))
                 
                 if callback then
@@ -417,28 +469,57 @@ local function showTabContent(tabName)
     
     -- Conteúdo específico de cada aba
     if tabName == "Aimbot" then
-        createElement("toggle", "Enable Aimbot", scrollFrame, function(enabled)
-            print("🔧 UI Toggle clicked - Aimbot:", enabled)
-            if Functions and Functions.toggleAimbot then
-                Functions.toggleAimbot(enabled)
-            else
-                print("❌ Functions.toggleAimbot not found!")
+        createElement("toggle", "Enable Aimbot", scrollFrame, {
+            toggle = function(enabled)
+                print("🔧 UI Toggle clicked - Aimbot:", enabled)
+                if Functions and Functions.toggleAimbot then
+                    Functions.toggleAimbot(enabled)
+                else
+                    print("❌ Functions.toggleAimbot not found!")
+                end
+            end,
+            getState = function()
+                return Functions and Functions.Aimbot and Functions.Aimbot.enabled or false
             end
-        end)
+        })
         createElement("slider", "Aimbot FOV: 100", scrollFrame, function(value)
             if Functions and Functions.setAimbotFOV then Functions.setAimbotFOV(value) end
         end, 50, 360, 100)
         createElement("slider", "Smoothness: 5", scrollFrame, function(value)
             if Functions and Functions.setAimbotSmoothness then Functions.setAimbotSmoothness(value) end
         end, 1, 20, 5)
-        createElement("toggle", "Silent Aim", scrollFrame, Functions.toggleSilentAim)
-        createElement("toggle", "Triggerbot", scrollFrame, Functions.toggleTriggerbot)
-        createElement("toggle", "Team Check", scrollFrame, function(enabled)
-            if Functions then Functions.Aimbot.teamCheck = enabled end
-        end)
-        createElement("toggle", "Target Visible Only", scrollFrame, function(enabled)
-            if Functions then Functions.Aimbot.targetVisible = enabled end
-        end)
+        createElement("toggle", "Silent Aim", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleSilentAim then Functions.toggleSilentAim(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Aimbot and Functions.Aimbot.silentAim or false
+            end
+        })
+        createElement("toggle", "Triggerbot", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleTriggerbot then Functions.toggleTriggerbot(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Aimbot and Functions.Aimbot.triggerbot or false
+            end
+        })
+        createElement("toggle", "Team Check", scrollFrame, {
+            toggle = function(enabled)
+                if Functions then Functions.Aimbot.teamCheck = enabled end
+            end,
+            getState = function()
+                return Functions and Functions.Aimbot and Functions.Aimbot.teamCheck or false
+            end
+        })
+        createElement("toggle", "Target Visible Only", scrollFrame, {
+            toggle = function(enabled)
+                if Functions then Functions.Aimbot.targetVisible = enabled end
+            end,
+            getState = function()
+                return Functions and Functions.Aimbot and Functions.Aimbot.targetVisible or false
+            end
+        })
         
         -- Modo de ativação do Aimbot
         createElement("button", "Mode: Toggle", scrollFrame, function()
@@ -457,34 +538,76 @@ local function showTabContent(tabName)
         end)
         
     elseif tabName == "Visual" then
-        createElement("toggle", "ESP Names", scrollFrame, function(enabled)
-            if Functions and Functions.toggleESPNames then Functions.toggleESPNames(enabled) end
-        end)
-        createElement("toggle", "ESP Skeleton", scrollFrame, function(enabled)
-            if Functions and Functions.toggleESPSkeleton then Functions.toggleESPSkeleton(enabled) end
-        end)
-        createElement("toggle", "ESP Distance", scrollFrame, function(enabled)
-            if Functions and Functions.toggleESPDistance then Functions.toggleESPDistance(enabled) end
-        end)
-        createElement("toggle", "ESP Chams", scrollFrame, function(enabled)
-            if Functions and Functions.toggleESPChams then Functions.toggleESPChams(enabled) end
-        end)
-        createElement("toggle", "ESP Health", scrollFrame, function(enabled)
-            if Functions and Functions.toggleESPHealth then Functions.toggleESPHealth(enabled) end
-        end)
-        createElement("toggle", "ESP Armor", scrollFrame, function(enabled)
-            if Functions and Functions.toggleESPArmor then Functions.toggleESPArmor(enabled) end
-        end)
-        createElement("toggle", "Team Check", scrollFrame, function(enabled)
-            if Functions then Functions.Visual.teamCheck = enabled end
-        end)
+        createElement("toggle", "ESP Names", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleESPNames then Functions.toggleESPNames(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Visual and Functions.Visual.espNames or false
+            end
+        })
+        createElement("toggle", "ESP Skeleton", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleESPSkeleton then Functions.toggleESPSkeleton(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Visual and Functions.Visual.espSkeleton or false
+            end
+        })
+        createElement("toggle", "ESP Distance", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleESPDistance then Functions.toggleESPDistance(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Visual and Functions.Visual.espDistance or false
+            end
+        })
+        createElement("toggle", "ESP Chams", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleESPChams then Functions.toggleESPChams(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Visual and Functions.Visual.espChams or false
+            end
+        })
+        createElement("toggle", "ESP Health", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleESPHealth then Functions.toggleESPHealth(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Visual and Functions.Visual.espHealth or false
+            end
+        })
+        createElement("toggle", "ESP Armor", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleESPArmor then Functions.toggleESPArmor(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Visual and Functions.Visual.espArmor or false
+            end
+        })
+        createElement("toggle", "Team Check", scrollFrame, {
+            toggle = function(enabled)
+                if Functions then Functions.Visual.teamCheck = enabled end
+            end,
+            getState = function()
+                return Functions and Functions.Visual and Functions.Visual.teamCheck or false
+            end
+        })
         createElement("slider", "ESP Distance: 1000", scrollFrame, function(value)
             if Functions and Functions.setESPDistance then Functions.setESPDistance(value) end
         end, 100, 5000, 1000)
         createElement("slider", "FOV: 90", scrollFrame, function(value)
             if Functions and Functions.setFOV then Functions.setFOV(value) end
         end, 60, 120, 90)
-        createElement("toggle", "Fullbright", scrollFrame, Functions.toggleFullbright)
+        createElement("toggle", "Fullbright", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleFullbright then Functions.toggleFullbright(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Visual and Functions.Visual.fullbright or false
+            end
+        })
         
     elseif tabName == "Misc" then
         createElement("slider", "Walk Speed: 16", scrollFrame, function(value)
@@ -493,9 +616,30 @@ local function showTabContent(tabName)
         createElement("slider", "Jump Power: 50", scrollFrame, function(value)
             if Functions and Functions.setJumpPower then Functions.setJumpPower(value) end
         end, 50, 200, 50)
-        createElement("toggle", "Infinite Jump", scrollFrame, Functions.toggleInfiniteJump)
-        createElement("toggle", "No Clip", scrollFrame, Functions.toggleNoClip)
-        createElement("toggle", "Fly", scrollFrame, Functions.toggleFly)
+        createElement("toggle", "Infinite Jump", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleInfiniteJump then Functions.toggleInfiniteJump(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Misc and Functions.Misc.infiniteJump or false
+            end
+        })
+        createElement("toggle", "No Clip", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleNoClip then Functions.toggleNoClip(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Misc and Functions.Misc.noClip or false
+            end
+        })
+        createElement("toggle", "Fly", scrollFrame, {
+            toggle = function(enabled)
+                if Functions and Functions.toggleFly then Functions.toggleFly(enabled) end
+            end,
+            getState = function()
+                return Functions and Functions.Misc and Functions.Misc.fly or false
+            end
+        })
         createElement("button", "Reset Character", scrollFrame, Functions.resetCharacter)
         createElement("button", "Save Config", scrollFrame, Functions.saveConfig)
         createElement("button", "Load Config", scrollFrame, Functions.loadConfig)
