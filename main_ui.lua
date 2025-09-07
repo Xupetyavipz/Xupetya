@@ -227,17 +227,18 @@ end
 
 -- Criar abas com ícones personalizados
 local function createTabWithIcon(name, iconId)
-    local tab = Instance.new("Frame")
-    tab.Name = name .. "Tab"
-    tab.Size = UDim2.new(1, -10, 0, 50)
-    tab.Position = UDim2.new(0, 5, 0, 0)
-    tab.BackgroundColor3 = Color3.fromRGB(35, 25, 45)
-    tab.BorderSizePixel = 0
-    tab.Parent = tabContainer
+    local button = Instance.new("TextButton")
+    button.Name = name .. "Tab"
+    button.Size = UDim2.new(1, -10, 0, 50)
+    button.Position = UDim2.new(0, 5, 0, 0)
+    button.BackgroundColor3 = Color3.fromRGB(35, 25, 45)
+    button.BorderSizePixel = 0
+    button.Text = ""
+    button.Parent = tabContainer
     
     local tabCorner = Instance.new("UICorner")
     tabCorner.CornerRadius = UDim.new(0, 6)
-    tabCorner.Parent = tab
+    tabCorner.Parent = button
     
     local icon = Instance.new("ImageLabel")
     icon.Size = UDim2.new(0, 24, 0, 24)
@@ -245,7 +246,7 @@ local function createTabWithIcon(name, iconId)
     icon.BackgroundTransparency = 1
     icon.Image = "rbxassetid://" .. iconId
     icon.ScaleType = Enum.ScaleType.Fit
-    icon.Parent = tab
+    icon.Parent = button
     
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, -45, 1, 0)
@@ -256,26 +257,18 @@ local function createTabWithIcon(name, iconId)
     label.TextSize = 14
     label.Font = Enum.Font.Gotham
     label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = tab
+    label.Parent = button
     
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, 0, 1, 0)
-    button.BackgroundTransparency = 1
-    button.Text = ""
-    button.Parent = tab
-    
-    return button, tab
+    return button
 end
 
 -- Criar abas
 local tabs = {}
-local tabFrames = {}
-local aimbotTab, aimbotFrame = createTabWithIcon("Aimbot", "75518636799674")
-local visualTab, visualFrame = createTabWithIcon("Visual", "111612200954692") 
-local miscTab, miscFrame = createTabWithIcon("Misc", "118260954915004")
+local aimbotTab = createTabWithIcon("Aimbot", "75518636799674")
+local visualTab = createTabWithIcon("Visual", "111612200954692") 
+local miscTab = createTabWithIcon("Misc", "118260954915004")
 
 tabs = {aimbotTab, visualTab, miscTab}
-tabFrames = {aimbotFrame, visualFrame, miscFrame}
 
 -- Função para criar elementos de UI
 local function createElement(type, text, parent, callback, minValue, maxValue, defaultValue)
