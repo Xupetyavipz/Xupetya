@@ -9,12 +9,16 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Verificar se UI já existe
-if _G.MenuLoaded then
-    print("♻️ Menu já carregado, destruindo instância anterior...")
-    if _G.ScreenGui then
-        _G.ScreenGui:Destroy()
-    end
+-- Verificar se UI já existe e evitar reload
+if _G.MenuLoaded and _G.ScreenGui and _G.ScreenGui.Parent then
+    print("♻️ Menu já existe e está ativo, não recarregando...")
+    return
+end
+
+-- Limpar instância anterior se existir
+if _G.ScreenGui then
+    _G.ScreenGui:Destroy()
+    _G.ScreenGui = nil
 end
 
 -- Carregar Functions (apenas uma vez)
@@ -314,8 +318,8 @@ local function createElement(type, text, parent, callback, minValue, maxValue, d
         
         -- Verificar estado inicial da função
         local isEnabled = false
-        if callback and callback.getState then
-            isEnabled = callback.getState()
+        if callback and type(callback) == "table" and callback.getState then
+            pcall(function() isEnabled = callback.getState() end)
         end
         
         -- Atualizar visual inicial
@@ -326,10 +330,11 @@ local function createElement(type, text, parent, callback, minValue, maxValue, d
             isEnabled = not isEnabled
             toggle.Text = isEnabled and "ON" or "OFF"
             toggle.BackgroundColor3 = isEnabled and Color3.fromRGB(140, 100, 200) or Color3.fromRGB(120, 60, 140)
-            if callback and callback.toggle then 
-                callback.toggle(isEnabled) 
-            elseif callback then 
-                callback(isEnabled) 
+            
+            if callback and type(callback) == "table" and callback.toggle then 
+                pcall(function() callback.toggle(isEnabled) end)
+            elseif callback and type(callback) == "function" then 
+                pcall(function() callback(isEnabled) end)
             end
         end)
         
@@ -365,32 +370,37 @@ local function createElement(type, text, parent, callback, minValue, maxValue, d
         -- Atualizar texto inicial
         label.Text = text:gsub("%d+", tostring(currentValue))
         
-        -- Sistema de drag funcional
+        -- Sistema de slider simplificado
         local dragging = false
-        local dragStart = nil
-        local startPos = nil
         
-        -- Detectar clique no handle
-        handle.InputBegan:Connect(function(input)
+        local function updateSlider(inputPos)
+            local relativeX = (inputPos.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X
+            relativeX = math.clamp(relativeX, 0, 1)
+            
+            currentValue = math.floor(minValue + (maxValue - minValue) * relativeX)
+            handle.Position = UDim2.new(relativeX, -6, 0.5, -6)
+            label.Text = text:gsub("%d+", tostring(currentValue))
+            
+            if callback then
+                pcall(function() callback(currentValue) end)
+            end
+        end
+        
+        -- Clique no slider ou handle
+        local function onInputBegan(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = true
-                dragStart = input.Position
-                startPos = handle.Position
+                updateSlider(input.Position)
             end
-        end)
+        end
         
-        -- Detectar clique no slider para mover handle
-        slider.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local relativePos = math.clamp((input.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
-                currentValue = math.floor(minValue + (maxValue - minValue) * relativePos)
-                
-                handle.Position = UDim2.new(relativePos, -6, 0.5, -6)
-                label.Text = text:gsub("%d+", tostring(currentValue))
-                
-                if callback then
-                    callback(currentValue)
-                end
+        slider.InputBegan:Connect(onInputBegan)
+        handle.InputBegan:Connect(onInputBegan)
+        
+        -- Movimento durante drag
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                updateSlider(input.Position)
             end
         end)
         
@@ -398,26 +408,6 @@ local function createElement(type, text, parent, callback, minValue, maxValue, d
         UserInputService.InputEnded:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = false
-                dragStart = nil
-                startPos = nil
-            end
-        end)
-        
-        -- Movimento do drag
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement and dragStart and startPos then
-                local delta = input.Position.X - dragStart.X
-                local newPosX = startPos.X.Scale + (delta / slider.AbsoluteSize.X)
-                newPosX = math.clamp(newPosX, 0, 1)
-                
-                currentValue = math.floor(minValue + (maxValue - minValue) * newPosX)
-                
-                handle.Position = UDim2.new(newPosX, -6, 0.5, -6)
-                label.Text = text:gsub("%d+", tostring(currentValue))
-                
-                if callback then
-                    callback(currentValue)
-                end
             end
         end)
         
@@ -523,18 +513,16 @@ local function showTabContent(tabName)
         
         -- Modo de ativação do Aimbot
         createElement("button", "Mode: Toggle", scrollFrame, function()
-            -- Ciclar entre modos: Toggle -> Hold -> Always
-            local modes = {"Toggle", "Hold", "Always"}
-            local currentMode = Functions and Functions.Aimbot.activationMode or "Toggle"
-            local currentIndex = 1
-            for i, mode in ipairs(modes) do
-                if mode == currentMode then currentIndex = i break end
+            if Functions and Functions.cycleAimbotMode then
+                Functions.cycleAimbotMode()
             end
-            local nextIndex = (currentIndex % #modes) + 1
-            local newMode = modes[nextIndex]
-            
-            if Functions then Functions.Aimbot.activationMode = newMode end
-            print("🎯 Aimbot Mode:", newMode)
+        end)
+        
+        -- Input de tecla customizada
+        createElement("button", "Key: RMB", scrollFrame, function()
+            if Functions and Functions.setAimbotKey then
+                Functions.setAimbotKey()
+            end
         end)
         
     elseif tabName == "Visual" then
