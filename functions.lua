@@ -15,6 +15,7 @@ local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
 
 local Functions = {}
 print("📦 Functions table criado")
@@ -39,40 +40,80 @@ Functions.Aimbot = {
     triggerbot = false,
     targetVisible = true,
     teamCheck = true,
-    activationMode = "Toggle" -- "Toggle", "Hold", "Always"
+    activationMode = "Toggle", -- "Toggle", "Hold", "Always"
+    activationKey = Enum.UserInputType.MouseButton2, -- RMB por padrão
+    keyName = "RMB"
 }
 
 function Functions.toggleAimbot(enabled)
     Functions.Aimbot.enabled = enabled
-    print(" Aimbot function called:", enabled)
+    print("🎯 Aimbot function called:", enabled)
     
     if enabled then
-        connections.aimbot = RunService.Heartbeat:Connect(function()
-            if Functions.Aimbot.enabled then
-                local target = Functions.getClosestPlayer()
-                if target and target.Character and target.Character:FindFirstChild("Head") then
-                    local targetPosition = target.Character.Head.Position
-                    local camera = Camera
-                    
-                    if Functions.Aimbot.smoothness > 0 then
-                        -- Smooth aimbot
-                        local currentCFrame = camera.CFrame
-                        local targetCFrame = CFrame.lookAt(camera.CFrame.Position, targetPosition)
-                        camera.CFrame = currentCFrame:Lerp(targetCFrame, 1 / Functions.Aimbot.smoothness)
-                    else
-                        -- Instant aimbot
-                        camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetPosition)
+        -- Configurar ativação baseada no modo
+        if Functions.Aimbot.activationMode == "Always" then
+            connections.aimbot = RunService.Heartbeat:Connect(function()
+                Functions.performAimbot()
+            end)
+        elseif Functions.Aimbot.activationMode == "Hold" then
+            connections.aimbotHold = UserInputService.InputBegan:Connect(function(input)
+                if input.UserInputType == Functions.Aimbot.activationKey then
+                    connections.aimbot = RunService.Heartbeat:Connect(function()
+                        Functions.performAimbot()
+                    end)
+                end
+            end)
+            connections.aimbotRelease = UserInputService.InputEnded:Connect(function(input)
+                if input.UserInputType == Functions.Aimbot.activationKey then
+                    if connections.aimbot then
+                        connections.aimbot:Disconnect()
+                        connections.aimbot = nil
                     end
                 end
-            end
-        end)
-        print("🎯 Aimbot ativado!")
-    else
-        if connections.aimbot then
-            connections.aimbot:Disconnect()
-            connections.aimbot = nil
+            end)
+        else -- Toggle mode
+            connections.aimbotToggle = UserInputService.InputBegan:Connect(function(input)
+                if input.UserInputType == Functions.Aimbot.activationKey then
+                    if connections.aimbot then
+                        connections.aimbot:Disconnect()
+                        connections.aimbot = nil
+                        print("🎯 Aimbot desativado (toggle)")
+                    else
+                        connections.aimbot = RunService.Heartbeat:Connect(function()
+                            Functions.performAimbot()
+                        end)
+                        print("🎯 Aimbot ativado (toggle)")
+                    end
+                end
+            end)
         end
+        print("🎯 Aimbot ativado! Modo:", Functions.Aimbot.activationMode, "Tecla:", Functions.Aimbot.keyName)
+    else
+        -- Desconectar todas as conexões do aimbot
+        if connections.aimbot then connections.aimbot:Disconnect() connections.aimbot = nil end
+        if connections.aimbotHold then connections.aimbotHold:Disconnect() connections.aimbotHold = nil end
+        if connections.aimbotRelease then connections.aimbotRelease:Disconnect() connections.aimbotRelease = nil end
+        if connections.aimbotToggle then connections.aimbotToggle:Disconnect() connections.aimbotToggle = nil end
         print("🎯 Aimbot desativado!")
+    end
+end
+
+function Functions.performAimbot()
+    if not Functions.Aimbot.enabled then return end
+    
+    local target = Functions.getClosestPlayer()
+    if target and target.Character and target.Character:FindFirstChild("Head") then
+        local targetPosition = target.Character.Head.Position
+        
+        if Functions.Aimbot.smoothness > 0 then
+            -- Smooth aimbot
+            local currentCFrame = Camera.CFrame
+            local targetCFrame = CFrame.lookAt(Camera.CFrame.Position, targetPosition)
+            Camera.CFrame = currentCFrame:Lerp(targetCFrame, 1 / Functions.Aimbot.smoothness)
+        else
+            -- Instant aimbot
+            Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, targetPosition)
+        end
     end
 end
 
@@ -84,6 +125,62 @@ end
 function Functions.setAimbotSmoothness(smoothness)
     Functions.Aimbot.smoothness = smoothness
     print("🎯 Aimbot Smoothness:", smoothness)
+end
+
+-- Função para ciclar entre modos de ativação
+function Functions.cycleAimbotMode()
+    local modes = {"Toggle", "Hold", "Always"}
+    local currentIndex = 1
+    for i, mode in ipairs(modes) do
+        if mode == Functions.Aimbot.activationMode then
+            currentIndex = i
+            break
+        end
+    end
+    local nextIndex = (currentIndex % #modes) + 1
+    Functions.Aimbot.activationMode = modes[nextIndex]
+    print("🎯 Aimbot Mode:", Functions.Aimbot.activationMode)
+    
+    -- Reativar aimbot se estiver ativo para aplicar novo modo
+    if Functions.Aimbot.enabled then
+        Functions.toggleAimbot(false)
+        Functions.toggleAimbot(true)
+    end
+end
+
+-- Função para definir tecla de ativação
+function Functions.setAimbotKey()
+    print("🔧 Pressione uma tecla para definir como ativação do aimbot...")
+    
+    local connection
+    connection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        local keyName = ""
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            keyName = "LMB"
+        elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+            keyName = "RMB"
+        elseif input.UserInputType == Enum.UserInputType.MouseButton3 then
+            keyName = "MMB"
+        elseif input.KeyCode ~= Enum.KeyCode.Unknown then
+            keyName = input.KeyCode.Name
+        else
+            return
+        end
+        
+        Functions.Aimbot.activationKey = input.UserInputType ~= Enum.UserInputType.Keyboard and input.UserInputType or input.KeyCode
+        Functions.Aimbot.keyName = keyName
+        print("🎯 Nova tecla de ativação:", keyName)
+        
+        -- Reativar aimbot se estiver ativo
+        if Functions.Aimbot.enabled then
+            Functions.toggleAimbot(false)
+            Functions.toggleAimbot(true)
+        end
+        
+        connection:Disconnect()
+    end)
 end
 
 function Functions.toggleSilentAim(enabled)
