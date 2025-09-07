@@ -1,21 +1,27 @@
--- Functions.lua - Todas as Funcionalidades do Menu
--- Biblioteca completa de funções para Roblox
+-- Evitar reload múltiplo
+if _G.FunctionsLoaded and _G.Functions then
+    print("♻️ Functions já carregado, retornando instância existente")
+    return _G.Functions
+end
 
-print("🔄 Functions.lua iniciando...")
+print("🔄 Carregando Functions.lua...")
 
+-- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
-local Camera = Workspace.CurrentCamera
 
 local player = Players.LocalPlayer
-local mouse = player:GetMouse()
 
 local Functions = {}
 print("📦 Functions table criado")
+
+-- Marcar como carregado no início
+_G.FunctionsLoaded = true
+_G.Functions = Functions
 
 -- Variáveis globais para controle
 local connections = {}
@@ -24,19 +30,21 @@ local originalSettings = {}
 -- ========================================
 -- AIMBOT FUNCTIONS
 -- ========================================
-
+-- Configurações do Aimbot
 Functions.Aimbot = {
     enabled = false,
     fov = 100,
     smoothness = 5,
-    targetVisible = true,
     silentAim = false,
-    triggerbot = false
+    triggerbot = false,
+    targetVisible = true,
+    teamCheck = true,
+    activationMode = "Toggle" -- "Toggle", "Hold", "Always"
 }
 
 function Functions.toggleAimbot(enabled)
     Functions.Aimbot.enabled = enabled
-    print("🎯 Aimbot function called:", enabled)
+    print(" Aimbot function called:", enabled)
     
     if enabled then
         connections.aimbot = RunService.Heartbeat:Connect(function()
@@ -102,28 +110,33 @@ function Functions.toggleTriggerbot(enabled)
             connections.triggerbot:Disconnect()
             connections.triggerbot = nil
         end
-        print("🔫 Triggerbot desativado!")
+        print(" Triggerbot desativado!")
     end
 end
 
 function Functions.getClosestPlayer()
     local closestPlayer = nil
-    local shortestDistance = Functions.Aimbot.fov
+    local shortestDistance = math.huge
     
-    for _, otherPlayer in pairs(Players:GetPlayers()) do
-        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local distance = (player.Character.HumanoidRootPart.Position - otherPlayer.Character.HumanoidRootPart.Position).Magnitude
+    for _, targetPlayer in pairs(Players:GetPlayers()) do
+        if targetPlayer ~= player and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
+            -- Team Check
+            if Functions.Aimbot.teamCheck and targetPlayer.Team == player.Team then
+                continue
+            end
             
-            if distance < shortestDistance then
-                if Functions.Aimbot.targetVisible then
-                    -- Verificar se o alvo está visível
-                    local raycast = Workspace:Raycast(Camera.CFrame.Position, (otherPlayer.Character.Head.Position - Camera.CFrame.Position).Unit * distance)
-                    if not raycast or raycast.Instance:IsDescendantOf(otherPlayer.Character) then
-                        closestPlayer = otherPlayer
-                        shortestDistance = distance
-                    end
-                else
-                    closestPlayer = otherPlayer
+            local targetPosition = targetPlayer.Character.Head.Position
+            local distance = (Camera.CFrame.Position - targetPosition).Magnitude
+            
+            -- Verificar FOV
+            local screenPoint = Camera:WorldToViewportPoint(targetPosition)
+            local centerX, centerY = Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2
+            local fovDistance = math.sqrt((screenPoint.X - centerX)^2 + (screenPoint.Y - centerY)^2)
+            
+            if fovDistance <= Functions.Aimbot.fov and distance < shortestDistance then
+                -- Verificar visibilidade se ativado
+                if not Functions.Aimbot.targetVisible or Functions.isPlayerVisible(targetPlayer) then
+                    closestPlayer = targetPlayer
                     shortestDistance = distance
                 end
             end
@@ -138,42 +151,60 @@ end
 -- ========================================
 
 Functions.Visual = {
-    esp = false,
-    espBoxes = false,
-    espItems = false,
+    espNames = false,
+    espSkeleton = false,
+    espDistance = false,
+    espChams = false,
+    espHealth = false,
+    espArmor = false,
+    teamCheck = true,
     fullbright = false,
-    removeFog = false,
-    chams = false,
     fov = 90,
-    espDistance = 1000
+    maxDistance = 1000
 }
 
-function Functions.toggleESP(enabled)
-    Functions.Visual.esp = enabled
-    
-    if enabled then
-        -- Criar ESP para todos os jogadores
-        for _, otherPlayer in pairs(Players:GetPlayers()) do
-            if otherPlayer ~= player then
-                Functions.createPlayerESP(otherPlayer)
-            end
+-- ESP Individual Functions
+function Functions.toggleESPNames(enabled)
+    Functions.Visual.espNames = enabled
+    Functions.updateAllESP()
+    print("👁️ ESP Names:", enabled)
+end
+
+function Functions.toggleESPSkeleton(enabled)
+    Functions.Visual.espSkeleton = enabled
+    Functions.updateAllESP()
+    print("🦴 ESP Skeleton:", enabled)
+end
+
+function Functions.toggleESPDistance(enabled)
+    Functions.Visual.espDistance = enabled
+    Functions.updateAllESP()
+    print("📏 ESP Distance:", enabled)
+end
+
+function Functions.toggleESPChams(enabled)
+    Functions.Visual.espChams = enabled
+    Functions.updateAllESP()
+    print("✨ ESP Chams:", enabled)
+end
+
+function Functions.toggleESPHealth(enabled)
+    Functions.Visual.espHealth = enabled
+    Functions.updateAllESP()
+    print("❤️ ESP Health:", enabled)
+end
+
+function Functions.toggleESPArmor(enabled)
+    Functions.Visual.espArmor = enabled
+    Functions.updateAllESP()
+    print("🛡️ ESP Armor:", enabled)
+end
+
+function Functions.updateAllESP()
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
+        if otherPlayer ~= player then
+            Functions.createPlayerESP(otherPlayer)
         end
-        
-        -- Conectar para novos jogadores
-        connections.espPlayerAdded = Players.PlayerAdded:Connect(Functions.createPlayerESP)
-        connections.espPlayerRemoving = Players.PlayerRemoving:Connect(Functions.removePlayerESP)
-        
-        print("👁️ ESP ativado!")
-    else
-        -- Remover ESP de todos os jogadores
-        for _, otherPlayer in pairs(Players:GetPlayers()) do
-            Functions.removePlayerESP(otherPlayer)
-        end
-        
-        if connections.espPlayerAdded then connections.espPlayerAdded:Disconnect() end
-        if connections.espPlayerRemoving then connections.espPlayerRemoving:Disconnect() end
-        
-        print("👁️ ESP desativado!")
     end
 end
 
@@ -183,49 +214,169 @@ function Functions.createPlayerESP(targetPlayer)
     local function addESPToCharacter(character)
         if not character then return end
         
+        -- Team Check
+        if Functions.Visual.teamCheck and targetPlayer.Team == player.Team then
+            return
+        end
+        
+        -- Distance Check
+        local distance = 0
+        if character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            distance = (character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            if distance > Functions.Visual.maxDistance then return end
+        end
+        
         -- Remover ESP existente
         Functions.removePlayerESP(targetPlayer)
         
-        -- Criar highlight
-        local highlight = Instance.new("Highlight")
-        highlight.Name = "PlayerESP"
-        highlight.FillColor = Color3.fromRGB(255, 100, 100)
-        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-        highlight.FillTransparency = 0.5
-        highlight.OutlineTransparency = 0
-        highlight.Parent = character
+        -- ESP Chams (Highlight)
+        if Functions.Visual.espChams then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "PlayerESP"
+            highlight.FillColor = Color3.fromRGB(255, 100, 100)
+            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            highlight.FillTransparency = 0.5
+            highlight.OutlineTransparency = 0
+            highlight.Parent = character
+        end
         
-        -- Criar nametag
+        -- ESP Names, Distance, Health, Armor
         local head = character:FindFirstChild("Head")
-        if head then
+        if head and (Functions.Visual.espNames or Functions.Visual.espDistance or Functions.Visual.espHealth or Functions.Visual.espArmor) then
             local billboardGui = Instance.new("BillboardGui")
-            billboardGui.Name = "ESPNameTag"
-            billboardGui.Size = UDim2.new(0, 200, 0, 50)
+            billboardGui.Name = "ESPInfo"
+            billboardGui.Size = UDim2.new(0, 200, 0, 100)
             billboardGui.StudsOffset = Vector3.new(0, 3, 0)
             billboardGui.Adornee = head
             billboardGui.Parent = head
             
-            local nameLabel = Instance.new("TextLabel")
-            nameLabel.Size = UDim2.new(1, 0, 1, 0)
-            nameLabel.BackgroundTransparency = 1
-            nameLabel.Text = targetPlayer.Name
-            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            nameLabel.TextSize = 16
-            nameLabel.Font = Enum.Font.GothamBold
-            nameLabel.TextStrokeTransparency = 0
-            nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-            nameLabel.Parent = billboardGui
+            local mainFrame = Instance.new("Frame")
+            mainFrame.Size = UDim2.new(1, 0, 1, 0)
+            mainFrame.BackgroundTransparency = 1
+            mainFrame.Parent = billboardGui
+            
+            local layout = Instance.new("UIListLayout")
+            layout.SortOrder = Enum.SortOrder.LayoutOrder
+            layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            layout.Parent = mainFrame
+            
+            -- Nome
+            if Functions.Visual.espNames then
+                local nameLabel = Instance.new("TextLabel")
+                nameLabel.Size = UDim2.new(1, 0, 0, 20)
+                nameLabel.BackgroundTransparency = 1
+                nameLabel.Text = targetPlayer.Name
+                nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                nameLabel.TextSize = 16
+                nameLabel.Font = Enum.Font.GothamBold
+                nameLabel.TextStrokeTransparency = 0
+                nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                nameLabel.LayoutOrder = 1
+                nameLabel.Parent = mainFrame
+            end
+            
+            -- Distância
+            if Functions.Visual.espDistance then
+                local distanceLabel = Instance.new("TextLabel")
+                distanceLabel.Size = UDim2.new(1, 0, 0, 16)
+                distanceLabel.BackgroundTransparency = 1
+                distanceLabel.Text = math.floor(distance) .. "m"
+                distanceLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+                distanceLabel.TextSize = 14
+                distanceLabel.Font = Enum.Font.Gotham
+                distanceLabel.TextStrokeTransparency = 0
+                distanceLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                distanceLabel.LayoutOrder = 2
+                distanceLabel.Parent = mainFrame
+            end
+            
+            -- Vida
+            if Functions.Visual.espHealth then
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    local healthLabel = Instance.new("TextLabel")
+                    healthLabel.Size = UDim2.new(1, 0, 0, 16)
+                    healthLabel.BackgroundTransparency = 1
+                    healthLabel.Text = "HP: " .. math.floor(humanoid.Health) .. "/" .. math.floor(humanoid.MaxHealth)
+                    healthLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+                    healthLabel.TextSize = 12
+                    healthLabel.Font = Enum.Font.Gotham
+                    healthLabel.TextStrokeTransparency = 0
+                    healthLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                    healthLabel.LayoutOrder = 3
+                    healthLabel.Parent = mainFrame
+                end
+            end
+            
+            -- Colete (simulado)
+            if Functions.Visual.espArmor then
+                local armorLabel = Instance.new("TextLabel")
+                armorLabel.Size = UDim2.new(1, 0, 0, 16)
+                armorLabel.BackgroundTransparency = 1
+                armorLabel.Text = "Armor: 100/100"
+                armorLabel.TextColor3 = Color3.fromRGB(100, 100, 255)
+                armorLabel.TextSize = 12
+                armorLabel.Font = Enum.Font.Gotham
+                armorLabel.TextStrokeTransparency = 0
+                armorLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                armorLabel.LayoutOrder = 4
+                armorLabel.Parent = mainFrame
+            end
+        end
+        
+        -- ESP Skeleton
+        if Functions.Visual.espSkeleton then
+            Functions.createSkeletonESP(character)
         end
     end
     
-    -- Adicionar ESP ao personagem atual
+    -- Add ESP to current character
     if targetPlayer.Character then
         addESPToCharacter(targetPlayer.Character)
     end
     
-    -- Conectar para quando o jogador respawnar
+    -- Connect for respawn
     if not connections["esp_" .. targetPlayer.Name] then
         connections["esp_" .. targetPlayer.Name] = targetPlayer.CharacterAdded:Connect(addESPToCharacter)
+    end
+end
+
+function Functions.createSkeletonESP(character)
+    if not character then return end
+    
+    local function createLine(part1, part2, name)
+        if not part1 or not part2 then return end
+        
+        local attachment1 = Instance.new("Attachment")
+        attachment1.Parent = part1
+        
+        local attachment2 = Instance.new("Attachment")
+        attachment2.Parent = part2
+        
+        local beam = Instance.new("Beam")
+        beam.Name = "SkeletonESP_" .. name
+        beam.Attachment0 = attachment1
+        beam.Attachment1 = attachment2
+        beam.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
+        beam.Width0 = 0.1
+        beam.Width1 = 0.1
+        beam.Parent = part1
+    end
+    
+    -- Conectar partes do corpo
+    local head = character:FindFirstChild("Head")
+    local torso = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+    local leftArm = character:FindFirstChild("Left Arm") or character:FindFirstChild("LeftUpperArm")
+    local rightArm = character:FindFirstChild("Right Arm") or character:FindFirstChild("RightUpperArm")
+    local leftLeg = character:FindFirstChild("Left Leg") or character:FindFirstChild("LeftUpperLeg")
+    local rightLeg = character:FindFirstChild("Right Leg") or character:FindFirstChild("RightUpperLeg")
+    
+    if torso then
+        if head then createLine(head, torso, "HeadTorso") end
+        if leftArm then createLine(torso, leftArm, "TorsoLeftArm") end
+        if rightArm then createLine(torso, rightArm, "TorsoRightArm") end
+        if leftLeg then createLine(torso, leftLeg, "TorsoLeftLeg") end
+        if rightLeg then createLine(torso, rightLeg, "TorsoRightLeg") end
     end
 end
 
@@ -233,21 +384,36 @@ function Functions.removePlayerESP(targetPlayer)
     if not targetPlayer then return end
     
     if targetPlayer.Character then
+        -- Remove highlight
         local highlight = targetPlayer.Character:FindFirstChild("PlayerESP")
         if highlight then highlight:Destroy() end
         
+        -- Remove info GUI
         local head = targetPlayer.Character:FindFirstChild("Head")
         if head then
-            local nameTag = head:FindFirstChild("ESPNameTag")
-            if nameTag then nameTag:Destroy() end
+            local infoGui = head:FindFirstChild("ESPInfo")
+            if infoGui then infoGui:Destroy() end
+        end
+        
+        -- Remove skeleton ESP
+        for _, part in pairs(targetPlayer.Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                for _, child in pairs(part:GetChildren()) do
+                    if child:IsA("Beam") and child.Name:find("SkeletonESP") then
+                        child:Destroy()
+                    end
+                    if child:IsA("Attachment") and child.Parent == part then
+                        child:Destroy()
+                    end
+                end
+            end
         end
     end
     
-    -- Desconectar connection do respawn
-    local connectionName = "esp_" .. targetPlayer.Name
-    if connections[connectionName] then
-        connections[connectionName]:Disconnect()
-        connections[connectionName] = nil
+    -- Disconnect connection
+    if connections["esp_" .. targetPlayer.Name] then
+        connections["esp_" .. targetPlayer.Name]:Disconnect()
+        connections["esp_" .. targetPlayer.Name] = nil
     end
 end
 
@@ -313,8 +479,9 @@ function Functions.setFOV(fov)
 end
 
 function Functions.setESPDistance(distance)
-    Functions.Visual.espDistance = distance
-    print("📏 ESP Distance:", distance)
+    Functions.Visual.maxDistance = distance
+    Functions.updateAllESP()
+    print("📏 ESP Distance set to:", distance)
 end
 
 -- ========================================
