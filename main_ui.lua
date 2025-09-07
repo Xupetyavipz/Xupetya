@@ -279,12 +279,18 @@ tabFrames = {aimbotFrame, visualFrame, miscFrame}
 
 -- Função para criar elementos de UI
 local function createElement(type, text, parent, callback, minValue, maxValue, defaultValue)
-    print("🔨 Criando elemento:", type, text)
+    print("🔨 Criando elemento:", type, text, "Parent:", parent and parent.Name or "nil")
+    
+    -- Forçar parent como scrollFrame se não especificado
+    local targetParent = scrollFrame
+    
     local element = Instance.new("Frame")
     element.Size = UDim2.new(1, -20, 0, 35)
     element.BackgroundColor3 = Color3.fromRGB(30, 25, 40)
     element.BorderSizePixel = 0
-    element.Parent = parent or scrollFrame
+    element.Parent = targetParent
+    
+    print("✅ Elemento criado e adicionado ao parent:", targetParent.Name)
     
     local elementCorner = Instance.new("UICorner")
     elementCorner.CornerRadius = UDim.new(0, 6)
@@ -442,21 +448,28 @@ local function showTabContent(tabName)
     
     -- Limpar conteúdo anterior
     for _, child in pairs(scrollFrame:GetChildren()) do
-        if child:IsA("Frame") and child ~= contentList then
+        if child:IsA("Frame") and child.Name ~= "UIListLayout" then
+            print("🗑️ Removendo:", child.Name)
             child:Destroy()
         end
     end
     
+    -- Debug: verificar scrollFrame
+    print("📋 ScrollFrame children count:", #scrollFrame:GetChildren())
+    print("📋 ScrollFrame size:", scrollFrame.AbsoluteSize)
+    print("📋 ScrollFrame visible:", scrollFrame.Visible)
+    
     config.currentTab = tabName
     
     -- Atualizar aparência das abas
-    for i, tabFrame in pairs(tabFrames) do
-        if tabFrame.Name == tabName .. "Tab" then
-            tabFrame.BackgroundColor3 = Color3.fromRGB(140, 100, 200)
-            tabFrame:FindFirstChild("TextLabel").TextColor3 = Color3.fromRGB(255, 255, 255)
+    for i, tab in pairs(tabs) do
+        local tabNames = {"Aimbot", "Visual", "Misc"}
+        if tabNames[i] == tabName then
+            tab.BackgroundColor3 = Color3.fromRGB(140, 100, 200)
+            tab.TextColor3 = Color3.fromRGB(255, 255, 255)
         else
-            tabFrame.BackgroundColor3 = Color3.fromRGB(35, 25, 45)
-            tabFrame:FindFirstChild("TextLabel").TextColor3 = Color3.fromRGB(180, 160, 200)
+            tab.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+            tab.TextColor3 = Color3.fromRGB(200, 200, 200)
         end
     end
     
@@ -531,6 +544,14 @@ local function showTabContent(tabName)
         
     elseif tabName == "Visual" then
         print("🔧 Criando elementos Visual...")
+        
+        -- Teste: criar elemento diretamente
+        local testElement = Instance.new("Frame")
+        testElement.Size = UDim2.new(1, -20, 0, 35)
+        testElement.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Vermelho para teste
+        testElement.Parent = scrollFrame
+        print("🔴 Elemento teste vermelho criado")
+        
         createElement("toggle", "ESP Names", scrollFrame, {
             toggle = function(enabled)
                 print("ESP Names toggle:", enabled)
