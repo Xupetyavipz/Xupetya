@@ -9,13 +9,20 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Carregar Functions
-print("🔄 Carregando Functions...")
-local Functions
-pcall(function()
-    Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/Xupetyavipz/Xupetya/refs/heads/main/functions.lua"))()
-end)
-print("✅ Functions carregado:", Functions and "SUCCESS" or "FAILED")
+-- Carregar Functions (apenas uma vez)
+if not _G.FunctionsLoaded then
+    print("🔄 Carregando Functions...")
+    local Functions
+    pcall(function()
+        Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/Xupetyavipz/Xupetya/refs/heads/main/functions.lua"))()
+    end)
+    print("✅ Functions carregado:", Functions and "SUCCESS" or "FAILED")
+    _G.Functions = Functions
+    _G.FunctionsLoaded = true
+else
+    print("♻️ Usando Functions já carregado")
+end
+local Functions = _G.Functions
 
 -- Fallback se Functions não carregar
 if not Functions then
@@ -255,7 +262,7 @@ tabs = {aimbotTab, visualTab, miscTab}
 tabFrames = {aimbotFrame, visualFrame, miscFrame}
 
 -- Função para criar elementos de UI
-local function createElement(type, text, parent, callback)
+local function createElement(type, text, parent, callback, minValue, maxValue, defaultValue)
     local element = Instance.new("Frame")
     element.Size = UDim2.new(1, -20, 0, 35)
     element.BackgroundColor3 = Color3.fromRGB(30, 25, 40)
@@ -302,6 +309,12 @@ local function createElement(type, text, parent, callback)
         end)
         
     elseif type == "slider" then
+        minValue = minValue or 0
+        maxValue = maxValue or 100
+        defaultValue = defaultValue or minValue
+        
+        local currentValue = defaultValue
+        
         local slider = Instance.new("Frame")
         slider.Size = UDim2.new(0, 100, 0, 6)
         slider.Position = UDim2.new(1, -110, 0.5, -3)
@@ -315,7 +328,7 @@ local function createElement(type, text, parent, callback)
         
         local handle = Instance.new("Frame")
         handle.Size = UDim2.new(0, 12, 0, 12)
-        handle.Position = UDim2.new(0, -6, 0.5, -6)
+        handle.Position = UDim2.new((defaultValue - minValue) / (maxValue - minValue), -6, 0.5, -6)
         handle.BackgroundColor3 = Color3.fromRGB(160, 120, 200)
         handle.BorderSizePixel = 0
         handle.Parent = slider
@@ -323,6 +336,38 @@ local function createElement(type, text, parent, callback)
         local handleCorner = Instance.new("UICorner")
         handleCorner.CornerRadius = UDim.new(0, 6)
         handleCorner.Parent = handle
+        
+        -- Atualizar texto inicial
+        label.Text = text:gsub("%d+", tostring(currentValue))
+        
+        -- Sistema de drag funcional
+        local dragging = false
+        
+        handle.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+            end
+        end)
+        
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local relativePos = math.clamp((input.Position.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X, 0, 1)
+                currentValue = math.floor(minValue + (maxValue - minValue) * relativePos)
+                
+                handle.Position = UDim2.new(relativePos, -6, 0.5, -6)
+                label.Text = text:gsub("%d+", tostring(currentValue))
+                
+                if callback then
+                    callback(currentValue)
+                end
+            end
+        end)
         
     elseif type == "button" then
         local button = Instance.new("TextButton")
@@ -380,37 +425,74 @@ local function showTabContent(tabName)
                 print("❌ Functions.toggleAimbot not found!")
             end
         end)
-        createElement("slider", "Aimbot FOV: 100", scrollFrame, Functions.setAimbotFOV)
+        createElement("slider", "Aimbot FOV: 100", scrollFrame, function(value)
+            if Functions and Functions.setAimbotFOV then Functions.setAimbotFOV(value) end
+        end, 50, 360, 100)
+        createElement("slider", "Smoothness: 5", scrollFrame, function(value)
+            if Functions and Functions.setAimbotSmoothness then Functions.setAimbotSmoothness(value) end
+        end, 1, 20, 5)
         createElement("toggle", "Silent Aim", scrollFrame, Functions.toggleSilentAim)
         createElement("toggle", "Triggerbot", scrollFrame, Functions.toggleTriggerbot)
-        createElement("slider", "Smoothness: 5", scrollFrame, Functions.setAimbotSmoothness)
-        createElement("toggle", "Target Visible Only", scrollFrame, function(enabled)
-            Functions.Aimbot.targetVisible = enabled
+        createElement("toggle", "Team Check", scrollFrame, function(enabled)
+            if Functions then Functions.Aimbot.teamCheck = enabled end
         end)
-        createElement("button", "Reset Aimbot", scrollFrame, function()
-            Functions.toggleAimbot(false)
+        createElement("toggle", "Target Visible Only", scrollFrame, function(enabled)
+            if Functions then Functions.Aimbot.targetVisible = enabled end
+        end)
+        
+        -- Modo de ativação do Aimbot
+        createElement("button", "Mode: Toggle", scrollFrame, function()
+            -- Ciclar entre modos: Toggle -> Hold -> Always
+            local modes = {"Toggle", "Hold", "Always"}
+            local currentMode = Functions and Functions.Aimbot.activationMode or "Toggle"
+            local currentIndex = 1
+            for i, mode in ipairs(modes) do
+                if mode == currentMode then currentIndex = i break end
+            end
+            local nextIndex = (currentIndex % #modes) + 1
+            local newMode = modes[nextIndex]
+            
+            if Functions then Functions.Aimbot.activationMode = newMode end
+            print("🎯 Aimbot Mode:", newMode)
         end)
         
     elseif tabName == "Visual" then
-        createElement("toggle", "ESP Players", scrollFrame, function(enabled)
-            print("🔧 UI Toggle clicked - ESP:", enabled)
-            if Functions and Functions.toggleESP then
-                Functions.toggleESP(enabled)
-            else
-                print("❌ Functions.toggleESP not found!")
-            end
+        createElement("toggle", "ESP Names", scrollFrame, function(enabled)
+            if Functions and Functions.toggleESPNames then Functions.toggleESPNames(enabled) end
         end)
-        createElement("toggle", "ESP Items", scrollFrame, Functions.toggleESPItems)
-        createElement("toggle", "ESP Boxes", scrollFrame, Functions.toggleESPBoxes)
-        createElement("slider", "FOV: 90", scrollFrame, Functions.setFOV)
+        createElement("toggle", "ESP Skeleton", scrollFrame, function(enabled)
+            if Functions and Functions.toggleESPSkeleton then Functions.toggleESPSkeleton(enabled) end
+        end)
+        createElement("toggle", "ESP Distance", scrollFrame, function(enabled)
+            if Functions and Functions.toggleESPDistance then Functions.toggleESPDistance(enabled) end
+        end)
+        createElement("toggle", "ESP Chams", scrollFrame, function(enabled)
+            if Functions and Functions.toggleESPChams then Functions.toggleESPChams(enabled) end
+        end)
+        createElement("toggle", "ESP Health", scrollFrame, function(enabled)
+            if Functions and Functions.toggleESPHealth then Functions.toggleESPHealth(enabled) end
+        end)
+        createElement("toggle", "ESP Armor", scrollFrame, function(enabled)
+            if Functions and Functions.toggleESPArmor then Functions.toggleESPArmor(enabled) end
+        end)
+        createElement("toggle", "Team Check", scrollFrame, function(enabled)
+            if Functions then Functions.Visual.teamCheck = enabled end
+        end)
+        createElement("slider", "ESP Distance: 1000", scrollFrame, function(value)
+            if Functions and Functions.setESPDistance then Functions.setESPDistance(value) end
+        end, 100, 5000, 1000)
+        createElement("slider", "FOV: 90", scrollFrame, function(value)
+            if Functions and Functions.setFOV then Functions.setFOV(value) end
+        end, 60, 120, 90)
         createElement("toggle", "Fullbright", scrollFrame, Functions.toggleFullbright)
-        createElement("toggle", "Remove Fog", scrollFrame, Functions.toggleRemoveFog)
-        createElement("toggle", "Chams", scrollFrame, Functions.toggleChams)
-        createElement("slider", "ESP Distance: 1000", scrollFrame, Functions.setESPDistance)
         
     elseif tabName == "Misc" then
-        createElement("slider", "Walk Speed: 16", scrollFrame, Functions.setWalkSpeed)
-        createElement("slider", "Jump Power: 50", scrollFrame, Functions.setJumpPower)
+        createElement("slider", "Walk Speed: 16", scrollFrame, function(value)
+            if Functions and Functions.setWalkSpeed then Functions.setWalkSpeed(value) end
+        end, 16, 100, 16)
+        createElement("slider", "Jump Power: 50", scrollFrame, function(value)
+            if Functions and Functions.setJumpPower then Functions.setJumpPower(value) end
+        end, 50, 200, 50)
         createElement("toggle", "Infinite Jump", scrollFrame, Functions.toggleInfiniteJump)
         createElement("toggle", "No Clip", scrollFrame, Functions.toggleNoClip)
         createElement("toggle", "Fly", scrollFrame, Functions.toggleFly)
