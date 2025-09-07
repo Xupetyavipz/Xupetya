@@ -1,7 +1,6 @@
 -- Functions.lua - Todas as Funcionalidades do Menu
 -- Biblioteca completa de funções para Roblox
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Xupetyavipz/Xupetya/refs/heads/main/main_ui.lua"))()
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
