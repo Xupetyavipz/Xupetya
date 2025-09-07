@@ -140,7 +140,7 @@ title.Name = "Title"
 title.Size = UDim2.new(0, 180, 1, 0)
 title.Position = UDim2.new(0, 55, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "Advanced Menu"
+title.Text = "SPWARE"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextSize = 18
 title.TextXAlignment = Enum.TextXAlignment.Left
@@ -437,9 +437,11 @@ end
 
 -- Função para mostrar conteúdo da aba
 local function showTabContent(tabName)
+    print("🔄 Mostrando conteúdo da aba:", tabName)
+    
     -- Limpar conteúdo anterior
     for _, child in pairs(scrollFrame:GetChildren()) do
-        if child:IsA("Frame") then
+        if child:IsA("Frame") and child.Name ~= "UIListLayout" then
             child:Destroy()
         end
     end
@@ -458,6 +460,7 @@ local function showTabContent(tabName)
     end
     
     -- Conteúdo específico de cada aba
+    print("📋 Criando elementos para aba:", tabName)
     if tabName == "Aimbot" then
         createElement("toggle", "Enable Aimbot", scrollFrame, {
             toggle = function(enabled)
@@ -628,16 +631,25 @@ local function showTabContent(tabName)
                 return Functions and Functions.Misc and Functions.Misc.fly or false
             end
         })
-        createElement("button", "Reset Character", scrollFrame, Functions.resetCharacter)
-        createElement("button", "Save Config", scrollFrame, Functions.saveConfig)
-        createElement("button", "Load Config", scrollFrame, Functions.loadConfig)
+        createElement("button", "Reset Character", scrollFrame, function()
+            if Functions and Functions.resetCharacter then Functions.resetCharacter() end
+        end)
+        createElement("button", "Save Config", scrollFrame, function()
+            if Functions and Functions.saveConfig then Functions.saveConfig() end
+        end)
+        createElement("button", "Load Config", scrollFrame, function()
+            if Functions and Functions.loadConfig then Functions.loadConfig() end
+        end)
         createElement("button", "Unload Script", scrollFrame, function()
-            Functions.cleanup()
+            if Functions and Functions.cleanup then Functions.cleanup() end
             screenGui:Destroy()
         end)
     end
     
+    print("✅ Elementos criados para aba:", tabName)
+    
     -- Atualizar tamanho do scroll
+    wait(0.1) -- Aguardar elementos serem criados
     scrollFrame.CanvasSize = UDim2.new(0, 0, 0, contentList.AbsoluteContentSize.Y + 20)
 end
 
@@ -645,6 +657,7 @@ end
 for i, tab in pairs(tabs) do
     tab.MouseButton1Click:Connect(function()
         local tabNames = {"Aimbot", "Visual", "Misc"}
+        print("🖱️ Clicou na aba:", tabNames[i])
         showTabContent(tabNames[i])
     end)
 end
@@ -706,6 +719,13 @@ local function toggleMenu()
     
     if config.menuVisible then
         showTabContent("Aimbot")
+    end
+    
+    -- Debug: Forçar atualização das abas
+    RunService.Heartbeat:Wait()
+    for i, tab in pairs(tabs) do
+        local tabNames = {"Aimbot", "Visual", "Misc"}
+        print("🔧 Debug - Aba", i, ":", tabNames[i], "existe:", tab ~= nil)
     end
 end
 
