@@ -279,11 +279,12 @@ tabFrames = {aimbotFrame, visualFrame, miscFrame}
 
 -- Função para criar elementos de UI
 local function createElement(type, text, parent, callback, minValue, maxValue, defaultValue)
+    print("🔨 Criando elemento:", type, text)
     local element = Instance.new("Frame")
     element.Size = UDim2.new(1, -20, 0, 35)
     element.BackgroundColor3 = Color3.fromRGB(30, 25, 40)
     element.BorderSizePixel = 0
-    element.Parent = parent
+    element.Parent = parent or scrollFrame
     
     local elementCorner = Instance.new("UICorner")
     elementCorner.CornerRadius = UDim.new(0, 6)
@@ -441,7 +442,7 @@ local function showTabContent(tabName)
     
     -- Limpar conteúdo anterior
     for _, child in pairs(scrollFrame:GetChildren()) do
-        if child:IsA("Frame") and child.Name ~= "UIListLayout" then
+        if child:IsA("Frame") and child ~= contentList then
             child:Destroy()
         end
     end
@@ -529,8 +530,10 @@ local function showTabContent(tabName)
         end)
         
     elseif tabName == "Visual" then
+        print("🔧 Criando elementos Visual...")
         createElement("toggle", "ESP Names", scrollFrame, {
             toggle = function(enabled)
+                print("ESP Names toggle:", enabled)
                 if Functions and Functions.toggleESPNames then Functions.toggleESPNames(enabled) end
             end,
             getState = function()
@@ -539,6 +542,7 @@ local function showTabContent(tabName)
         })
         createElement("toggle", "ESP Skeleton", scrollFrame, {
             toggle = function(enabled)
+                print("ESP Skeleton toggle:", enabled)
                 if Functions and Functions.toggleESPSkeleton then Functions.toggleESPSkeleton(enabled) end
             end,
             getState = function()
@@ -547,6 +551,7 @@ local function showTabContent(tabName)
         })
         createElement("toggle", "ESP Distance", scrollFrame, {
             toggle = function(enabled)
+                print("ESP Distance toggle:", enabled)
                 if Functions and Functions.toggleESPDistance then Functions.toggleESPDistance(enabled) end
             end,
             getState = function()
@@ -555,6 +560,7 @@ local function showTabContent(tabName)
         })
         createElement("toggle", "ESP Chams", scrollFrame, {
             toggle = function(enabled)
+                print("ESP Chams toggle:", enabled)
                 if Functions and Functions.toggleESPChams then Functions.toggleESPChams(enabled) end
             end,
             getState = function()
@@ -563,6 +569,7 @@ local function showTabContent(tabName)
         })
         createElement("toggle", "ESP Health", scrollFrame, {
             toggle = function(enabled)
+                print("ESP Health toggle:", enabled)
                 if Functions and Functions.toggleESPHealth then Functions.toggleESPHealth(enabled) end
             end,
             getState = function()
@@ -571,6 +578,7 @@ local function showTabContent(tabName)
         })
         createElement("toggle", "ESP Armor", scrollFrame, {
             toggle = function(enabled)
+                print("ESP Armor toggle:", enabled)
                 if Functions and Functions.toggleESPArmor then Functions.toggleESPArmor(enabled) end
             end,
             getState = function()
@@ -579,6 +587,7 @@ local function showTabContent(tabName)
         })
         createElement("toggle", "Team Check", scrollFrame, {
             toggle = function(enabled)
+                print("Visual Team Check toggle:", enabled)
                 if Functions then Functions.Visual.teamCheck = enabled end
             end,
             getState = function()
@@ -586,13 +595,16 @@ local function showTabContent(tabName)
             end
         })
         createElement("slider", "ESP Distance: 1000", scrollFrame, function(value)
+            print("ESP Distance slider:", value)
             if Functions and Functions.setESPDistance then Functions.setESPDistance(value) end
         end, 100, 5000, 1000)
         createElement("slider", "FOV: 90", scrollFrame, function(value)
+            print("FOV slider:", value)
             if Functions and Functions.setFOV then Functions.setFOV(value) end
         end, 60, 120, 90)
         createElement("toggle", "Fullbright", scrollFrame, {
             toggle = function(enabled)
+                print("Fullbright toggle:", enabled)
                 if Functions and Functions.toggleFullbright then Functions.toggleFullbright(enabled) end
             end,
             getState = function()
@@ -601,14 +613,18 @@ local function showTabContent(tabName)
         })
         
     elseif tabName == "Misc" then
+        print("🔧 Criando elementos Misc...")
         createElement("slider", "Walk Speed: 16", scrollFrame, function(value)
+            print("Walk Speed slider:", value)
             if Functions and Functions.setWalkSpeed then Functions.setWalkSpeed(value) end
         end, 16, 100, 16)
         createElement("slider", "Jump Power: 50", scrollFrame, function(value)
+            print("Jump Power slider:", value)
             if Functions and Functions.setJumpPower then Functions.setJumpPower(value) end
         end, 50, 200, 50)
         createElement("toggle", "Infinite Jump", scrollFrame, {
             toggle = function(enabled)
+                print("Infinite Jump toggle:", enabled)
                 if Functions and Functions.toggleInfiniteJump then Functions.toggleInfiniteJump(enabled) end
             end,
             getState = function()
@@ -617,6 +633,7 @@ local function showTabContent(tabName)
         })
         createElement("toggle", "No Clip", scrollFrame, {
             toggle = function(enabled)
+                print("No Clip toggle:", enabled)
                 if Functions and Functions.toggleNoClip then Functions.toggleNoClip(enabled) end
             end,
             getState = function()
@@ -625,6 +642,7 @@ local function showTabContent(tabName)
         })
         createElement("toggle", "Fly", scrollFrame, {
             toggle = function(enabled)
+                print("Fly toggle:", enabled)
                 if Functions and Functions.toggleFly then Functions.toggleFly(enabled) end
             end,
             getState = function()
@@ -632,15 +650,19 @@ local function showTabContent(tabName)
             end
         })
         createElement("button", "Reset Character", scrollFrame, function()
+            print("Reset Character clicked")
             if Functions and Functions.resetCharacter then Functions.resetCharacter() end
         end)
         createElement("button", "Save Config", scrollFrame, function()
+            print("Save Config clicked")
             if Functions and Functions.saveConfig then Functions.saveConfig() end
         end)
         createElement("button", "Load Config", scrollFrame, function()
+            print("Load Config clicked")
             if Functions and Functions.loadConfig then Functions.loadConfig() end
         end)
         createElement("button", "Unload Script", scrollFrame, function()
+            print("Unload Script clicked")
             if Functions and Functions.cleanup then Functions.cleanup() end
             screenGui:Destroy()
         end)
@@ -649,8 +671,9 @@ local function showTabContent(tabName)
     print("✅ Elementos criados para aba:", tabName)
     
     -- Atualizar tamanho do scroll
-    wait(0.1) -- Aguardar elementos serem criados
+    RunService.Heartbeat:Wait()
     scrollFrame.CanvasSize = UDim2.new(0, 0, 0, contentList.AbsoluteContentSize.Y + 20)
+    print("📏 Canvas size atualizado:", contentList.AbsoluteContentSize.Y)
 end
 
 -- Conectar eventos das abas
