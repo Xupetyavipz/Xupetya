@@ -67,8 +67,8 @@ function Functions.createPlayerList()
     local frame = Instance.new("Frame")
     frame.Name = "PlayerListFrame"
     frame.Parent = playerListGui
-    frame.Size = UDim2.new(0, 300, 0, 400)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+    frame.Size = UDim2.new(0, 400, 0, 500)
+    frame.Position = UDim2.new(0.5, -200, 0.5, -250)
     frame.BackgroundColor3 = Theme.Background
     frame.BorderSizePixel = 0
     
@@ -212,12 +212,19 @@ function Functions.createPlayerList()
         
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= Players.LocalPlayer and (searchTerm == "" or player.Name:lower():find(searchTerm)) then
+                local distance = "N/A"
+                if Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and 
+                   player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local dist = (Players.LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                    distance = math.floor(dist) .. "m"
+                end
+                
                 local playerBtn = Instance.new("TextButton")
                 playerBtn.Parent = scrollFrame
-                playerBtn.Size = UDim2.new(1, 0, 0, 30)
+                playerBtn.Size = UDim2.new(1, 0, 0, 40)
                 playerBtn.BackgroundColor3 = Theme.Elevated
                 playerBtn.BorderSizePixel = 0
-                playerBtn.Text = player.Name .. " (" .. player.DisplayName .. ")"
+                playerBtn.Text = player.Name .. " (" .. player.DisplayName .. ") - " .. distance
                 playerBtn.TextColor3 = Theme.TextPrimary
                 playerBtn.TextSize = 12
                 playerBtn.Font = Enum.Font.Gotham
@@ -382,16 +389,14 @@ function Functions.toggleAimbot(enabled)
     print("🎯 Aimbot:", enabled and "ENABLED" or "DISABLED")
 end
 
-function Functions.toggleESP(enabled)
-    _G.ESPEnabled = enabled
+-- ESP Functions
+function Functions.toggleBoxESP(enabled)
+    _G.BoxESPEnabled = enabled
     if enabled then
         spawn(function()
-            local Players = game:GetService("Players")
-            local LocalPlayer = Players.LocalPlayer
-            
-            while _G.ESPEnabled do
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            while _G.BoxESPEnabled do
+                for _, player in pairs(game.Players:GetPlayers()) do
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                         if not player.Character:FindFirstChild("ESP_Box") then
                             local box = Instance.new("BoxHandleAdornment")
                             box.Name = "ESP_Box"
@@ -404,7 +409,7 @@ function Functions.toggleESP(enabled)
                         end
                     end
                 end
-                wait(1)
+                wait(0.5)
             end
         end)
     else
@@ -414,7 +419,140 @@ function Functions.toggleESP(enabled)
             end
         end
     end
-    print("👁️ ESP:", enabled and "ENABLED" or "DISABLED")
+    print("📦 Box ESP:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleNameESP(enabled)
+    _G.NameESPEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.NameESPEnabled do
+                for _, player in pairs(game.Players:GetPlayers()) do
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                        if not player.Character.Head:FindFirstChild("NameESP") then
+                            local billboard = Instance.new("BillboardGui")
+                            billboard.Name = "NameESP"
+                            billboard.Parent = player.Character.Head
+                            billboard.Size = UDim2.new(0, 200, 0, 50)
+                            billboard.StudsOffset = Vector3.new(0, 2, 0)
+                            billboard.AlwaysOnTop = true
+                            
+                            local nameLabel = Instance.new("TextLabel")
+                            nameLabel.Parent = billboard
+                            nameLabel.Size = UDim2.new(1, 0, 1, 0)
+                            nameLabel.BackgroundTransparency = 1
+                            nameLabel.Text = player.Name
+                            nameLabel.TextColor3 = Color3.new(1, 1, 1)
+                            nameLabel.TextSize = 16
+                            nameLabel.Font = Enum.Font.GothamBold
+                            nameLabel.TextStrokeTransparency = 0
+                            nameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+                        end
+                    end
+                end
+                wait(0.5)
+            end
+        end)
+    else
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("Head") and player.Character.Head:FindFirstChild("NameESP") then
+                player.Character.Head.NameESP:Destroy()
+            end
+        end
+    end
+    print("📝 Name ESP:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleDistanceESP(enabled)
+    _G.DistanceESPEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.DistanceESPEnabled do
+                for _, player in pairs(game.Players:GetPlayers()) do
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                        if not player.Character.Head:FindFirstChild("DistanceESP") then
+                            local billboard = Instance.new("BillboardGui")
+                            billboard.Name = "DistanceESP"
+                            billboard.Parent = player.Character.Head
+                            billboard.Size = UDim2.new(0, 200, 0, 30)
+                            billboard.StudsOffset = Vector3.new(0, -1, 0)
+                            billboard.AlwaysOnTop = true
+                            
+                            local distLabel = Instance.new("TextLabel")
+                            distLabel.Parent = billboard
+                            distLabel.Size = UDim2.new(1, 0, 1, 0)
+                            distLabel.BackgroundTransparency = 1
+                            distLabel.TextColor3 = Color3.new(0, 1, 0)
+                            distLabel.TextSize = 14
+                            distLabel.Font = Enum.Font.Gotham
+                            distLabel.TextStrokeTransparency = 0
+                            distLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+                        end
+                    end
+                end
+                
+                -- Update distances
+                if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    for _, player in pairs(game.Players:GetPlayers()) do
+                        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                            local distESP = player.Character.Head:FindFirstChild("DistanceESP")
+                            if distESP then
+                                local distance = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                                distESP.TextLabel.Text = math.floor(distance) .. "m"
+                            end
+                        end
+                    end
+                end
+                wait(0.1)
+            end
+        end)
+    else
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("Head") and player.Character.Head:FindFirstChild("DistanceESP") then
+                player.Character.Head.DistanceESP:Destroy()
+            end
+        end
+    end
+    print("📏 Distance ESP:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleTracers(enabled)
+    _G.TracersEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.TracersEnabled do
+                for _, player in pairs(game.Players:GetPlayers()) do
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        if not workspace.CurrentCamera:FindFirstChild("Tracer_" .. player.Name) then
+                            local beam = Instance.new("Beam")
+                            beam.Name = "Tracer_" .. player.Name
+                            beam.Parent = workspace.CurrentCamera
+                            beam.Color = ColorSequence.new(Color3.new(1, 0, 0))
+                            beam.Transparency = NumberSequence.new(0.5)
+                            beam.Width0 = 0.5
+                            beam.Width1 = 0.5
+                            
+                            local attach0 = Instance.new("Attachment")
+                            attach0.Parent = workspace.CurrentCamera
+                            local attach1 = Instance.new("Attachment")
+                            attach1.Parent = player.Character.HumanoidRootPart
+                            
+                            beam.Attachment0 = attach0
+                            beam.Attachment1 = attach1
+                        end
+                    end
+                end
+                wait(0.5)
+            end
+        end)
+    else
+        for _, child in pairs(workspace.CurrentCamera:GetChildren()) do
+            if child.Name:find("Tracer_") then
+                child:Destroy()
+            end
+        end
+    end
+    print("📍 Tracers:", enabled and "ENABLED" or "DISABLED")
 end
 
 function Functions.toggleSpeed(enabled, speed)
@@ -542,26 +680,26 @@ local TabData = {
             {
                 title = "Weapons",
                 items = {
-                    {type = "toggle", name = "No Recoil", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "No Spread", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "No Sway", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Rapid Fire", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Auto Shoot", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Infinite Ammo", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Instant Reload", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Wallbang", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Bullet Tracers", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "No Recoil", func = function(e) print("🔫 No Recoil:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "No Spread", func = function(e) print("🎯 No Spread:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "No Sway", func = function(e) print("🎯 No Sway:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Rapid Fire", func = function(e) print("⚡ Rapid Fire:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Auto Shoot", func = function(e) print("🎯 Auto Shoot:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Infinite Ammo", func = function(e) print("♾️ Infinite Ammo:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Instant Reload", func = function(e) print("⚡ Instant Reload:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Wallbang", func = function(e) print("🧱 Wallbang:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Bullet Tracers", func = function(e) print("📍 Bullet Tracers:", e and "ON" or "OFF") end},
                 }
             },
             {
                 title = "Combat",
                 items = {
-                    {type = "toggle", name = "Hitbox Expander", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Kill Aura", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Critical Hits", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "One Tap Mode", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Hitbox Expander", func = function(e) print("📦 Hitbox Expander:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Kill Aura", func = function(e) print("⚔️ Kill Aura:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Critical Hits", func = function(e) print("💥 Critical Hits:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "One Tap Mode", func = function(e) print("💀 One Tap Mode:", e and "ON" or "OFF") end},
                     {type = "slider", name = "Gun Damage", min = 1, max = 500, default = 100},
-                    {type = "toggle", name = "Explosive Bullets", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Explosive Bullets", func = function(e) print("💥 Explosive Bullets:", e and "ON" or "OFF") end},
                 }
             }
         }
@@ -574,28 +712,28 @@ local TabData = {
             {
                 title = "ESP",
                 items = {
-                    {type = "toggle", name = "Box ESP", func = Functions.toggleESP},
-                    {type = "toggle", name = "Skeleton ESP", func = Functions.toggleESP},
-                    {type = "toggle", name = "Name ESP", func = Functions.toggleESP},
-                    {type = "toggle", name = "Distance ESP", func = Functions.toggleESP},
-                    {type = "toggle", name = "Health Bar ESP", func = Functions.toggleESP},
-                    {type = "toggle", name = "Team Colors", func = Functions.toggleESP},
-                    {type = "toggle", name = "Tracers", func = Functions.toggleESP},
-                    {type = "toggle", name = "Item ESP", func = Functions.toggleESP},
-                    {type = "toggle", name = "Vehicle ESP", func = Functions.toggleESP},
-                    {type = "toggle", name = "NPC ESP", func = Functions.toggleESP},
+                    {type = "toggle", name = "Box ESP", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "Skeleton ESP", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "Name ESP", func = Functions.toggleNameESP},
+                    {type = "toggle", name = "Distance ESP", func = Functions.toggleDistanceESP},
+                    {type = "toggle", name = "Health Bar ESP", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "Team Colors", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "Tracers", func = Functions.toggleTracers},
+                    {type = "toggle", name = "Item ESP", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "Vehicle ESP", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "NPC ESP", func = Functions.toggleBoxESP},
                 }
             },
             {
                 title = "Graphics",
                 items = {
-                    {type = "toggle", name = "Chams/Glow", func = Functions.toggleESP},
-                    {type = "toggle", name = "Wallhack", func = Functions.toggleESP},
-                    {type = "toggle", name = "Custom Crosshair", func = Functions.toggleESP},
+                    {type = "toggle", name = "Chams/Glow", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "Wallhack", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "Custom Crosshair", func = Functions.toggleBoxESP},
                     {type = "toggle", name = "Fullbright", func = Functions.toggleFullbright},
                     {type = "toggle", name = "Remove Fog", func = Functions.toggleFullbright},
                     {type = "toggle", name = "No Shadows", func = Functions.toggleFullbright},
-                    {type = "toggle", name = "X-Ray", func = Functions.toggleESP},
+                    {type = "toggle", name = "X-Ray", func = Functions.toggleBoxESP},
                     {type = "slider", name = "FOV Changer", min = 60, max = 120, default = 70},
                 }
             },
@@ -603,10 +741,10 @@ local TabData = {
                 title = "Environment",
                 items = {
                     {type = "toggle", name = "Day/Night Changer", func = Functions.toggleFullbright},
-                    {type = "toggle", name = "Radar Hack", func = Functions.toggleESP},
-                    {type = "toggle", name = "3D Box ESP", func = Functions.toggleESP},
-                    {type = "toggle", name = "Highlight Players", func = Functions.toggleESP},
-                    {type = "toggle", name = "Third Person", func = Functions.toggleESP},
+                    {type = "toggle", name = "Radar Hack", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "3D Box ESP", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "Highlight Players", func = Functions.toggleBoxESP},
+                    {type = "toggle", name = "Third Person", func = Functions.toggleBoxESP},
                 }
             }
         }
@@ -623,8 +761,8 @@ local TabData = {
                     {type = "button", name = "Spawn Vehicles"},
                     {type = "button", name = "Spawn Objects"},
                     {type = "button", name = "Spawn NPCs"},
-                    {type = "toggle", name = "Give Money", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Give All Tools", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Give Money", func = function(e) print("💰 Give Money:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Give All Tools", func = function(e) print("🔧 Give All Tools:", e and "ON" or "OFF") end},
                 }
             },
             {
@@ -634,8 +772,8 @@ local TabData = {
                     {type = "button", name = "Avatar Changer"},
                     {type = "button", name = "Copy Avatar"},
                     {type = "button", name = "Animation Player"},
-                    {type = "toggle", name = "Fake Name", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Fake Rank", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Fake Name", func = function(e) print("🎭 Fake Name:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Fake Rank", func = function(e) print("🏆 Fake Rank:", e and "ON" or "OFF") end},
                 }
             },
             {
@@ -660,7 +798,7 @@ local TabData = {
                 title = "Interaction",
                 items = {
                     {type = "button", name = "Teleport All"},
-                    {type = "toggle", name = "Force Emotes", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Force Emotes", func = function(e) print("😄 Force Emotes:", e and "ON" or "OFF") end},
                     {type = "button", name = "Job Changer"},
                     {type = "button", name = "Build Spam"},
                 }
@@ -675,23 +813,23 @@ local TabData = {
             {
                 title = "Audio/Visual",
                 items = {
-                    {type = "toggle", name = "Sound Spam", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Screen Shaker", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Camera Inverter", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Black Screen", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Blind Effect", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Screen Text Spam", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Sound Spam", func = function(e) print("🔊 Sound Spam:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Screen Shaker", func = function(e) print("📳 Screen Shaker:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Camera Inverter", func = function(e) print("🔄 Camera Inverter:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Black Screen", func = function(e) print("⚫ Black Screen:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Blind Effect", func = function(e) print("👁️ Blind Effect:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Screen Text Spam", func = function(e) print("📝 Screen Text Spam:", e and "ON" or "OFF") end},
                 }
             },
             {
                 title = "Server Destruction",
                 items = {
                     {type = "button", name = "Server Crasher"},
-                    {type = "toggle", name = "Object Spam", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Earthquake Mode", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Object Spam", func = function(e) print("📦 Object Spam:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Earthquake Mode", func = function(e) print("🌍 Earthquake Mode:", e and "ON" or "OFF") end},
                     {type = "button", name = "Map Destroy"},
                     {type = "button", name = "Nuke Effect"},
-                    {type = "toggle", name = "Voice Spam", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Voice Spam", func = function(e) print("🎤 Voice Spam:", e and "ON" or "OFF") end},
                 }
             }
         }
@@ -717,11 +855,11 @@ local TabData = {
             {
                 title = "Utilities",
                 items = {
-                    {type = "toggle", name = "Auto Farm", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Auto Collect", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Auto Respawn", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Anti AFK", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Infinite Stamina", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Auto Farm", func = function(e) print("🚜 Auto Farm:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Auto Collect", func = function(e) print("💰 Auto Collect:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Auto Respawn", func = function(e) print("🔄 Auto Respawn:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Anti AFK", func = function(e) print("⏰ Anti AFK:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Infinite Stamina", func = function(e) print("💪 Infinite Stamina:", e and "ON" or "OFF") end},
                     {type = "toggle", name = "Menu RGB", func = function(e) 
                         if e then
                             -- RGB animation for menu border
