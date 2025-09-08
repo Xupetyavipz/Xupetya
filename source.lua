@@ -1059,8 +1059,8 @@ local currentTab = 1
 local tabs = {}
 
 for i, tabData in ipairs(TabData) do
-    local tab, icon, label = createTab(tabData, i)
-    tabs[i] = {button = tab, icon = icon, label = label, data = tabData}
+    local tab, tabIcon, label = createTab(tabData, i)
+    tabs[i] = {button = tab, icon = tabIcon, label = label, data = tabData}
     
     tab.MouseButton1Click:Connect(function()
         currentTab = i
