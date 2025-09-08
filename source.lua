@@ -1073,6 +1073,7 @@ function updateDisplay()
     for i, tab in ipairs(tabs) do
         local isActive = (i == currentTab)
         tab.button.BackgroundColor3 = isActive and Theme.Primary or Theme.Elevated
+        tab.icon.ImageColor3 = isActive and Theme.TextPrimary or Theme.TextSecondary
         tab.label.TextColor3 = isActive and Theme.TextPrimary or Theme.TextSecondary
     end
     
