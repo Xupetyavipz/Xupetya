@@ -2991,15 +2991,5 @@ print("║  ⚙️  Advanced toggles and controls                          ║")
 print("║  ⌨️  Press INSERT to toggle                                  ║")
 print("╚══════════════════════════════════════════════════════════════╝")
 
--- Initialize Player List with proper error handling
-spawn(function()
-    wait(0.5)
-    local success, error = pcall(function()
-        if Functions and type(Functions.createPlayerList) == "function" then
-            Functions.createPlayerList()
-        end
-    end)
-    if not success then
-        warn("Player List initialization failed:", error)
-    end
-end)
+-- Safe initialization without Player List auto-creation
+print("🎮 Professional Cheat UI Ready - Press INSERT to toggle!")
