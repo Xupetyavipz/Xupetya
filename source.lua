@@ -788,13 +788,16 @@ shadow.Parent = screenGui
 shadow.Size = UDim2.new(0, 970, 0, 670)
 shadow.Position = UDim2.new(0.5, -485, 0.5, -335)
 shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-shadow.BackgroundTransparency = 0.7
+shadow.BackgroundTransparency = 0.8
 shadow.BorderSizePixel = 0
 shadow.ZIndex = -1
 
 local shadowCorner = Instance.new("UICorner")
 shadowCorner.CornerRadius = UDim.new(0, 12)
 shadowCorner.Parent = shadow
+
+-- Tab container and content scroll need to be declared before createTab function
+local tabContainer, contentScroll
 
 -- ═══════════════════════════════════════════════════════════════
 -- 📱 HEADER
@@ -876,7 +879,7 @@ tabContainer.BackgroundTransparency = 1
 local tabLayout = Instance.new("UIListLayout")
 tabLayout.Parent = tabContainer
 tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabLayout.Padding = UDim.new(0, 4)
+tabLayout.Padding = UDim.new(0, 5)
 
 -- ═══════════════════════════════════════════════════════════════
 -- 📄 CONTENT AREA
