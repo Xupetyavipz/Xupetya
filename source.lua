@@ -15,11 +15,11 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 -- Cleanup existing UI
-pcall(function()
-    if _G.ProfessionalUI then
+if _G.ProfessionalUI then
+    pcall(function()
         _G.ProfessionalUI:Destroy()
-    end
-end)
+    end)
+end
 
 -- ═══════════════════════════════════════════════════════════════
 -- 🎨 PROFESSIONAL THEME
