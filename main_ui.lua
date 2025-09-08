@@ -1,5 +1,5 @@
--- Professional Roblox Cheat UI - SPWARE
--- Modern Design with Purple/Black Theme
+-- SPWARE - Professional Roblox Cheat UI
+-- Modern FiveM Style Design
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -15,27 +15,24 @@ local playerGui = player:WaitForChild("PlayerGui")
 local mainFrame = nil
 local isUIVisible = false
 local currentTab = "Combat"
-local toggleStates = {}
-local sliderValues = {}
 
--- Professional Color Scheme
+-- Color Scheme
 local COLORS = {
-    BACKGROUND = Color3.fromRGB(15, 15, 15),
-    SURFACE = Color3.fromRGB(25, 25, 25),
-    CARD = Color3.fromRGB(30, 30, 30),
-    PRIMARY = Color3.fromRGB(147, 51, 234),
-    SECONDARY = Color3.fromRGB(168, 85, 247),
-    ACCENT = Color3.fromRGB(196, 181, 253),
-    TEXT = Color3.fromRGB(255, 255, 255),
-    TEXT_SECONDARY = Color3.fromRGB(156, 163, 175),
-    SUCCESS = Color3.fromRGB(34, 197, 94),
-    WARNING = Color3.fromRGB(251, 191, 36),
-    ERROR = Color3.fromRGB(239, 68, 68),
-    BORDER = Color3.fromRGB(55, 65, 81),
+    BACKGROUND = Color3.new(0.06, 0.06, 0.06),
+    SURFACE = Color3.new(0.1, 0.1, 0.1),
+    CARD = Color3.new(0.12, 0.12, 0.12),
+    PRIMARY = Color3.new(0.58, 0.2, 0.92),
+    SECONDARY = Color3.new(0.66, 0.33, 0.97),
+    ACCENT = Color3.new(0.77, 0.71, 0.99),
+    TEXT = Color3.new(1, 1, 1),
+    TEXT_SECONDARY = Color3.new(0.61, 0.64, 0.69),
+    SUCCESS = Color3.new(0.13, 0.77, 0.37),
+    ERROR = Color3.new(0.94, 0.27, 0.27),
+    BORDER = Color3.new(0.22, 0.25, 0.32),
 }
 
 -- Notification System
-local function createNotification(title, message, type)
+local function createNotification(title, message)
     StarterGui:SetCore("SendNotification", {
         Title = title,
         Text = message,
@@ -44,17 +41,17 @@ local function createNotification(title, message, type)
 end
 
 -- UI Components
-local function createFrame(parent, size, position, backgroundColor, cornerRadius)
+local function createFrame(parent, size, position, color, radius)
     local frame = Instance.new("Frame")
-    frame.Size = size or UDim2.new(1, 0, 1, 0)
-    frame.Position = position or UDim2.new(0, 0, 0, 0)
-    frame.BackgroundColor3 = backgroundColor or COLORS.SURFACE
+    frame.Size = size
+    frame.Position = position
+    frame.BackgroundColor3 = color
     frame.BorderSizePixel = 0
     frame.Parent = parent
     
-    if cornerRadius then
+    if radius then
         local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, cornerRadius)
+        corner.CornerRadius = UDim.new(0, radius)
         corner.Parent = frame
     end
     
@@ -77,7 +74,6 @@ local function createButton(parent, size, position, text, callback)
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = button
     
-    -- Hover effect
     button.MouseEnter:Connect(function()
         TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.SECONDARY}):Play()
     end)
@@ -107,29 +103,32 @@ local function createToggle(parent, position, text, callback)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = toggleFrame
     
-    local toggleButton = createFrame(toggleFrame, UDim2.new(0, 40, 0, 20), UDim2.new(1, -50, 0.5, -10), COLORS.BORDER, 10)
-    
-    local toggleCircle = createFrame(toggleButton, UDim2.new(0, 16, 0, 16), UDim2.new(0, 2, 0, 2), COLORS.TEXT_SECONDARY, 8)
+    local toggleBg = createFrame(toggleFrame, UDim2.new(0, 40, 0, 20), UDim2.new(1, -50, 0.5, -10), COLORS.BORDER, 10)
+    local toggleCircle = createFrame(toggleBg, UDim2.new(0, 16, 0, 16), UDim2.new(0, 2, 0, 2), COLORS.TEXT_SECONDARY, 8)
     
     local isToggled = false
-    toggleStates[text] = false
     
-    local clickButton = Instance.new("TextButton")
-    clickButton.Size = UDim2.new(1, 0, 1, 0)
-    clickButton.BackgroundTransparency = 1
-    clickButton.Text = ""
-    clickButton.Parent = toggleFrame
+    local clickBtn = Instance.new("TextButton")
+    clickBtn.Size = UDim2.new(1, 0, 1, 0)
+    clickBtn.BackgroundTransparency = 1
+    clickBtn.Text = ""
+    clickBtn.Parent = toggleFrame
     
-    clickButton.MouseButton1Click:Connect(function()
+    clickBtn.MouseButton1Click:Connect(function()
         isToggled = not isToggled
-        toggleStates[text] = isToggled
         
         if isToggled then
-            TweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.PRIMARY}):Play()
-            TweenService:Create(toggleCircle, TweenInfo.new(0.2), {Position = UDim2.new(1, -18, 0, 2), BackgroundColor3 = COLORS.TEXT}):Play()
+            TweenService:Create(toggleBg, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.PRIMARY}):Play()
+            TweenService:Create(toggleCircle, TweenInfo.new(0.2), {
+                Position = UDim2.new(1, -18, 0, 2),
+                BackgroundColor3 = COLORS.TEXT
+            }):Play()
         else
-            TweenService:Create(toggleButton, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.BORDER}):Play()
-            TweenService:Create(toggleCircle, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0, 2), BackgroundColor3 = COLORS.TEXT_SECONDARY}):Play()
+            TweenService:Create(toggleBg, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.BORDER}):Play()
+            TweenService:Create(toggleCircle, TweenInfo.new(0.2), {
+                Position = UDim2.new(0, 2, 0, 2),
+                BackgroundColor3 = COLORS.TEXT_SECONDARY
+            }):Play()
         end
         
         if callback then
@@ -138,63 +137,6 @@ local function createToggle(parent, position, text, callback)
     end)
     
     return toggleFrame
-end
-
-local function createSlider(parent, position, text, minVal, maxVal, defaultVal, callback)
-    local sliderFrame = createFrame(parent, UDim2.new(1, -20, 0, 60), position, COLORS.CARD, 6)
-    
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 0, 20)
-    label.Position = UDim2.new(0, 10, 0, 5)
-    label.BackgroundTransparency = 1
-    label.Text = text .. ": " .. defaultVal
-    label.TextColor3 = COLORS.TEXT
-    label.TextSize = 14
-    label.Font = Enum.Font.Gotham
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = sliderFrame
-    
-    local sliderTrack = createFrame(sliderFrame, UDim2.new(1, -20, 0, 6), UDim2.new(0, 10, 0, 35), COLORS.BORDER, 3)
-    local sliderFill = createFrame(sliderTrack, UDim2.new(0.5, 0, 1, 0), UDim2.new(0, 0, 0, 0), COLORS.PRIMARY, 3)
-    local sliderHandle = createFrame(sliderTrack, UDim2.new(0, 16, 0, 16), UDim2.new(0.5, -8, 0.5, -8), COLORS.TEXT, 8)
-    
-    sliderValues[text] = defaultVal
-    
-    local dragging = false
-    
-    sliderHandle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local mousePos = input.Position.X
-            local trackPos = sliderTrack.AbsolutePosition.X
-            local trackSize = sliderTrack.AbsoluteSize.X
-            local relativePos = math.clamp((mousePos - trackPos) / trackSize, 0, 1)
-            
-            local value = math.floor(minVal + (maxVal - minVal) * relativePos)
-            sliderValues[text] = value
-            label.Text = text .. ": " .. value
-            
-            sliderFill.Size = UDim2.new(relativePos, 0, 1, 0)
-            sliderHandle.Position = UDim2.new(relativePos, -8, 0.5, -8)
-            
-            if callback then
-                callback(value)
-            end
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    return sliderFrame
 end
 
 -- Tab Configuration
@@ -210,6 +152,12 @@ local TABS = {
 
 -- Main UI Creation
 local function createMainUI()
+    -- Clean up existing UI
+    local existing = playerGui:FindFirstChild("SPWARECheatUI")
+    if existing then
+        existing:Destroy()
+    end
+    
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "SPWARECheatUI"
     screenGui.ResetOnSpawn = false
@@ -233,22 +181,14 @@ local function createMainUI()
     userCorner.CornerRadius = UDim.new(0, 20)
     userCorner.Parent = userImage
     
-    -- SPWARE Logo
-    local logoImage = Instance.new("ImageLabel")
-    logoImage.Size = UDim2.new(0, 30, 0, 30)
-    logoImage.Position = UDim2.new(0, 65, 0, 15)
-    logoImage.BackgroundTransparency = 1
-    logoImage.Image = "rbxassetid://70651953090646"
-    logoImage.Parent = header
-    
     -- SPWARE Title
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(0, 150, 0, 25)
-    title.Position = UDim2.new(0, 105, 0, 10)
+    title.Size = UDim2.new(0, 150, 0, 30)
+    title.Position = UDim2.new(0, 65, 0, 15)
     title.BackgroundTransparency = 1
     title.Text = "SPWARE"
     title.TextColor3 = COLORS.ACCENT
-    title.TextSize = 18
+    title.TextSize = 20
     title.Font = Enum.Font.GothamBold
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = header
@@ -256,7 +196,7 @@ local function createMainUI()
     -- User Name
     local userName = Instance.new("TextLabel")
     userName.Size = UDim2.new(0, 150, 0, 15)
-    userName.Position = UDim2.new(0, 105, 0, 35)
+    userName.Position = UDim2.new(0, 220, 0, 20)
     userName.BackgroundTransparency = 1
     userName.Text = "👋 " .. player.Name
     userName.TextColor3 = COLORS.TEXT_SECONDARY
@@ -309,14 +249,17 @@ local function createMainUI()
         tabClickBtn.MouseButton1Click:Connect(function()
             currentTab = tab.name
             updateTabContent()
-            for j, btn in pairs(tabButtons) do
-                local btnIcon = btn:FindFirstChild("TextLabel")
-                local btnLabel = btn:GetChildren()[2]
-                if btnIcon then
-                    btnIcon.TextColor3 = j == i and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
+            
+            -- Update tab colors
+            for j, button in pairs(tabButtons) do
+                local icon = button:FindFirstChild("TextLabel")
+                local label = button:GetChildren()[2]
+                
+                if icon and icon:IsA("TextLabel") then
+                    icon.TextColor3 = j == i and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
                 end
-                if btnLabel then
-                    btnLabel.TextColor3 = j == i and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
+                if label and label:IsA("TextLabel") and label ~= icon then
+                    label.TextColor3 = j == i and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
                 end
             end
         end)
@@ -348,61 +291,80 @@ local function createMainUI()
         local yPos = 0
         
         if currentTab == "Combat" then
-            -- Aimbot Section
-            local aimbotHeader = Instance.new("TextLabel")
-            aimbotHeader.Size = UDim2.new(1, 0, 0, 30)
-            aimbotHeader.Position = UDim2.new(0, 0, 0, yPos)
-            aimbotHeader.BackgroundTransparency = 1
-            aimbotHeader.Text = "🎯 AIMBOT"
-            aimbotHeader.TextColor3 = COLORS.ACCENT
-            aimbotHeader.TextSize = 16
-            aimbotHeader.Font = Enum.Font.GothamBold
-            aimbotHeader.TextXAlignment = Enum.TextXAlignment.Left
-            aimbotHeader.Parent = scrollFrame
+            local header = Instance.new("TextLabel")
+            header.Size = UDim2.new(1, 0, 0, 30)
+            header.Position = UDim2.new(0, 0, 0, yPos)
+            header.BackgroundTransparency = 1
+            header.Text = "🎯 COMBAT"
+            header.TextColor3 = COLORS.ACCENT
+            header.TextSize = 16
+            header.Font = Enum.Font.GothamBold
+            header.TextXAlignment = Enum.TextXAlignment.Left
+            header.Parent = scrollFrame
             yPos = yPos + 35
             
             createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Aimbot", function(state)
-                createNotification("Aimbot", state and "Ativado" or "Desativado", "success")
+                createNotification("Aimbot", state and "Ativado" or "Desativado")
             end)
             yPos = yPos + 45
             
             createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Silent Aim", function(state)
-                createNotification("Silent Aim", state and "Ativado" or "Desativado", "success")
+                createNotification("Silent Aim", state and "Ativado" or "Desativado")
             end)
             yPos = yPos + 45
             
-            createSlider(scrollFrame, UDim2.new(0, 0, 0, yPos), "FOV", 10, 360, 90, function(value)
-                createNotification("FOV", "Definido para " .. value, "success")
+            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Trigger Bot", function(state)
+                createNotification("Trigger Bot", state and "Ativado" or "Desativado")
             end)
-            yPos = yPos + 65
+            yPos = yPos + 45
             
         elseif currentTab == "Movement" then
+            local header = Instance.new("TextLabel")
+            header.Size = UDim2.new(1, 0, 0, 30)
+            header.Position = UDim2.new(0, 0, 0, yPos)
+            header.BackgroundTransparency = 1
+            header.Text = "🏃 MOVEMENT"
+            header.TextColor3 = COLORS.ACCENT
+            header.TextSize = 16
+            header.Font = Enum.Font.GothamBold
+            header.TextXAlignment = Enum.TextXAlignment.Left
+            header.Parent = scrollFrame
+            yPos = yPos + 35
+            
             createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Super Speed", function(state)
-                if state then
-                    player.Character.Humanoid.WalkSpeed = 100
-                else
-                    player.Character.Humanoid.WalkSpeed = 16
+                if player.Character and player.Character:FindFirstChild("Humanoid") then
+                    player.Character.Humanoid.WalkSpeed = state and 100 or 16
                 end
-                createNotification("Speed", state and "Ativado" or "Desativado", "success")
+                createNotification("Speed", state and "Ativado" or "Desativado")
             end)
             yPos = yPos + 45
             
             createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Super Jump", function(state)
-                if state then
-                    player.Character.Humanoid.JumpPower = 100
-                else
-                    player.Character.Humanoid.JumpPower = 50
+                if player.Character and player.Character:FindFirstChild("Humanoid") then
+                    player.Character.Humanoid.JumpPower = state and 100 or 50
                 end
-                createNotification("Jump", state and "Ativado" or "Desativado", "success")
+                createNotification("Jump", state and "Ativado" or "Desativado")
             end)
             yPos = yPos + 45
             
             createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Fly", function(state)
-                createNotification("Fly", state and "Ativado" or "Desativado", "success")
+                createNotification("Fly", state and "Ativado" or "Desativado")
             end)
             yPos = yPos + 45
             
         elseif currentTab == "Visuals" then
+            local header = Instance.new("TextLabel")
+            header.Size = UDim2.new(1, 0, 0, 30)
+            header.Position = UDim2.new(0, 0, 0, yPos)
+            header.BackgroundTransparency = 1
+            header.Text = "👁️ VISUALS"
+            header.TextColor3 = COLORS.ACCENT
+            header.TextSize = 16
+            header.Font = Enum.Font.GothamBold
+            header.TextXAlignment = Enum.TextXAlignment.Left
+            header.Parent = scrollFrame
+            yPos = yPos + 35
+            
             createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Fullbright", function(state)
                 if state then
                     Lighting.Brightness = 2
@@ -413,36 +375,84 @@ local function createMainUI()
                     Lighting.ClockTime = 12
                     Lighting.FogEnd = 500
                 end
-                createNotification("Fullbright", state and "Ativado" or "Desativado", "success")
+                createNotification("Fullbright", state and "Ativado" or "Desativado")
             end)
             yPos = yPos + 45
             
             createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Players", function(state)
-                createNotification("ESP", state and "Ativado" or "Desativado", "success")
+                createNotification("ESP", state and "Ativado" or "Desativado")
             end)
             yPos = yPos + 45
             
         elseif currentTab == "Roleplay" then
+            local header = Instance.new("TextLabel")
+            header.Size = UDim2.new(1, 0, 0, 30)
+            header.Position = UDim2.new(0, 0, 0, yPos)
+            header.BackgroundTransparency = 1
+            header.Text = "🎭 ROLEPLAY"
+            header.TextColor3 = COLORS.ACCENT
+            header.TextSize = 16
+            header.Font = Enum.Font.GothamBold
+            header.TextXAlignment = Enum.TextXAlignment.Left
+            header.Parent = scrollFrame
+            yPos = yPos + 35
+            
             createButton(scrollFrame, UDim2.new(1, -20, 0, 40), UDim2.new(0, 0, 0, yPos), "🎭 Animations", function()
-                createNotification("Roleplay", "Menu de animações aberto!", "success")
+                createNotification("Roleplay", "Menu de animações!")
             end)
             yPos = yPos + 45
             
         elseif currentTab == "Blox Fruits" then
+            local header = Instance.new("TextLabel")
+            header.Size = UDim2.new(1, 0, 0, 30)
+            header.Position = UDim2.new(0, 0, 0, yPos)
+            header.BackgroundTransparency = 1
+            header.Text = "🍎 BLOX FRUITS"
+            header.TextColor3 = COLORS.ACCENT
+            header.TextSize = 16
+            header.Font = Enum.Font.GothamBold
+            header.TextXAlignment = Enum.TextXAlignment.Left
+            header.Parent = scrollFrame
+            yPos = yPos + 35
+            
             createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Auto Farm", function(state)
-                createNotification("Auto Farm", state and "Ativado" or "Desativado", "success")
+                createNotification("Auto Farm", state and "Ativado" or "Desativado")
             end)
             yPos = yPos + 45
             
         elseif currentTab == "Player List" then
+            local header = Instance.new("TextLabel")
+            header.Size = UDim2.new(1, 0, 0, 30)
+            header.Position = UDim2.new(0, 0, 0, yPos)
+            header.BackgroundTransparency = 1
+            header.Text = "👥 PLAYER LIST"
+            header.TextColor3 = COLORS.ACCENT
+            header.TextSize = 16
+            header.Font = Enum.Font.GothamBold
+            header.TextXAlignment = Enum.TextXAlignment.Left
+            header.Parent = scrollFrame
+            yPos = yPos + 35
+            
             createButton(scrollFrame, UDim2.new(1, -20, 0, 40), UDim2.new(0, 0, 0, yPos), "👥 Refresh Players", function()
-                createNotification("Players", "Lista atualizada!", "success")
+                createNotification("Players", "Lista atualizada!")
             end)
             yPos = yPos + 45
             
         elseif currentTab == "Chat" then
+            local header = Instance.new("TextLabel")
+            header.Size = UDim2.new(1, 0, 0, 30)
+            header.Position = UDim2.new(0, 0, 0, yPos)
+            header.BackgroundTransparency = 1
+            header.Text = "💬 CHAT"
+            header.TextColor3 = COLORS.ACCENT
+            header.TextSize = 16
+            header.Font = Enum.Font.GothamBold
+            header.TextXAlignment = Enum.TextXAlignment.Left
+            header.Parent = scrollFrame
+            yPos = yPos + 35
+            
             createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Chat Spam", function(state)
-                createNotification("Chat", state and "Ativado" or "Desativado", "success")
+                createNotification("Chat", state and "Ativado" or "Desativado")
             end)
             yPos = yPos + 45
         end
@@ -498,5 +508,5 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 -- Initialize
-createNotification("🔥 SPWARE Loaded", "Press INSERT to open menu!", "success")
+createNotification("🔥 SPWARE Loaded", "Press INSERT to open menu!")
 createMainUI()
