@@ -304,35 +304,40 @@ end
 function Functions.teleportToPlayer(player)
     local localPlayer = game.Players.LocalPlayer
     if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local targetPos = player.Character.HumanoidRootPart.Position
         local targetCFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
         local myRoot = localPlayer.Character.HumanoidRootPart
         
         -- Method 1: Instant CFrame teleport
         myRoot.CFrame = targetCFrame
         
-        -- Method 2: Backup position set
-        myRoot.Position = targetCFrame.Position
-        
-        -- Method 3: Use Humanoid MoveTo as backup
-        if localPlayer.Character:FindFirstChild("Humanoid") then
-            localPlayer.Character.Humanoid:MoveTo(targetCFrame.Position)
-        end
-        
-        -- Method 4: Network sync
+        -- Method 2: Try all possible teleport remotes with multiple parameters
         spawn(function()
-            for i = 1, 5 do
-                myRoot.CFrame = targetCFrame
-                wait(0.1)
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("RemoteEvent") then
+                    pcall(function()
+                        -- Try common teleport patterns
+                        obj:FireServer(targetPos)
+                        obj:FireServer("teleport", targetPos)
+                        obj:FireServer("tp", targetPos)
+                        obj:FireServer(localPlayer, targetPos)
+                        obj:FireServer(localPlayer.Character, targetPos)
+                        obj:FireServer("move", targetPos)
+                        obj:FireServer("position", targetPos)
+                        obj:FireServer({Position = targetPos})
+                        obj:FireServer({x = targetPos.X, y = targetPos.Y, z = targetPos.Z})
+                    end)
+                end
             end
         end)
         
-        -- Method 5: Try teleport remotes
+        -- Method 3: Try BindableEvents
         spawn(function()
             for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("RemoteEvent") and (string.find(obj.Name:lower(), "teleport") or string.find(obj.Name:lower(), "tp")) then
+                if obj:IsA("BindableEvent") then
                     pcall(function()
-                        obj:FireServer(targetCFrame.Position)
-                        obj:FireServer(player.Character.HumanoidRootPart.Position)
+                        obj:Fire(targetPos)
+                        obj:Fire("teleport", targetPos)
                     end)
                 end
             end
@@ -342,215 +347,362 @@ function Functions.teleportToPlayer(player)
     end
 end
 
-function Functions.pullPlayer(player)
-    local localPlayer = game.Players.LocalPlayer
-    if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local myPos = localPlayer.Character.HumanoidRootPart.Position
-        local targetRoot = player.Character.HumanoidRootPart
+function Functions.flingPlayer(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local rootPart = player.Character.HumanoidRootPart
+        local humanoid = player.Character:FindFirstChild("Humanoid")
         
-        -- Method 1: Instant teleport pull
-        targetRoot.CFrame = CFrame.new(myPos + Vector3.new(0, 0, -3))
+        -- Method 1: Multiple extreme fling forces
+        spawn(function()
+            for i = 1, 10 do
+                local bodyVel = Instance.new("BodyVelocity")
+                bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bodyVel.Velocity = Vector3.new(math.random(-500, 500), math.random(200, 800), math.random(-500, 500))
+                bodyVel.Parent = rootPart
+                
+                local bodyAngular = Instance.new("BodyAngularVelocity")
+                bodyAngular.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                bodyAngular.AngularVelocity = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
+                bodyAngular.Parent = rootPart
+                
+                game:GetService("Debris"):AddItem(bodyVel, 0.2)
+                game:GetService("Debris"):AddItem(bodyAngular, 0.2)
+                wait(0.05)
+            end
+        end)
         
-        -- Method 2: Use BodyPosition for smooth pull
-        local bodyPos = Instance.new("BodyPosition")
-        bodyPos.MaxForce = Vector3.new(50000, 50000, 50000)
-        bodyPos.Position = myPos
-        bodyPos.D = 2000
-        bodyPos.P = 10000
-        bodyPos.Parent = targetRoot
+        -- Method 2: Physics state manipulation
+        if humanoid then
+            humanoid.PlatformStand = true
+            humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+            humanoid.Sit = true
+        end
         
-        -- Method 3: Velocity-based pull
-        local bodyVel = Instance.new("BodyVelocity")
-        bodyVel.MaxForce = Vector3.new(50000, 50000, 50000)
-        local direction = (myPos - targetRoot.Position).Unit
-        bodyVel.Velocity = direction * 100
-        bodyVel.Parent = targetRoot
+        -- Method 3: Direct velocity manipulation
+        spawn(function()
+            for i = 1, 50 do
+                if rootPart and rootPart.Parent then
+                    rootPart.Velocity = Vector3.new(math.random(-200, 200), math.random(100, 400), math.random(-200, 200))
+                    rootPart.AngularVelocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
+                end
+                wait(0.02)
+            end
+        end)
         
-        -- Method 4: Try pull remotes
+        -- Method 4: Try fling remotes
         spawn(function()
             for _, obj in pairs(workspace:GetDescendants()) do
-                if obj:IsA("RemoteEvent") and (string.find(obj.Name:lower(), "pull") or string.find(obj.Name:lower(), "drag")) then
+                if obj:IsA("RemoteEvent") then
                     pcall(function()
-                        obj:FireServer(player, myPos)
-                        obj:FireServer(targetRoot, myPos)
+                        obj:FireServer("fling", player)
+                        obj:FireServer("launch", player)
+                        obj:FireServer(player, "fling")
+                        obj:FireServer(player.Character, "launch")
+                        obj:FireServer("physics", player.Name)
                     end)
                 end
             end
         end)
         
-        game:GetService("Debris"):AddItem(bodyPos, 1)
-        game:GetService("Debris"):AddItem(bodyVel, 0.5)
+        -- Method 5: Create explosion for extra fling
+        spawn(function()
+            wait(0.1)
+            local explosion = Instance.new("Explosion")
+            explosion.Parent = workspace
+            explosion.Position = rootPart.Position
+            explosion.BlastRadius = 50
+            explosion.BlastPressure = 2000000
+            explosion.Visible = false
+        end)
         
-        print("🪝 FORCE PULLED " .. player.Name .. " TO YOU!")
+        print("🌪️ EXTREME FLING PROTOCOL ON " .. player.Name .. " - MAXIMUM FORCE APPLIED!")
     end
-end
-
-function Functions.copyOutfit(player)
-    local localPlayer = game.Players.LocalPlayer
-    if player.Character and localPlayer.Character then
-        -- Remove current accessories
-        for _, item in pairs(localPlayer.Character:GetChildren()) do
-            if item:IsA("Accessory") or item:IsA("Hat") or item:IsA("Shirt") or item:IsA("Pants") then
-                item:Destroy()
-            end
-        end
-        
-        wait(0.1)
-        
-        -- Copy all appearance items
-        for _, item in pairs(player.Character:GetChildren()) do
-            if item:IsA("Accessory") or item:IsA("Hat") then
-                local clone = item:Clone()
-                clone.Parent = localPlayer.Character
-            elseif item:IsA("Shirt") then
-                local shirt = Instance.new("Shirt")
-                shirt.ShirtTemplate = item.ShirtTemplate
-                shirt.Parent = localPlayer.Character
-            elseif item:IsA("Pants") then
-                local pants = Instance.new("Pants")
-                pants.PantsTemplate = item.PantsTemplate
-                pants.Parent = localPlayer.Character
-            end
-        end
-        
-        -- Copy body colors
-        if player.Character:FindFirstChild("Body Colors") and localPlayer.Character:FindFirstChild("Body Colors") then
-            local targetColors = player.Character["Body Colors"]
-            local myColors = localPlayer.Character["Body Colors"]
-            
-            myColors.HeadColor = targetColors.HeadColor
-            myColors.LeftArmColor = targetColors.LeftArmColor
-            myColors.LeftLegColor = targetColors.LeftLegColor
-            myColors.RightArmColor = targetColors.RightArmColor
-            myColors.RightLegColor = targetColors.RightLegColor
-            myColors.TorsoColor = targetColors.TorsoColor
-        end
-        
-        -- Copy face
-        if player.Character:FindFirstChild("Head") then
-            local face = player.Character.Head:FindFirstChild("face")
-            if face and localPlayer.Character:FindFirstChild("Head") then
-                local myFace = localPlayer.Character.Head:FindFirstChild("face")
-                if myFace then
-                    myFace.Texture = face.Texture
-                end
-            end
-        end
-        
-        print("👕 COMPLETELY COPIED OUTFIT FROM " .. player.Name .. "!")
-    end
-end
-
-function Functions.stealItems(player)
-    local localPlayer = game.Players.LocalPlayer
-    
-    -- Steal from backpack
-    if player.Backpack then
-        for _, tool in pairs(player.Backpack:GetChildren()) do
-            if tool:IsA("Tool") then
-                -- Method 1: Clone to local player
-                local clone = tool:Clone()
-                clone.Parent = localPlayer.Backpack
-                
-                -- Method 2: Move original tool
-                tool.Parent = localPlayer.Backpack
-            end
-        end
-    end
-    
-    -- Steal equipped tools
-    if player.Character then
-        for _, tool in pairs(player.Character:GetChildren()) do
-            if tool:IsA("Tool") then
-                -- Clone and steal equipped tools
-                local clone = tool:Clone()
-                clone.Parent = localPlayer.Backpack
-                
-                -- Remove from target
-                tool:Destroy()
-            end
-        end
-    end
-    
-    -- Steal StarterGear
-    if player.StarterGear then
-        for _, tool in pairs(player.StarterGear:GetChildren()) do
-            if tool:IsA("Tool") then
-                local clone = tool:Clone()
-                clone.Parent = localPlayer.StarterGear
-                clone.Parent = localPlayer.Backpack
-            end
-        end
-    end
-    
-    print("🎒 COMPLETELY STOLE ALL ITEMS FROM " .. player.Name .. "!")
 end
 
 function Functions.freezePlayer(player)
     if player.Character then
-        -- Method 1: Anchor all parts
-        for _, part in pairs(player.Character:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.Anchored = true
+        local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        
+        -- Method 1: Direct anchoring and speed manipulation
+        if rootPart then
+            rootPart.Anchored = true
+            rootPart.Velocity = Vector3.new(0, 0, 0)
+            rootPart.AngularVelocity = Vector3.new(0, 0, 0)
+        end
+        
+        if humanoid then
+            humanoid.WalkSpeed = 0
+            humanoid.JumpPower = 0
+            humanoid.JumpHeight = 0
+            humanoid.PlatformStand = true
+        end
+        
+        -- Method 2: Create invisible barrier around player
+        spawn(function()
+            if rootPart then
+                for i = 1, 20 do
+                    local barrier = Instance.new("Part")
+                    barrier.Parent = workspace
+                    barrier.Size = Vector3.new(1, 10, 1)
+                    barrier.Position = rootPart.Position + Vector3.new(math.cos(i * 0.314) * 3, 0, math.sin(i * 0.314) * 3)
+                    barrier.Anchored = true
+                    barrier.Transparency = 1
+                    barrier.CanCollide = true
+                    barrier.Name = "FreezeBarrier_" .. player.Name
+                    
+                    game:GetService("Debris"):AddItem(barrier, 30)
+                end
             end
-        end
+        end)
         
-        -- Method 2: Disable Humanoid
-        if player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.PlatformStand = true
-            player.Character.Humanoid.WalkSpeed = 0
-            player.Character.Humanoid.JumpPower = 0
-        end
+        -- Method 3: Try freeze remotes
+        spawn(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("RemoteEvent") then
+                    pcall(function()
+                        obj:FireServer("freeze", player)
+                        obj:FireServer("stop", player)
+                        obj:FireServer(player, "freeze")
+                        obj:FireServer(player.Character, "freeze")
+                        obj:FireServer("immobilize", player.Name)
+                    end)
+                end
+            end
+        end)
         
-        -- Method 3: Add BodyPosition to lock in place
-        if player.Character:FindFirstChild("HumanoidRootPart") then
-            local bodyPosition = Instance.new("BodyPosition")
-            bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-            bodyPosition.Position = player.Character.HumanoidRootPart.Position
-            bodyPosition.D = 10000
-            bodyPosition.P = 10000
-            bodyPosition.Parent = player.Character.HumanoidRootPart
-            
-            -- Create ice effect
-            local ice = Instance.new("Part")
-            ice.Parent = player.Character
-            ice.Size = Vector3.new(6, 8, 6)
-            ice.Position = player.Character.HumanoidRootPart.Position
-            ice.BrickColor = BrickColor.new("Cyan")
-            ice.Material = Enum.Material.Ice
-            ice.Transparency = 0.5
-            ice.Anchored = true
-            ice.CanCollide = false
-            ice.Name = "IceBlock"
-        end
+        -- Method 4: Continuous freeze loop
+        spawn(function()
+            for i = 1, 100 do
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+                    if player.Character:FindFirstChild("Humanoid") then
+                        player.Character.Humanoid.WalkSpeed = 0
+                        player.Character.Humanoid.JumpPower = 0
+                    end
+                end
+                wait(0.1)
+            end
+        end)
         
-        print("🧊 COMPLETELY FROZE " .. player.Name .. " IN ICE!")
+        print("❄️ MAXIMUM FREEZE PROTOCOL ON " .. player.Name .. " - COMPLETELY IMMOBILIZED!")
     end
 end
 
-function Functions.flingPlayer(player)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        -- Method 1: Extreme velocity
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bodyVelocity.Velocity = Vector3.new(math.random(-500, 500), 500, math.random(-500, 500))
-        bodyVelocity.Parent = player.Character.HumanoidRootPart
+function Functions.killPlayer(player)
+    if player.Character then
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
         
-        -- Method 2: Angular velocity for spinning
-        local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-        bodyAngularVelocity.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bodyAngularVelocity.AngularVelocity = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
-        bodyAngularVelocity.Parent = player.Character.HumanoidRootPart
-        
-        -- Method 3: Disable character control
-        if player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.PlatformStand = true
+        if humanoid and rootPart then
+            -- Method 1: Instant server-side kill with multiple approaches
+            spawn(function()
+                -- Direct health manipulation
+                humanoid.Health = 0
+                humanoid:TakeDamage(math.huge)
+                humanoid.MaxHealth = 0
+                
+                -- Break all joints to ragdoll
+                for _, joint in pairs(player.Character:GetDescendants()) do
+                    if joint:IsA("Motor6D") or joint:IsA("Weld") or joint:IsA("WeldConstraint") then
+                        joint:Destroy()
+                    end
+                end
+                
+                -- Force respawn after delay to prevent invisibility
+                wait(2)
+                if player.Character then
+                    player.Character:Destroy()
+                end
+                wait(1)
+                player:LoadCharacter()
+            end)
+            
+            -- Method 2: Physical destruction with real server effects
+            spawn(function()
+                wait(0.2)
+                -- Create massive explosion at player position
+                for i = 1, 10 do
+                    local explosion = Instance.new("Explosion")
+                    explosion.Parent = workspace
+                    explosion.Position = rootPart.Position + Vector3.new(math.random(-10, 10), math.random(-5, 5), math.random(-10, 10))
+                    explosion.BlastRadius = 100
+                    explosion.BlastPressure = 10000000
+                    explosion.Visible = true
+                    
+                    -- Add fire and smoke effects
+                    local fire = Instance.new("Fire")
+                    fire.Parent = rootPart
+                    fire.Size = 30
+                    fire.Heat = 25
+                    
+                    local smoke = Instance.new("Smoke")
+                    smoke.Parent = rootPart
+                    smoke.Size = 50
+                    smoke.Opacity = 1
+                    
+                    wait(0.05)
+                end
+            end)
+            
+            -- Method 3: Try all possible remote events for killing
+            spawn(function()
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("RemoteEvent") then
+                        pcall(function()
+                            -- Try different kill parameters
+                            obj:FireServer("kill", player)
+                            obj:FireServer("damage", player, 999999)
+                            obj:FireServer(player, "kill")
+                            obj:FireServer(player.Character, "destroy")
+                            obj:FireServer(humanoid, 0)
+                            obj:FireServer("eliminate", player.Name)
+                        end)
+                    end
+                end
+            end)
+            
+            -- Method 4: Extreme physical manipulation
+            spawn(function()
+                wait(0.5)
+                -- Fling player with extreme force
+                local bodyVel = Instance.new("BodyVelocity")
+                bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bodyVel.Velocity = Vector3.new(math.random(-1000, 1000), 1000, math.random(-1000, 1000))
+                bodyVel.Parent = rootPart
+                
+                -- Spin player violently
+                local bodyAngular = Instance.new("BodyAngularVelocity")
+                bodyAngular.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                bodyAngular.AngularVelocity = Vector3.new(100, 100, 100)
+                bodyAngular.Parent = rootPart
+                
+                game:GetService("Debris"):AddItem(bodyVel, 2)
+                game:GetService("Debris"):AddItem(bodyAngular, 2)
+            end)
+            
+            -- Method 5: Force disconnect attempt
+            spawn(function()
+                wait(3)
+                pcall(function()
+                    player:Kick("💀 SPWARE ELIMINATION PROTOCOL EXECUTED 💀")
+                end)
+            end)
+            
+            print("💀⚡ MAXIMUM KILL PROTOCOL EXECUTED ON " .. player.Name .. " - MULTIPLE METHODS DEPLOYED!")
         end
+    end
+end
+
+function Functions.explodePlayer(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local position = player.Character.HumanoidRootPart.Position
+        local humanoid = player.Character:FindFirstChild("Humanoid")
         
-        game:GetService("Debris"):AddItem(bodyVelocity, 3)
-        game:GetService("Debris"):AddItem(bodyAngularVelocity, 3)
+        -- Method 1: Massive explosion barrage with real damage
+        spawn(function()
+            for i = 1, 25 do
+                local explosion = Instance.new("Explosion")
+                explosion.Parent = workspace
+                explosion.Position = position + Vector3.new(math.random(-15, 15), math.random(-10, 10), math.random(-15, 15))
+                explosion.BlastRadius = 75
+                explosion.BlastPressure = 15000000
+                explosion.Visible = true
+                
+                -- Deal real damage with each explosion
+                if humanoid and humanoid.Health > 0 then
+                    humanoid:TakeDamage(25)
+                end
+                
+                wait(0.05)
+            end
+        end)
         
-        print("🌪️ EXTREME FLING ON " .. player.Name .. "!")
+        -- Method 2: Physical effects and ragdoll
+        spawn(function()
+            -- Instant ragdoll
+            if humanoid then
+                humanoid.PlatformStand = true
+                humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+                humanoid.Sit = true
+            end
+            
+            -- Break all joints for realistic ragdoll
+            for _, joint in pairs(player.Character:GetDescendants()) do
+                if joint:IsA("Motor6D") then
+                    local attachment0 = Instance.new("Attachment")
+                    local attachment1 = Instance.new("Attachment")
+                    attachment0.Parent = joint.Part0
+                    attachment1.Parent = joint.Part1
+                    attachment0.CFrame = joint.C0
+                    attachment1.CFrame = joint.C1
+                    
+                    local ballSocket = Instance.new("BallSocketConstraint")
+                    ballSocket.Attachment0 = attachment0
+                    ballSocket.Attachment1 = attachment1
+                    ballSocket.Parent = joint.Part0
+                    
+                    joint:Destroy()
+                end
+            end
+        end)
+        
+        -- Method 3: Extreme fling with multiple forces
+        spawn(function()
+            for i = 1, 5 do
+                local bodyVel = Instance.new("BodyVelocity")
+                bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bodyVel.Velocity = Vector3.new(math.random(-200, 200), math.random(100, 300), math.random(-200, 200))
+                bodyVel.Parent = player.Character.HumanoidRootPart
+                
+                local bodyAngular = Instance.new("BodyAngularVelocity")
+                bodyAngular.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                bodyAngular.AngularVelocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
+                bodyAngular.Parent = player.Character.HumanoidRootPart
+                
+                game:GetService("Debris"):AddItem(bodyVel, 0.5)
+                game:GetService("Debris"):AddItem(bodyAngular, 0.5)
+                wait(0.1)
+            end
+        end)
+        
+        -- Method 4: Visual effects overload
+        spawn(function()
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    -- Add fire to every part
+                    local fire = Instance.new("Fire")
+                    fire.Parent = part
+                    fire.Size = 25
+                    fire.Heat = 20
+                    
+                    -- Add smoke to every part
+                    local smoke = Instance.new("Smoke")
+                    smoke.Parent = part
+                    smoke.Size = 35
+                    smoke.Opacity = 1
+                    
+                    -- Make parts glow
+                    part.Material = Enum.Material.Neon
+                    part.BrickColor = BrickColor.new("Really red")
+                end
+            end
+        end)
+        
+        -- Method 5: Try explosion remotes
+        spawn(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("RemoteEvent") and (string.find(obj.Name:lower(), "explode") or string.find(obj.Name:lower(), "boom") or string.find(obj.Name:lower(), "blast")) then
+                    pcall(function()
+                        obj:FireServer(player, position)
+                        obj:FireServer(player.Character, "explode")
+                        obj:FireServer("explosion", player.Name)
+                    end)
+                end
+            end
+        end)
+        
+        print("💥🔥 NUCLEAR EXPLOSION PROTOCOL ON " .. player.Name .. " - 25 EXPLOSIONS + RAGDOLL!")
     end
 end
 
@@ -916,7 +1068,7 @@ function Functions.toggleHitboxExpander(enabled)
         spawn(function()
             while _G.HitboxExpanderEnabled do
                 for _, player in pairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
                         player.Character.HumanoidRootPart.Size = Vector3.new(20, 20, 20)
                         player.Character.HumanoidRootPart.Transparency = 0.8
                         player.Character.HumanoidRootPart.BrickColor = BrickColor.new("Really red")
@@ -1443,12 +1595,67 @@ end
 function Functions.kickFromVehicle(player)
     if player.Character then
         local humanoid = player.Character:FindFirstChild("Humanoid")
-        if humanoid and humanoid.SeatPart then
+        local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+        
+        -- Method 1: Direct seat manipulation
+        if humanoid then
             humanoid.Sit = false
-            print("🚗 Kicked " .. player.Name .. " from vehicle")
-        else
-            print("❌ " .. player.Name .. " is not in a vehicle")
+            humanoid.Jump = true
+            humanoid.PlatformStand = true
+            
+            -- Destroy any seat welds
+            for _, obj in pairs(player.Character:GetDescendants()) do
+                if obj:IsA("Weld") and (obj.Name:lower():find("seat") or obj.Name:lower():find("vehicle")) then
+                    obj:Destroy()
+                end
+            end
         end
+        
+        -- Method 2: Force eject with extreme physics
+        if rootPart then
+            spawn(function()
+                for i = 1, 5 do
+                    local bodyVel = Instance.new("BodyVelocity")
+                    bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                    bodyVel.Velocity = Vector3.new(math.random(-200, 200), 200, math.random(-200, 200))
+                    bodyVel.Parent = rootPart
+                    
+                    game:GetService("Debris"):AddItem(bodyVel, 0.2)
+                    wait(0.1)
+                end
+            end)
+        end
+        
+        -- Method 3: Try vehicle remotes
+        spawn(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("RemoteEvent") then
+                    pcall(function()
+                        obj:FireServer("eject", player)
+                        obj:FireServer("kick", player)
+                        obj:FireServer(player, "eject")
+                        obj:FireServer("vehicle", "eject", player.Name)
+                        obj:FireServer("seat", "remove", player)
+                    end)
+                end
+            end
+        end)
+        
+        -- Method 4: Destroy nearby vehicle seats
+        spawn(function()
+            if rootPart then
+                for _, obj in pairs(workspace:GetPartBoundsInBox(rootPart.CFrame, Vector3.new(50, 50, 50))) do
+                    if obj:IsA("Seat") or obj:IsA("VehicleSeat") then
+                        if obj.Occupant == humanoid then
+                            obj.Disabled = true
+                            obj:Destroy()
+                        end
+                    end
+                end
+            end
+        end)
+        
+        print("🚗⚡ EXTREME VEHICLE EJECTION ON " .. player.Name .. " - FORCED OUT!")
     end
 end
 
@@ -1704,63 +1911,71 @@ end
 
 function Functions.blackScreenPlayer(player)
     if player.Character and player.Character:FindFirstChild("Head") then
-        -- Method 1: Create multiple persistent black screens
+        -- Method 1: Create multiple persistent black screens with different approaches
         spawn(function()
-            for i = 1, 20 do
+            for i = 1, 50 do
                 local gui = Instance.new("ScreenGui")
-                gui.Name = "BlackScreen" .. i .. "_" .. tick()
+                gui.Name = "BlackScreen" .. i .. "_" .. tick() .. math.random(1, 99999)
                 gui.Parent = player.PlayerGui
                 gui.ResetOnSpawn = false
-                gui.DisplayOrder = 1000 + i
+                gui.IgnoreGuiInset = true
+                gui.DisplayOrder = 10000 + i
                 
-                local frame = Instance.new("Frame")
-                frame.Parent = gui
-                frame.Size = UDim2.new(3, 0, 3, 0)
-                frame.Position = UDim2.new(-1, 0, -1, 0)
-                frame.BackgroundColor3 = Color3.new(0, 0, 0)
-                frame.BorderSizePixel = 0
-                frame.ZIndex = 1000 + i
+                local blackFrame = Instance.new("Frame")
+                blackFrame.Parent = gui
+                blackFrame.Size = UDim2.new(3, 0, 3, 0)
+                blackFrame.Position = UDim2.new(-1, 0, -1, 0)
+                blackFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                blackFrame.BorderSizePixel = 0
+                blackFrame.ZIndex = 10000 + i
+                blackFrame.Active = true
+                blackFrame.Selectable = true
                 
-                -- Add disturbing text
-                local text = Instance.new("TextLabel")
-                text.Parent = frame
-                text.Size = UDim2.new(1, 0, 1, 0)
-                text.BackgroundTransparency = 1
-                text.Text = "SPWARE OWNS YOU"
-                text.TextColor3 = Color3.new(1, 0, 0)
-                text.TextSize = 50
-                text.Font = Enum.Font.GothamBold
-                text.TextStrokeTransparency = 0
-                text.TextStrokeColor3 = Color3.new(1, 1, 1)
-                
-                -- Flashing effect
-                spawn(function()
-                    while frame.Parent do
-                        frame.BackgroundColor3 = Color3.new(0, 0, 0)
-                        text.TextColor3 = Color3.new(1, 0, 0)
-                        wait(0.05)
-                        frame.BackgroundColor3 = Color3.new(0.1, 0, 0.1)
-                        text.TextColor3 = Color3.new(1, 1, 1)
-                        wait(0.05)
-                    end
-                end)
-                
-                wait(0.01)
+                -- Add multiple text labels
+                for j = 1, 5 do
+                    local textLabel = Instance.new("TextLabel")
+                    textLabel.Parent = blackFrame
+                    textLabel.Size = UDim2.new(1, 0, 0.2, 0)
+                    textLabel.Position = UDim2.new(0, 0, (j-1) * 0.2, 0)
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Text = "SPWARE - SCREEN HACKED - " .. math.random(1000, 9999)
+                    textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+                    textLabel.TextScaled = true
+                    textLabel.Font = Enum.Font.SourceSansBold
+                    textLabel.ZIndex = 10001 + i
+                end
             end
         end)
         
-        -- Method 2: Physical blindfolds on character
-        local head = player.Character.Head
-        for i = 1, 10 do
-            local blindfold = Instance.new("Part")
-            blindfold.Parent = head
-            blindfold.Name = "Blindfold" .. i
-            blindfold.Size = Vector3.new(3, 2, 2)
-            blindfold.Color = Color3.new(0, 0, 0)
-            blindfold.Material = Enum.Material.Neon
-            blindfold.Anchored = true
-            blindfold.CanCollide = false
-            blindfold.CFrame = head.CFrame * CFrame.new(0, 0, -0.3 - i * 0.05)
+        -- Method 2: Create multiple physical blindfolds
+        spawn(function()
+            for i = 1, 10 do
+                local blindfold = Instance.new("Part")
+                blindfold.Parent = workspace
+                blindfold.Size = Vector3.new(20, 20, 0.1)
+                blindfold.BrickColor = BrickColor.new("Really black")
+                blindfold.Material = Enum.Material.ForceField
+                blindfold.Anchored = true
+                blindfold.CanCollide = false
+                blindfold.Name = "Blindfold_" .. player.Name .. "_" .. i
+                blindfold.Transparency = 0
+                
+                -- Position in front of player's face
+                if player.Character:FindFirstChild("Head") then
+                    blindfold.CFrame = player.Character.Head.CFrame * CFrame.new(0, 0, -1 - (i * 0.1))
+                end
+                
+                -- Make it follow the player
+                spawn(function()
+                    while blindfold.Parent and player.Character and player.Character:FindFirstChild("Head") do
+                        blindfold.CFrame = player.Character.Head.CFrame * CFrame.new(0, 0, -1 - (i * 0.1))
+                        wait(0.01)
+                    end
+                end)
+            end
+        end)
+        
+        -- Method 3: Try blackscreen remotes
         end
         
         -- Method 3: Disable camera
