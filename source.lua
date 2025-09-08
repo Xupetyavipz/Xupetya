@@ -7,7 +7,7 @@
 
 
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Xupetyavipz/Xupetya/refs/heads/main/spware.lua"))()
+-- Script totalmente independente - sem dependências externas
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
