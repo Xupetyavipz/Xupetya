@@ -16,19 +16,21 @@ local mainFrame = nil
 local isUIVisible = false
 local currentTab = "Combat"
 
--- Color Scheme
+-- Premium Color Scheme - Purple/Black Theme
 local COLORS = {
-    BACKGROUND = Color3.new(0.06, 0.06, 0.06),
-    SURFACE = Color3.new(0.1, 0.1, 0.1),
-    CARD = Color3.new(0.12, 0.12, 0.12),
-    PRIMARY = Color3.new(0.58, 0.2, 0.92),
-    SECONDARY = Color3.new(0.66, 0.33, 0.97),
-    ACCENT = Color3.new(0.77, 0.71, 0.99),
-    TEXT = Color3.new(1, 1, 1),
-    TEXT_SECONDARY = Color3.new(0.61, 0.64, 0.69),
-    SUCCESS = Color3.new(0.13, 0.77, 0.37),
-    ERROR = Color3.new(0.94, 0.27, 0.27),
-    BORDER = Color3.new(0.22, 0.25, 0.32),
+    BACKGROUND = Color3.fromRGB(8, 8, 12),        -- Deep Black
+    SURFACE = Color3.fromRGB(16, 16, 20),         -- Dark Surface
+    CARD = Color3.fromRGB(22, 22, 28),            -- Card Background
+    PRIMARY = Color3.fromRGB(139, 69, 255),       -- Vibrant Purple
+    SECONDARY = Color3.fromRGB(124, 58, 237),     -- Purple Secondary
+    ACCENT = Color3.fromRGB(168, 85, 247),        -- Purple Light
+    HOVER = Color3.fromRGB(196, 181, 253),        -- Purple Hover
+    TEXT = Color3.fromRGB(255, 255, 255),         -- Pure White
+    TEXT_SECONDARY = Color3.fromRGB(156, 163, 175), -- Gray Text
+    SUCCESS = Color3.fromRGB(34, 197, 94),        -- Green
+    ERROR = Color3.fromRGB(239, 68, 68),          -- Red
+    BORDER = Color3.fromRGB(55, 48, 163),         -- Purple Border
+    GLOW = Color3.fromRGB(79, 70, 229),           -- Purple Glow
 }
 
 -- Notification System
@@ -74,12 +76,19 @@ local function createButton(parent, size, position, text, callback)
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = button
     
+    -- Enhanced hover effects
     button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.SECONDARY}):Play()
+        TweenService:Create(button, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {
+            BackgroundColor3 = COLORS.HOVER,
+            Size = UDim2.new(size.X.Scale, size.X.Offset + 4, size.Y.Scale, size.Y.Offset + 2)
+        }):Play()
     end)
     
     button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.PRIMARY}):Play()
+        TweenService:Create(button, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {
+            BackgroundColor3 = COLORS.PRIMARY,
+            Size = size
+        }):Play()
     end)
     
     if callback then
@@ -139,15 +148,15 @@ local function createToggle(parent, position, text, callback)
     return toggleFrame
 end
 
--- Tab Configuration
+-- Tab Configuration with Custom Icons
 local TABS = {
-    {name = "Combat", icon = "⚔️"},
-    {name = "Movement", icon = "🏃"},
-    {name = "Visuals", icon = "👁️"},
-    {name = "Roleplay", icon = "🎭"},
-    {name = "Blox Fruits", icon = "🍎"},
-    {name = "Player List", icon = "👥"},
-    {name = "Chat", icon = "💬"}
+    {name = "Combat", icon = "rbxassetid://75518636799674", emoji = "⚔️"},
+    {name = "Movement", icon = "rbxassetid://102270380454487", emoji = "🏃"},
+    {name = "Visuals", icon = "rbxassetid://77345366725078", emoji = "👁️"},
+    {name = "Roleplay", icon = "rbxassetid://111612200954692", emoji = "🎭"},
+    {name = "Blox Fruits", icon = "rbxassetid://111612200954692", emoji = "🍎"},
+    {name = "Player List", icon = "rbxassetid://122767272714113", emoji = "👥"},
+    {name = "Chat", icon = "rbxassetid://118260954915004", emoji = "💬"}
 }
 
 -- Main UI Creation
@@ -163,11 +172,34 @@ local function createMainUI()
     screenGui.ResetOnSpawn = false
     screenGui.Parent = playerGui
     
-    -- Main Container
-    mainFrame = createFrame(screenGui, UDim2.new(0, 900, 0, 600), UDim2.new(0.5, -450, 0.5, -300), COLORS.BACKGROUND, 12)
+    -- Main Container with Shadow Effect
+    mainFrame = createFrame(screenGui, UDim2.new(0, 950, 0, 650), UDim2.new(0.5, -475, 0.5, -325), COLORS.BACKGROUND, 16)
     
-    -- Header
-    local header = createFrame(mainFrame, UDim2.new(1, 0, 0, 60), UDim2.new(0, 0, 0, 0), COLORS.SURFACE, 0)
+    -- Add shadow/glow effect
+    local shadow = Instance.new("ImageLabel")
+    shadow.Size = UDim2.new(1, 40, 1, 40)
+    shadow.Position = UDim2.new(0, -20, 0, -20)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+    shadow.ImageColor3 = COLORS.GLOW
+    shadow.ImageTransparency = 0.7
+    shadow.ZIndex = -1
+    shadow.Parent = mainFrame
+    
+    -- Header with Gradient Effect
+    local header = createFrame(mainFrame, UDim2.new(1, 0, 0, 70), UDim2.new(0, 0, 0, 0), COLORS.SURFACE, 16)
+    
+    -- Header gradient overlay
+    local headerGradient = Instance.new("Frame")
+    headerGradient.Size = UDim2.new(1, 0, 1, 0)
+    headerGradient.BackgroundColor3 = COLORS.PRIMARY
+    headerGradient.BackgroundTransparency = 0.9
+    headerGradient.BorderSizePixel = 0
+    headerGradient.Parent = header
+    
+    local headerCorner = Instance.new("UICorner")
+    headerCorner.CornerRadius = UDim.new(0, 16)
+    headerCorner.Parent = headerGradient
     
     -- User Avatar
     local userImage = Instance.new("ImageLabel")
@@ -219,15 +251,35 @@ local function createMainUI()
     for i, tab in pairs(TABS) do
         local tabBtn = createFrame(sidebar, UDim2.new(1, -10, 0, 50), UDim2.new(0, 5, 0, 5 + (i-1) * 55), COLORS.SURFACE, 6)
         
-        local tabIcon = Instance.new("TextLabel")
-        tabIcon.Size = UDim2.new(0, 30, 1, 0)
-        tabIcon.Position = UDim2.new(0, 10, 0, 0)
+        -- Try custom icon first, fallback to emoji
+        local tabIcon = Instance.new("ImageLabel")
+        tabIcon.Size = UDim2.new(0, 24, 0, 24)
+        tabIcon.Position = UDim2.new(0, 13, 0.5, -12)
         tabIcon.BackgroundTransparency = 1
-        tabIcon.Text = tab.icon
-        tabIcon.TextColor3 = currentTab == tab.name and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
-        tabIcon.TextSize = 16
-        tabIcon.Font = Enum.Font.Gotham
+        tabIcon.Image = tab.icon
+        tabIcon.ImageColor3 = currentTab == tab.name and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
         tabIcon.Parent = tabBtn
+        
+        -- Fallback emoji if image fails to load
+        local fallbackIcon = Instance.new("TextLabel")
+        fallbackIcon.Size = UDim2.new(0, 30, 1, 0)
+        fallbackIcon.Position = UDim2.new(0, 10, 0, 0)
+        fallbackIcon.BackgroundTransparency = 1
+        fallbackIcon.Text = tab.emoji
+        fallbackIcon.TextColor3 = currentTab == tab.name and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
+        fallbackIcon.TextSize = 16
+        fallbackIcon.Font = Enum.Font.Gotham
+        fallbackIcon.Visible = false
+        fallbackIcon.Parent = tabBtn
+        
+        -- Show fallback if image fails
+        spawn(function()
+            wait(1)
+            if tabIcon.Image == "" or not tabIcon.IsLoaded then
+                tabIcon.Visible = false
+                fallbackIcon.Visible = true
+            end
+        end)
         
         local tabLabel = Instance.new("TextLabel")
         tabLabel.Size = UDim2.new(1, -50, 1, 0)
