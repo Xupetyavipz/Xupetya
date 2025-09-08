@@ -177,7 +177,7 @@ function Functions.createPlayerList()
         {name = "Kick", func = function(player) Functions.kickFromVehicle(player) end},
         {name = "Boom", func = function(player) Functions.explodePlayer(player) end},
         {name = "Cars", func = function(player) Functions.spawnCarsOnPlayer(player) end},
-        {name = "Crash", func = function(player) Functions.crashPlayer(player) end},
+        {name = "Kill", func = function(player) Functions.killPlayer(player) end},
         {name = "Black", func = function(player) Functions.blackScreenPlayer(player) end},
         {name = "Sound", func = function(player) Functions.soundSpamPlayer(player) end},
         {name = "P1", func = function(player) Functions.stealP1(player) end},
@@ -853,68 +853,219 @@ end
 
 function Functions.explodePlayer(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local explosion = Instance.new("Explosion")
-        explosion.Parent = workspace
-        explosion.Position = player.Character.HumanoidRootPart.Position
-        explosion.BlastRadius = 50
-        explosion.BlastPressure = 1000000
-        print("💥 Exploded " .. player.Name)
+        -- Create multiple explosions for maximum effect
+        for i = 1, 5 do
+            local explosion = Instance.new("Explosion")
+            explosion.Parent = workspace
+            explosion.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-10, 10), math.random(-5, 5), math.random(-10, 10))
+            explosion.BlastRadius = 100
+            explosion.BlastPressure = 5000000
+            explosion.Visible = true
+            
+            -- Add fire effect
+            local fire = Instance.new("Fire")
+            fire.Parent = player.Character.HumanoidRootPart
+            fire.Size = 30
+            fire.Heat = 25
+            
+            -- Add smoke effect
+            local smoke = Instance.new("Smoke")
+            smoke.Parent = player.Character.HumanoidRootPart
+            smoke.Size = 50
+            smoke.Opacity = 1
+            
+            wait(0.1)
+        end
+        
+        -- Fling the player with extreme force
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyVelocity.Velocity = Vector3.new(math.random(-200, 200), 200, math.random(-200, 200))
+        bodyVelocity.Parent = player.Character.HumanoidRootPart
+        
+        game:GetService("Debris"):AddItem(bodyVelocity, 2)
+        print("💥 EXPLODED " .. player.Name .. " WITH EXTREME FORCE!")
     end
 end
 
 function Functions.spawnCarsOnPlayer(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        for i = 1, 10 do
+        for i = 1, 25 do
             local car = Instance.new("Part")
             car.Parent = workspace
-            car.Size = Vector3.new(8, 4, 16)
-            car.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-20, 20), 20 + i * 5, math.random(-20, 20))
+            car.Name = "TrollCar" .. i
+            car.Size = Vector3.new(math.random(6, 12), math.random(3, 6), math.random(12, 20))
+            car.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-30, 30), 30 + i * 3, math.random(-30, 30))
             car.BrickColor = BrickColor.Random()
+            car.Material = Enum.Material.Neon
             car.Shape = Enum.PartType.Block
             
+            -- Add wheels
+            for j = 1, 4 do
+                local wheel = Instance.new("Part")
+                wheel.Parent = car
+                wheel.Size = Vector3.new(2, 2, 2)
+                wheel.Shape = Enum.PartType.Cylinder
+                wheel.BrickColor = BrickColor.new("Really black")
+                wheel.Material = Enum.Material.Rubber
+            end
+            
+            -- Add extreme velocity
             local bodyVelocity = Instance.new("BodyVelocity")
-            bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-            bodyVelocity.Velocity = Vector3.new(0, -50, 0)
+            bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bodyVelocity.Velocity = Vector3.new(math.random(-100, 100), -150, math.random(-100, 100))
             bodyVelocity.Parent = car
             
-            game:GetService("Debris"):AddItem(car, 10)
+            -- Add spinning effect
+            local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+            bodyAngularVelocity.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            bodyAngularVelocity.AngularVelocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
+            bodyAngularVelocity.Parent = car
+            
+            -- Add explosion on impact
+            car.Touched:Connect(function(hit)
+                if hit.Parent == player.Character then
+                    local explosion = Instance.new("Explosion")
+                    explosion.Parent = workspace
+                    explosion.Position = car.Position
+                    explosion.BlastRadius = 30
+                    explosion.BlastPressure = 2000000
+                end
+            end)
+            
+            game:GetService("Debris"):AddItem(car, 15)
+            wait(0.05)
         end
-        print("🚗 Spawned cars on " .. player.Name)
+        print("🚗💥 SPAWNED 25 EXPLOSIVE CARS ON " .. player.Name .. "!")
     end
 end
 
 function Functions.crashPlayer(player)
     if player.Character then
         spawn(function()
-            for i = 1, 1000 do
+            -- Spam invisible parts to lag the player
+            for i = 1, 2000 do
                 local part = Instance.new("Part")
                 part.Parent = player.Character
-                part.Size = Vector3.new(1, 1, 1)
-                part.Anchored = true
-                part.CanCollide = false
-                part.Transparency = 1
+                part.Size = Vector3.new(0.1, 0.1, 0.1)
+                part.Anchored = false
+                part.CanCollide = true
+                part.Transparency = 0.99
+                part.BrickColor = BrickColor.Random()
+                part.Material = Enum.Material.Neon
+                
+                -- Add physics to make it worse
+                local bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                bodyVelocity.Velocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
+                bodyVelocity.Parent = part
+                
+                -- Spam sounds
+                if i % 10 == 0 then
+                    local sound = Instance.new("Sound")
+                    sound.Parent = part
+                    sound.SoundId = "rbxassetid://131961136"
+                    sound.Volume = 0.1
+                    sound.Pitch = math.random(50, 200) / 100
+                    sound:Play()
+                end
+            end
+            
+            -- Spam GUI elements
+            for i = 1, 100 do
+                local gui = Instance.new("ScreenGui")
+                gui.Parent = player.PlayerGui
+                
+                local frame = Instance.new("Frame")
+                frame.Parent = gui
+                frame.Size = UDim2.new(1, 0, 1, 0)
+                frame.BackgroundColor3 = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+                frame.BackgroundTransparency = 0.9
             end
         end)
-        print("💻 Attempting to crash " .. player.Name)
+        print("💻🔥 ATTEMPTING TO CRASH " .. player.Name .. " WITH 2000+ OBJECTS!")
     end
 end
 
 function Functions.blackScreenPlayer(player)
-    -- This would require server-side access, so we'll simulate it
-    print("⚫ Black screen effect sent to " .. player.Name .. " (requires server access)")
+    if player.Character and player.Character:FindFirstChild("Head") then
+        -- Create multiple black screens
+        for i = 1, 10 do
+            local gui = Instance.new("ScreenGui")
+            gui.Name = "BlackScreen" .. i
+            gui.Parent = player.PlayerGui
+            gui.ResetOnSpawn = false
+            
+            local frame = Instance.new("Frame")
+            frame.Parent = gui
+            frame.Size = UDim2.new(2, 0, 2, 0)
+            frame.Position = UDim2.new(-0.5, 0, -0.5, 0)
+            frame.BackgroundColor3 = Color3.new(0, 0, 0)
+            frame.BorderSizePixel = 0
+            frame.ZIndex = 1000 + i
+            
+            -- Add flashing effect
+            spawn(function()
+                while frame.Parent do
+                    frame.BackgroundColor3 = Color3.new(0, 0, 0)
+                    wait(0.1)
+                    frame.BackgroundColor3 = Color3.new(0.1, 0, 0.1)
+                    wait(0.1)
+                end
+            end)
+        end
+        
+        -- Also blind their character
+        local head = player.Character.Head
+        for i = 1, 5 do
+            local blindfold = Instance.new("Part")
+            blindfold.Parent = head
+            blindfold.Size = Vector3.new(2, 1, 1)
+            blindfold.Color = Color3.new(0, 0, 0)
+            blindfold.Material = Enum.Material.Neon
+            blindfold.Anchored = true
+            blindfold.CanCollide = false
+            blindfold.CFrame = head.CFrame * CFrame.new(0, 0, -0.5 - i * 0.1)
+        end
+        
+        print("⚫💀 BLACK SCREEN ATTACK ON " .. player.Name .. "!")
+    end
 end
 
 function Functions.soundSpamPlayer(player)
     if player.Character then
-        for i = 1, 20 do
-            local sound = Instance.new("Sound")
-            sound.Parent = player.Character
-            sound.SoundId = "rbxassetid://131961136"
-            sound.Volume = 1
-            sound:Play()
-            game:GetService("Debris"):AddItem(sound, 5)
-        end
-        print("🔊 Sound spammed " .. player.Name)
+        spawn(function()
+            -- Spam 100 different sounds
+            local soundIds = {
+                "rbxassetid://131961136",
+                "rbxassetid://1837829565",
+                "rbxassetid://2865227271",
+                "rbxassetid://1280463188",
+                "rbxassetid://2767090"
+            }
+            
+            for i = 1, 100 do
+                local sound = Instance.new("Sound")
+                sound.Parent = player.Character
+                sound.SoundId = soundIds[math.random(1, #soundIds)]
+                sound.Volume = 1
+                sound.Pitch = math.random(10, 300) / 100
+                sound.Looped = true
+                sound:Play()
+                
+                -- Create sound in different body parts
+                for _, part in pairs(player.Character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        local extraSound = sound:Clone()
+                        extraSound.Parent = part
+                        extraSound:Play()
+                    end
+                end
+                
+                wait(0.01)
+            end
+        end)
+        print("🔊💥 EXTREME SOUND SPAM ON " .. player.Name .. " - 100+ SOUNDS!")
     end
 end
 
@@ -974,6 +1125,70 @@ function Functions.enterVehicle(player)
             else
                 print("❌ No vehicle found near " .. player.Name)
             end
+        end
+    end
+end
+
+-- Kill Player Function
+function Functions.killPlayer(player)
+    if player.Character then
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            -- Method 1: Set health to 0
+            humanoid.Health = 0
+            
+            -- Method 2: Remove character parts
+            spawn(function()
+                wait(0.1)
+                for _, part in pairs(player.Character:GetChildren()) do
+                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                        part:Destroy()
+                    end
+                end
+            end)
+            
+            -- Method 3: Create deadly explosion
+            if player.Character:FindFirstChild("HumanoidRootPart") then
+                local explosion = Instance.new("Explosion")
+                explosion.Parent = workspace
+                explosion.Position = player.Character.HumanoidRootPart.Position
+                explosion.BlastRadius = 200
+                explosion.BlastPressure = 10000000
+                explosion.Visible = true
+                
+                -- Add death effect
+                local deathEffect = Instance.new("Part")
+                deathEffect.Parent = workspace
+                deathEffect.Size = Vector3.new(10, 10, 10)
+                deathEffect.Position = player.Character.HumanoidRootPart.Position
+                deathEffect.BrickColor = BrickColor.new("Really red")
+                deathEffect.Material = Enum.Material.Neon
+                deathEffect.Shape = Enum.PartType.Ball
+                deathEffect.Anchored = true
+                deathEffect.CanCollide = false
+                
+                -- Expand death effect
+                local tween = game:GetService("TweenService"):Create(
+                    deathEffect,
+                    TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                    {Size = Vector3.new(50, 50, 50), Transparency = 1}
+                )
+                tween:Play()
+                
+                game:GetService("Debris"):AddItem(deathEffect, 3)
+            end
+            
+            -- Method 4: Fling with extreme force
+            if player.Character:FindFirstChild("HumanoidRootPart") then
+                local bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bodyVelocity.Velocity = Vector3.new(0, 1000, 0)
+                bodyVelocity.Parent = player.Character.HumanoidRootPart
+                
+                game:GetService("Debris"):AddItem(bodyVelocity, 1)
+            end
+            
+            print("💀⚡ KILLED " .. player.Name .. " WITH EXTREME FORCE!")
         end
     end
 end
