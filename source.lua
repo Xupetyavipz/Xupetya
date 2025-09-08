@@ -2991,12 +2991,9 @@ print("║  ⚙️  Advanced toggles and controls                          ║")
 print("║  ⌨️  Press INSERT to toggle                                  ║")
 print("╚══════════════════════════════════════════════════════════════╝")
 
--- Initialize Player List with delay to ensure all functions are loaded
-spawn(function()
-    wait(1)
-    pcall(function()
-        if Functions and Functions.createPlayerList then
-            Functions.createPlayerList()
-        end
-    end)
+-- Initialize Player List safely
+pcall(function()
+    if Functions and Functions.createPlayerList then
+        Functions.createPlayerList()
+    end
 end)
