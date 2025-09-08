@@ -3,19 +3,23 @@
 -- ║              Inspired by Synapse X & Modern Executors       ║
 -- ╚══════════════════════════════════════════════════════════════╝
 
+-- Services
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
+local TweenService = game:GetService("TweenService") 
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 
+-- Variables
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Cleanup
-if _G.ProfessionalUI then
-    _G.ProfessionalUI:Destroy()
-end
+-- Cleanup existing UI
+pcall(function()
+    if _G.ProfessionalUI then
+        _G.ProfessionalUI:Destroy()
+    end
+end)
 
 -- ═══════════════════════════════════════════════════════════════
 -- 🎨 PROFESSIONAL THEME
@@ -2991,5 +2995,7 @@ print("║  ⚙️  Advanced toggles and controls                          ║")
 print("║  ⌨️  Press INSERT to toggle                                  ║")
 print("╚══════════════════════════════════════════════════════════════╝")
 
--- Safe initialization without Player List auto-creation
+-- Safe initialization
 print("🎮 Professional Cheat UI Ready - Press INSERT to toggle!")
+
+-- End of script
