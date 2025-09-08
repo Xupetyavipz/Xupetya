@@ -1,5 +1,6 @@
 -- Roblox Cheat UI com Sistema de Login por Key
 -- Cores: Roxo e Preto com personalização de foto do usuário
+loadstring(game:HttpGet("URL_DO_SEU_GITHUB/key_generator.lua"))()
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -13,11 +14,26 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 -- Configurações
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1414742310620762233/VPo57SBDHF1NhGZwzsKf53RuJxPT7RCG9zdHVC9ShPIVVzfAMtjMGiHQPYU_sxQ5BLXL"
-local KEY_REQUEST_WEBHOOK = "https://discord.com/api/webhooks/1414742310620762233/VPo57SBDHF1NhGZwzsKf53RuJxPT7RCG9zdHVC9ShPIVVzfAMGiHQPYU_sxQ5BLXL-requests"
 
--- Sistema de keys dinâmico
-local validKeys = {}
-local keyDatabase = {}
+-- Sistema de keys pré-definidas com expiração
+local keyDatabase = {
+    -- Keys de exemplo (você pode adicionar mais manualmente)
+    ["CLIENT_DEMO123_7D"] = {
+        userType = "Client",
+        expiration = os.time() + (7 * 24 * 60 * 60), -- 7 dias
+        permissions = {"basic_features"}
+    },
+    ["ADMIN_PREMIUM456_30D"] = {
+        userType = "Admin", 
+        expiration = os.time() + (30 * 24 * 60 * 60), -- 30 dias
+        permissions = {"basic_features", "admin_features"}
+    },
+    ["OWNER_ULTIMATE789_365D"] = {
+        userType = "Owner",
+        expiration = os.time() + (365 * 24 * 60 * 60), -- 365 dias
+        permissions = {"all_features", "admin_panel"}
+    }
+}
 
 -- Variáveis globais
 local isAuthenticated = false
@@ -87,13 +103,19 @@ local function validateKey(key)
     return false
 end
 
--- Função para solicitar key
+-- Função para solicitar key (sistema simplificado)
 local function requestKey()
     local requestId = tostring(math.random(100000, 999999))
     local webhookData = {
         embeds = {{
             title = "🔑 Nova Solicitação de Key",
-            description = "Um usuário está solicitando acesso!",
+            description = "**SOLICITAÇÃO DE ACESSO**\n\n" ..
+                         "Para aprovar esta solicitação, gere uma key manualmente e envie para o usuário:\n\n" ..
+                         "**Tipos de Key:**\n" ..
+                         "• `CLIENT_[CODIGO]_[DIAS]D` - Acesso básico\n" ..
+                         "• `ADMIN_[CODIGO]_[DIAS]D` - Acesso admin\n" ..
+                         "• `OWNER_[CODIGO]_[DIAS]D` - Acesso total\n\n" ..
+                         "**Exemplo:** `CLIENT_ABC123_30D` (30 dias)",
             color = 16776960, -- Amarelo
             fields = {
                 {name = "👤 Usuário", value = player.Name, inline = true},
@@ -104,34 +126,29 @@ local function requestKey()
             },
             thumbnail = {url = currentUserImage},
             timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
-        }},
-        components = {{
-            type = 1,
-            components = {
-                {
-                    type = 2,
-                    style = 3,
-                    label = "✅ Aprovar",
-                    custom_id = "approve_" .. requestId
-                },
-                {
-                    type = 2,
-                    style = 4,
-                    label = "❌ Rejeitar",
-                    custom_id = "reject_" .. requestId
-                }
-            }
         }}
     }
     
     local success = sendToWebhook(webhookData)
     if success then
-        createNotification("Solicitação Enviada", "Aguarde aprovação do administrador!", COLORS.ACCENT)
+        createNotification("Solicitação Enviada", "Aguarde o administrador gerar sua key!", COLORS.ACCENT)
         return requestId
     else
         createNotification("Erro", "Falha ao enviar solicitação!", COLORS.ERROR)
         return nil
     end
+end
+
+-- Função para adicionar key manualmente ao sistema
+local function addKeyToSystem(key, userType, days)
+    local expiration = os.time() + (days * 24 * 60 * 60)
+    keyDatabase[key] = {
+        userType = userType,
+        expiration = expiration,
+        permissions = userType == "Owner" and {"all_features", "admin_panel"} or 
+                     userType == "Admin" and {"basic_features", "admin_features"} or 
+                     {"basic_features"}
+    }
 end
 
 -- Função para criar elementos UI com estilo
@@ -344,10 +361,10 @@ local function createLoginUI()
     
     -- Informações adicionais
     local infoLabel = Instance.new("TextLabel")
-    infoLabel.Size = UDim2.new(1, 0, 0, 40)
-    infoLabel.Position = UDim2.new(0, 0, 0, 430)
+    infoLabel.Size = UDim2.new(1, 0, 0, 60)
+    infoLabel.Position = UDim2.new(0, 0, 0, 420)
     infoLabel.BackgroundTransparency = 1
-    infoLabel.Text = "💎 Solicite uma key ou use uma key válida para acessar"
+    infoLabel.Text = "💎 Keys de teste: CLIENT_DEMO123_7D | ADMIN_PREMIUM456_30D | OWNER_ULTIMATE789_365D\n📨 Ou solicite uma key personalizada"
     infoLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
     infoLabel.TextScaled = true
     infoLabel.Font = Enum.Font.Gotham
