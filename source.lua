@@ -174,14 +174,20 @@ function Functions.createPlayerList()
         {name = "Pull", func = function(player) Functions.pullPlayer(player) end},
         {name = "Copy", func = function(player) Functions.copyOutfit(player) end},
         {name = "Steal", func = function(player) Functions.stealItems(player) end},
-        {name = "Freeze", func = function(player) Functions.freezePlayer(player) end},
-        {name = "Fling", func = function(player) Functions.flingPlayer(player) end}
+        {name = "Kick", func = function(player) Functions.kickFromVehicle(player) end},
+        {name = "Boom", func = function(player) Functions.explodePlayer(player) end},
+        {name = "Cars", func = function(player) Functions.spawnCarsOnPlayer(player) end},
+        {name = "Crash", func = function(player) Functions.crashPlayer(player) end},
+        {name = "Black", func = function(player) Functions.blackScreenPlayer(player) end},
+        {name = "Sound", func = function(player) Functions.soundSpamPlayer(player) end},
+        {name = "P1", func = function(player) Functions.stealP1(player) end},
+        {name = "Enter", func = function(player) Functions.enterVehicle(player) end}
     }
     
     for _, action in pairs(actions) do
         local btn = Instance.new("TextButton")
         btn.Parent = actionsFrame
-        btn.Size = UDim2.new(0, 40, 0, 30)
+        btn.Size = UDim2.new(0, 50, 0, 30)
         btn.BackgroundColor3 = Theme.Primary
         btn.BorderSizePixel = 0
         btn.Text = action.name
@@ -656,6 +662,322 @@ function Functions.toggleFullbright(enabled)
     print("💡 Fullbright:", enabled and "ENABLED" or "DISABLED")
 end
 
+-- Troll Functions
+function Functions.toggleSoundSpam(enabled)
+    _G.SoundSpamEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.SoundSpamEnabled do
+                local sound = Instance.new("Sound")
+                sound.Parent = workspace
+                sound.SoundId = "rbxassetid://131961136"
+                sound.Volume = 1
+                sound.Pitch = math.random(50, 200) / 100
+                sound:Play()
+                game:GetService("Debris"):AddItem(sound, 3)
+                wait(0.1)
+            end
+        end)
+    end
+    print("🔊 Sound Spam:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleScreenShaker(enabled)
+    _G.ScreenShakerEnabled = enabled
+    if enabled then
+        spawn(function()
+            local camera = workspace.CurrentCamera
+            while _G.ScreenShakerEnabled do
+                camera.CFrame = camera.CFrame * CFrame.Angles(
+                    math.rad(math.random(-5, 5)),
+                    math.rad(math.random(-5, 5)),
+                    math.rad(math.random(-5, 5))
+                )
+                wait(0.05)
+            end
+        end)
+    end
+    print("📳 Screen Shaker:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleCameraInverter(enabled)
+    _G.CameraInverterEnabled = enabled
+    if enabled then
+        spawn(function()
+            local camera = workspace.CurrentCamera
+            while _G.CameraInverterEnabled do
+                camera.CFrame = camera.CFrame * CFrame.Angles(math.pi, 0, math.pi)
+                wait(0.1)
+            end
+        end)
+    end
+    print("🔄 Camera Inverter:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleBlackScreen(enabled)
+    _G.BlackScreenEnabled = enabled
+    if enabled then
+        local blackScreen = Instance.new("Frame")
+        blackScreen.Name = "BlackScreen"
+        blackScreen.Parent = game.Players.LocalPlayer.PlayerGui
+        blackScreen.Size = UDim2.new(1, 0, 1, 0)
+        blackScreen.BackgroundColor3 = Color3.new(0, 0, 0)
+        blackScreen.ZIndex = 1000
+        _G.BlackScreenFrame = blackScreen
+    else
+        if _G.BlackScreenFrame then
+            _G.BlackScreenFrame:Destroy()
+            _G.BlackScreenFrame = nil
+        end
+    end
+    print("⚫ Black Screen:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleBlindEffect(enabled)
+    _G.BlindEffectEnabled = enabled
+    local Lighting = game:GetService("Lighting")
+    if enabled then
+        Lighting.Brightness = 0
+        Lighting.FogEnd = 1
+        Lighting.FogStart = 0
+    else
+        Lighting.Brightness = 1
+        Lighting.FogEnd = 100000
+        Lighting.FogStart = 0
+    end
+    print("👁️ Blind Effect:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleTextSpam(enabled)
+    _G.TextSpamEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.TextSpamEnabled do
+                local gui = Instance.new("ScreenGui")
+                gui.Parent = game.Players.LocalPlayer.PlayerGui
+                
+                local text = Instance.new("TextLabel")
+                text.Parent = gui
+                text.Size = UDim2.new(0, 200, 0, 50)
+                text.Position = UDim2.new(math.random(), 0, math.random(), 0)
+                text.BackgroundTransparency = 1
+                text.Text = "SPWARE TROLL MODE"
+                text.TextColor3 = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+                text.TextSize = math.random(20, 50)
+                text.Font = Enum.Font.GothamBold
+                
+                game:GetService("Debris"):AddItem(gui, 2)
+                wait(0.1)
+            end
+        end)
+    end
+    print("📝 Screen Text Spam:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleObjectSpam(enabled)
+    _G.ObjectSpamEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.ObjectSpamEnabled do
+                local part = Instance.new("Part")
+                part.Parent = workspace
+                part.Size = Vector3.new(math.random(1, 10), math.random(1, 10), math.random(1, 10))
+                part.Position = Vector3.new(math.random(-100, 100), math.random(10, 50), math.random(-100, 100))
+                part.BrickColor = BrickColor.Random()
+                part.Material = Enum.Material.Neon
+                
+                local bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                bodyVelocity.Velocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
+                bodyVelocity.Parent = part
+                
+                game:GetService("Debris"):AddItem(part, 5)
+                wait(0.1)
+            end
+        end)
+    end
+    print("📦 Object Spam:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleEarthquake(enabled)
+    _G.EarthquakeEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.EarthquakeEnabled do
+                for _, part in pairs(workspace:GetChildren()) do
+                    if part:IsA("Part") and part.Anchored == false then
+                        local bodyVelocity = Instance.new("BodyVelocity")
+                        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                        bodyVelocity.Velocity = Vector3.new(math.random(-20, 20), math.random(0, 20), math.random(-20, 20))
+                        bodyVelocity.Parent = part
+                        game:GetService("Debris"):AddItem(bodyVelocity, 0.5)
+                    end
+                end
+                wait(0.2)
+            end
+        end)
+    end
+    print("🌍 Earthquake Mode:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleVoiceSpam(enabled)
+    _G.VoiceSpamEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.VoiceSpamEnabled do
+                local sound = Instance.new("Sound")
+                sound.Parent = workspace
+                sound.SoundId = "rbxassetid://1837829565"
+                sound.Volume = 1
+                sound:Play()
+                game:GetService("Debris"):AddItem(sound, 5)
+                wait(1)
+            end
+        end)
+    end
+    print("🎤 Voice Spam:", enabled and "ENABLED" or "DISABLED")
+end
+
+-- Player List Advanced Functions
+function Functions.kickFromVehicle(player)
+    if player.Character then
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        if humanoid and humanoid.SeatPart then
+            humanoid.Sit = false
+            print("🚗 Kicked " .. player.Name .. " from vehicle")
+        else
+            print("❌ " .. player.Name .. " is not in a vehicle")
+        end
+    end
+end
+
+function Functions.explodePlayer(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local explosion = Instance.new("Explosion")
+        explosion.Parent = workspace
+        explosion.Position = player.Character.HumanoidRootPart.Position
+        explosion.BlastRadius = 50
+        explosion.BlastPressure = 1000000
+        print("💥 Exploded " .. player.Name)
+    end
+end
+
+function Functions.spawnCarsOnPlayer(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        for i = 1, 10 do
+            local car = Instance.new("Part")
+            car.Parent = workspace
+            car.Size = Vector3.new(8, 4, 16)
+            car.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-20, 20), 20 + i * 5, math.random(-20, 20))
+            car.BrickColor = BrickColor.Random()
+            car.Shape = Enum.PartType.Block
+            
+            local bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+            bodyVelocity.Velocity = Vector3.new(0, -50, 0)
+            bodyVelocity.Parent = car
+            
+            game:GetService("Debris"):AddItem(car, 10)
+        end
+        print("🚗 Spawned cars on " .. player.Name)
+    end
+end
+
+function Functions.crashPlayer(player)
+    if player.Character then
+        spawn(function()
+            for i = 1, 1000 do
+                local part = Instance.new("Part")
+                part.Parent = player.Character
+                part.Size = Vector3.new(1, 1, 1)
+                part.Anchored = true
+                part.CanCollide = false
+                part.Transparency = 1
+            end
+        end)
+        print("💻 Attempting to crash " .. player.Name)
+    end
+end
+
+function Functions.blackScreenPlayer(player)
+    -- This would require server-side access, so we'll simulate it
+    print("⚫ Black screen effect sent to " .. player.Name .. " (requires server access)")
+end
+
+function Functions.soundSpamPlayer(player)
+    if player.Character then
+        for i = 1, 20 do
+            local sound = Instance.new("Sound")
+            sound.Parent = player.Character
+            sound.SoundId = "rbxassetid://131961136"
+            sound.Volume = 1
+            sound:Play()
+            game:GetService("Debris"):AddItem(sound, 5)
+        end
+        print("🔊 Sound spammed " .. player.Name)
+    end
+end
+
+function Functions.stealP1(player)
+    if player.Character then
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        if humanoid and humanoid.SeatPart then
+            local vehicle = humanoid.SeatPart.Parent
+            local localPlayer = game.Players.LocalPlayer
+            
+            if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                -- Teleport to vehicle
+                localPlayer.Character.HumanoidRootPart.CFrame = vehicle.PrimaryPart.CFrame
+                
+                -- Try to sit in driver seat
+                for _, seat in pairs(vehicle:GetChildren()) do
+                    if seat:IsA("VehicleSeat") then
+                        seat:Sit(localPlayer.Character.Humanoid)
+                        break
+                    end
+                end
+                print("🏎️ Stole P1 from " .. player.Name)
+            end
+        else
+            print("❌ " .. player.Name .. " is not in a vehicle")
+        end
+    end
+end
+
+function Functions.enterVehicle(player)
+    if player.Character then
+        local localPlayer = game.Players.LocalPlayer
+        if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            -- Find nearest vehicle to player
+            local nearestVehicle = nil
+            local shortestDistance = math.huge
+            
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:FindFirstChild("VehicleSeat") then
+                    local distance = (player.Character.HumanoidRootPart.Position - obj.PrimaryPart.Position).Magnitude
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        nearestVehicle = obj
+                    end
+                end
+            end
+            
+            if nearestVehicle then
+                localPlayer.Character.HumanoidRootPart.CFrame = nearestVehicle.PrimaryPart.CFrame
+                for _, seat in pairs(nearestVehicle:GetChildren()) do
+                    if seat:IsA("Seat") or seat:IsA("VehicleSeat") then
+                        seat:Sit(localPlayer.Character.Humanoid)
+                        break
+                    end
+                end
+                print("🚗 Entered vehicle near " .. player.Name)
+            else
+                print("❌ No vehicle found near " .. player.Name)
+            end
+        end
+    end
+end
+
 -- ═══════════════════════════════════════════════════════════════
 -- 📋 UI CONFIGURATION
 -- ═══════════════════════════════════════════════════════════════
@@ -813,23 +1135,23 @@ local TabData = {
             {
                 title = "Audio/Visual",
                 items = {
-                    {type = "toggle", name = "Sound Spam", func = function(e) print("🔊 Sound Spam:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Screen Shaker", func = function(e) print("📳 Screen Shaker:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Camera Inverter", func = function(e) print("🔄 Camera Inverter:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Black Screen", func = function(e) print("⚫ Black Screen:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Blind Effect", func = function(e) print("👁️ Blind Effect:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Screen Text Spam", func = function(e) print("📝 Screen Text Spam:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Sound Spam", func = Functions.toggleSoundSpam},
+                    {type = "toggle", name = "Screen Shaker", func = Functions.toggleScreenShaker},
+                    {type = "toggle", name = "Camera Inverter", func = Functions.toggleCameraInverter},
+                    {type = "toggle", name = "Black Screen", func = Functions.toggleBlackScreen},
+                    {type = "toggle", name = "Blind Effect", func = Functions.toggleBlindEffect},
+                    {type = "toggle", name = "Screen Text Spam", func = Functions.toggleTextSpam},
                 }
             },
             {
                 title = "Server Destruction",
                 items = {
                     {type = "button", name = "Server Crasher"},
-                    {type = "toggle", name = "Object Spam", func = function(e) print("📦 Object Spam:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Earthquake Mode", func = function(e) print("🌍 Earthquake Mode:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Object Spam", func = Functions.toggleObjectSpam},
+                    {type = "toggle", name = "Earthquake Mode", func = Functions.toggleEarthquake},
                     {type = "button", name = "Map Destroy"},
                     {type = "button", name = "Nuke Effect"},
-                    {type = "toggle", name = "Voice Spam", func = function(e) print("🎤 Voice Spam:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Voice Spam", func = Functions.toggleVoiceSpam},
                 }
             }
         }
