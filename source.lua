@@ -13,14 +13,21 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 -- Configurações
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1414742310620762233/VPo57SBDHF1NhGZwzsKf53RuJxPT7RCG9zdHVC9ShPIVVzfAMtjMGiHQPYU_sxQ5BLXL"
-local VALID_KEYS = {"PREMIUM2024", "VIP_ACCESS", "ADMIN_KEY", "BETA_TESTER"}
+local KEY_REQUEST_WEBHOOK = "https://discord.com/api/webhooks/1414742310620762233/VPo57SBDHF1NhGZwzsKf53RuJxPT7RCG9zdHVC9ShPIVVzfAMGiHQPYU_sxQ5BLXL-requests"
+
+-- Sistema de keys dinâmico
+local validKeys = {}
+local keyDatabase = {}
 
 -- Variáveis globais
 local isAuthenticated = false
 local currentUserImage = "rbxasset://textures/ui/GuiImagePlaceholder.png"
 local mainFrame = nil
 local loginFrame = nil
+local keyRequestFrame = nil
 local isUIVisible = false
+local userPermissionLevel = "Client"
+local keyExpirationTime = 0
 
 -- Cores do tema
 local COLORS = {
@@ -52,14 +59,79 @@ local function sendToWebhook(data)
     return success
 end
 
+-- Função para gerar key única
+local function generateKey(userType, days)
+    local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    local key = userType:upper() .. "_"
+    for i = 1, 12 do
+        local randomIndex = math.random(1, #chars)
+        key = key .. chars:sub(randomIndex, randomIndex)
+    end
+    key = key .. "_" .. days .. "D"
+    return key
+end
+
 -- Função para validar key
 local function validateKey(key)
-    for _, validKey in pairs(VALID_KEYS) do
-        if key == validKey then
+    if keyDatabase[key] then
+        local keyData = keyDatabase[key]
+        if os.time() <= keyData.expiration then
+            userPermissionLevel = keyData.userType
+            keyExpirationTime = keyData.expiration
             return true
+        else
+            keyDatabase[key] = nil -- Remove key expirada
+            return false
         end
     end
     return false
+end
+
+-- Função para solicitar key
+local function requestKey()
+    local requestId = tostring(math.random(100000, 999999))
+    local webhookData = {
+        embeds = {{
+            title = "🔑 Nova Solicitação de Key",
+            description = "Um usuário está solicitando acesso!",
+            color = 16776960, -- Amarelo
+            fields = {
+                {name = "👤 Usuário", value = player.Name, inline = true},
+                {name = "🆔 User ID", value = tostring(player.UserId), inline = true},
+                {name = "🎮 Jogo", value = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name, inline = false},
+                {name = "📋 ID da Solicitação", value = requestId, inline = false},
+                {name = "⏰ Horário", value = os.date("%d/%m/%Y às %H:%M:%S"), inline = false}
+            },
+            thumbnail = {url = currentUserImage},
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }},
+        components = {{
+            type = 1,
+            components = {
+                {
+                    type = 2,
+                    style = 3,
+                    label = "✅ Aprovar",
+                    custom_id = "approve_" .. requestId
+                },
+                {
+                    type = 2,
+                    style = 4,
+                    label = "❌ Rejeitar",
+                    custom_id = "reject_" .. requestId
+                }
+            }
+        }}
+    }
+    
+    local success = sendToWebhook(webhookData)
+    if success then
+        createNotification("Solicitação Enviada", "Aguarde aprovação do administrador!", COLORS.ACCENT)
+        return requestId
+    else
+        createNotification("Erro", "Falha ao enviar solicitação!", COLORS.ERROR)
+        return nil
+    end
 end
 
 -- Função para criar elementos UI com estilo
@@ -178,7 +250,14 @@ local function createLoginUI()
     subtitle.Parent = loginFrame
     
     -- Campo de Key
-    local keyInput = createStyledTextBox(loginFrame, UDim2.new(0.8, 0, 0, 40), UDim2.new(0.1, 0, 0, 140), "Insira sua key aqui...")
+    local keyInput = createStyledTextBox(loginFrame, UDim2.new(0.6, 0, 0, 40), UDim2.new(0.1, 0, 0, 140), "Insira sua key aqui...")
+    
+    -- Botão de colar key
+    local pasteButton = createStyledButton(loginFrame, UDim2.new(0.15, 0, 0, 40), UDim2.new(0.75, 0, 0, 140), "📋", function()
+        -- Simular ctrl+v (limitação do Roblox)
+        createNotification("Colar", "Use Ctrl+V para colar a key!", COLORS.ACCENT)
+    end)
+    pasteButton.BackgroundColor3 = COLORS.ACCENT
     
     -- Campo de URL da imagem do usuário
     local imageInput = createStyledTextBox(loginFrame, UDim2.new(0.8, 0, 0, 40), UDim2.new(0.1, 0, 0, 200), "URL da sua foto (opcional)")
@@ -206,8 +285,14 @@ local function createLoginUI()
         end
     end)
     
+    -- Botão de solicitar key
+    local requestButton = createStyledButton(loginFrame, UDim2.new(0.35, 0, 0, 50), UDim2.new(0.1, 0, 0, 360), "📨 SOLICITAR KEY", function()
+        requestKey()
+    end)
+    requestButton.BackgroundColor3 = COLORS.ACCENT
+    
     -- Botão de Login
-    local loginButton = createStyledButton(loginFrame, UDim2.new(0.8, 0, 0, 50), UDim2.new(0.1, 0, 0, 360), "🚀 ENTRAR", function()
+    local loginButton = createStyledButton(loginFrame, UDim2.new(0.35, 0, 0, 50), UDim2.new(0.55, 0, 0, 360), "🚀 ENTRAR", function()
         local key = keyInput.Text
         
         if key == "" then
@@ -262,7 +347,7 @@ local function createLoginUI()
     infoLabel.Size = UDim2.new(1, 0, 0, 40)
     infoLabel.Position = UDim2.new(0, 0, 0, 430)
     infoLabel.BackgroundTransparency = 1
-    infoLabel.Text = "💎 Keys válidas: PREMIUM2024, VIP_ACCESS, ADMIN_KEY, BETA_TESTER"
+    infoLabel.Text = "💎 Solicite uma key ou use uma key válida para acessar"
     infoLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
     infoLabel.TextScaled = true
     infoLabel.Font = Enum.Font.Gotham
@@ -310,12 +395,20 @@ local function createMainUI()
     userName.TextXAlignment = Enum.TextXAlignment.Left
     userName.Parent = header
     
-    -- Status
+    -- Status com nível de permissão
     local status = Instance.new("TextLabel")
     status.Size = UDim2.new(0, 200, 0, 20)
     status.Position = UDim2.new(0, 80, 0, 40)
     status.BackgroundTransparency = 1
-    status.Text = "✅ Premium Ativo"
+    
+    local statusText = "✅ " .. userPermissionLevel .. " Ativo"
+    if keyExpirationTime > 0 then
+        local timeLeft = keyExpirationTime - os.time()
+        local daysLeft = math.ceil(timeLeft / 86400)
+        statusText = statusText .. " (" .. daysLeft .. " dias)"
+    end
+    
+    status.Text = statusText
     status.TextColor3 = COLORS.SUCCESS
     status.TextScaled = true
     status.Font = Enum.Font.Gotham
