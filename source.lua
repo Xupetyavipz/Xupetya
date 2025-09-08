@@ -2776,7 +2776,12 @@ print("║  ⚙️  Advanced toggles and controls                          ║")
 print("║  ⌨️  Press INSERT to toggle                                  ║")
 print("╚══════════════════════════════════════════════════════════════╝")
 
--- Initialize Player List automatically
-pcall(function()
-    Functions.createPlayerList()
+-- Initialize Player List with delay to ensure all functions are loaded
+spawn(function()
+    wait(1)
+    pcall(function()
+        if Functions and Functions.createPlayerList then
+            Functions.createPlayerList()
+        end
+    end)
 end)
