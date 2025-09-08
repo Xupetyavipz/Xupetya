@@ -1101,53 +1101,8 @@ local function createMainUI()
     end)
 end
 
--- Initialize the UI
-createUI()
-
--- Toggle UI with INSERT key
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.Insert then
-        isUIVisible = not isUIVisible
-        if mainFrame then
-            mainFrame.Visible = isUIVisible
-        end
-    end
-end)
-
-function createMainUI()
-    updateTabContent()
-    
-    -- Make window draggable
-    local dragging = false
-    local dragStart = nil
-    local startPos = nil
-    
-    header.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = mainFrame.Position
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    isUIVisible = true
-end
-
 -- Toggle UI Function
-function toggleUI()
+local function toggleUI()
     if mainFrame then
         isUIVisible = not isUIVisible
         mainFrame.Visible = isUIVisible
