@@ -303,9 +303,29 @@ end
 -- Player Action Functions
 function Functions.teleportToPlayer(player)
     local localPlayer = game.Players.LocalPlayer
-    if localPlayer.Character and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        localPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame
-        print("🚀 Teleported to " .. player.Name)
+    if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        -- Multiple teleport methods for maximum effectiveness
+        local targetCFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
+        
+        -- Method 1: Direct CFrame
+        localPlayer.Character.HumanoidRootPart.CFrame = targetCFrame
+        
+        -- Method 2: Position property
+        localPlayer.Character.HumanoidRootPart.Position = targetCFrame.Position
+        
+        -- Method 3: MoveTo for Humanoid
+        if localPlayer.Character:FindFirstChild("Humanoid") then
+            localPlayer.Character.Humanoid:MoveTo(targetCFrame.Position)
+        end
+        
+        -- Method 4: Velocity reset
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = localPlayer.Character.HumanoidRootPart
+        game:GetService("Debris"):AddItem(bodyVelocity, 0.1)
+        
+        print("🚀 TELEPORTED TO " .. player.Name .. " WITH MULTIPLE METHODS!")
     end
 end
 
@@ -319,44 +339,170 @@ end
 
 function Functions.copyOutfit(player)
     local localPlayer = game.Players.LocalPlayer
-    if localPlayer.Character and player.Character then
-        for _, item in pairs(player.Character:GetChildren()) do
-            if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") then
-                local clone = item:Clone()
-                clone.Parent = localPlayer.Character
+    if player.Character and localPlayer.Character then
+        -- Remove current accessories
+        for _, item in pairs(localPlayer.Character:GetChildren()) do
+            if item:IsA("Accessory") or item:IsA("Hat") or item:IsA("Shirt") or item:IsA("Pants") then
+                item:Destroy()
             end
         end
-        print("👕 Copied outfit from " .. player.Name)
+        
+        wait(0.1)
+        
+        -- Copy all appearance items
+        for _, item in pairs(player.Character:GetChildren()) do
+            if item:IsA("Accessory") or item:IsA("Hat") then
+                local clone = item:Clone()
+                clone.Parent = localPlayer.Character
+            elseif item:IsA("Shirt") then
+                local shirt = Instance.new("Shirt")
+                shirt.ShirtTemplate = item.ShirtTemplate
+                shirt.Parent = localPlayer.Character
+            elseif item:IsA("Pants") then
+                local pants = Instance.new("Pants")
+                pants.PantsTemplate = item.PantsTemplate
+                pants.Parent = localPlayer.Character
+            end
+        end
+        
+        -- Copy body colors
+        if player.Character:FindFirstChild("Body Colors") and localPlayer.Character:FindFirstChild("Body Colors") then
+            local targetColors = player.Character["Body Colors"]
+            local myColors = localPlayer.Character["Body Colors"]
+            
+            myColors.HeadColor = targetColors.HeadColor
+            myColors.LeftArmColor = targetColors.LeftArmColor
+            myColors.LeftLegColor = targetColors.LeftLegColor
+            myColors.RightArmColor = targetColors.RightArmColor
+            myColors.RightLegColor = targetColors.RightLegColor
+            myColors.TorsoColor = targetColors.TorsoColor
+        end
+        
+        -- Copy face
+        if player.Character:FindFirstChild("Head") then
+            local face = player.Character.Head:FindFirstChild("face")
+            if face and localPlayer.Character:FindFirstChild("Head") then
+                local myFace = localPlayer.Character.Head:FindFirstChild("face")
+                if myFace then
+                    myFace.Texture = face.Texture
+                end
+            end
+        end
+        
+        print("👕 COMPLETELY COPIED OUTFIT FROM " .. player.Name .. "!")
     end
 end
 
 function Functions.stealItems(player)
+    local localPlayer = game.Players.LocalPlayer
+    
+    -- Steal from backpack
     if player.Backpack then
-        local localPlayer = game.Players.LocalPlayer
         for _, tool in pairs(player.Backpack:GetChildren()) do
             if tool:IsA("Tool") then
+                -- Method 1: Clone to local player
+                local clone = tool:Clone()
+                clone.Parent = localPlayer.Backpack
+                
+                -- Method 2: Move original tool
                 tool.Parent = localPlayer.Backpack
             end
         end
-        print("💰 Stole items from " .. player.Name)
     end
+    
+    -- Steal equipped tools
+    if player.Character then
+        for _, tool in pairs(player.Character:GetChildren()) do
+            if tool:IsA("Tool") then
+                -- Clone and steal equipped tools
+                local clone = tool:Clone()
+                clone.Parent = localPlayer.Backpack
+                
+                -- Remove from target
+                tool:Destroy()
+            end
+        end
+    end
+    
+    -- Steal StarterGear
+    if player.StarterGear then
+        for _, tool in pairs(player.StarterGear:GetChildren()) do
+            if tool:IsA("Tool") then
+                local clone = tool:Clone()
+                clone.Parent = localPlayer.StarterGear
+                clone.Parent = localPlayer.Backpack
+            end
+        end
+    end
+    
+    print("🎒 COMPLETELY STOLE ALL ITEMS FROM " .. player.Name .. "!")
 end
 
 function Functions.freezePlayer(player)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.Anchored = true
-        print("🧊 Froze " .. player.Name)
+    if player.Character then
+        -- Method 1: Anchor all parts
+        for _, part in pairs(player.Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.Anchored = true
+            end
+        end
+        
+        -- Method 2: Disable Humanoid
+        if player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.PlatformStand = true
+            player.Character.Humanoid.WalkSpeed = 0
+            player.Character.Humanoid.JumpPower = 0
+        end
+        
+        -- Method 3: Add BodyPosition to lock in place
+        if player.Character:FindFirstChild("HumanoidRootPart") then
+            local bodyPosition = Instance.new("BodyPosition")
+            bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            bodyPosition.Position = player.Character.HumanoidRootPart.Position
+            bodyPosition.D = 10000
+            bodyPosition.P = 10000
+            bodyPosition.Parent = player.Character.HumanoidRootPart
+            
+            -- Create ice effect
+            local ice = Instance.new("Part")
+            ice.Parent = player.Character
+            ice.Size = Vector3.new(6, 8, 6)
+            ice.Position = player.Character.HumanoidRootPart.Position
+            ice.BrickColor = BrickColor.new("Cyan")
+            ice.Material = Enum.Material.Ice
+            ice.Transparency = 0.5
+            ice.Anchored = true
+            ice.CanCollide = false
+            ice.Name = "IceBlock"
+        end
+        
+        print("🧊 COMPLETELY FROZE " .. player.Name .. " IN ICE!")
     end
 end
 
 function Functions.flingPlayer(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        -- Method 1: Extreme velocity
         local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-        bodyVelocity.Velocity = Vector3.new(math.random(-100, 100), 100, math.random(-100, 100))
+        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyVelocity.Velocity = Vector3.new(math.random(-500, 500), 500, math.random(-500, 500))
         bodyVelocity.Parent = player.Character.HumanoidRootPart
-        game:GetService("Debris"):AddItem(bodyVelocity, 1)
-        print("🌪️ Flung " .. player.Name)
+        
+        -- Method 2: Angular velocity for spinning
+        local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+        bodyAngularVelocity.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bodyAngularVelocity.AngularVelocity = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
+        bodyAngularVelocity.Parent = player.Character.HumanoidRootPart
+        
+        -- Method 3: Disable character control
+        if player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.PlatformStand = true
+        end
+        
+        game:GetService("Debris"):AddItem(bodyVelocity, 3)
+        game:GetService("Debris"):AddItem(bodyAngularVelocity, 3)
+        
+        print("🌪️ EXTREME FLING ON " .. player.Name .. "!")
     end
 end
 
@@ -365,34 +511,422 @@ function Functions.toggleAimbot(enabled)
     _G.AimbotEnabled = enabled
     if enabled then
         spawn(function()
-            local Camera = workspace.CurrentCamera
+            local RunService = game:GetService("RunService")
             local Players = game:GetService("Players")
+            local UserInputService = game:GetService("UserInputService")
+            local Camera = workspace.CurrentCamera
             local LocalPlayer = Players.LocalPlayer
-            local Mouse = LocalPlayer:GetMouse()
             
-            while _G.AimbotEnabled do
+            local connection
+            connection = RunService.Heartbeat:Connect(function()
+                if not _G.AimbotEnabled then
+                    connection:Disconnect()
+                    return
+                end
+                
+                local mouse = LocalPlayer:GetMouse()
                 local closestPlayer = nil
                 local shortestDistance = math.huge
                 
                 for _, player in pairs(Players:GetPlayers()) do
                     if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-                        local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.Head.Position).Magnitude
-                        if distance < shortestDistance then
-                            shortestDistance = distance
-                            closestPlayer = player
+                        local head = player.Character.Head
+                        local screenPoint, onScreen = Camera:WorldToScreenPoint(head.Position)
+                        
+                        if onScreen then
+                            local distance = (Vector2.new(screenPoint.X, screenPoint.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                            if distance < shortestDistance and distance < 200 then
+                                shortestDistance = distance
+                                closestPlayer = player
+                            end
                         end
                     end
                 end
                 
-                if closestPlayer then
-                    Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, closestPlayer.Character.Head.Position)
+                if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
+                    local targetPosition = closestPlayer.Character.Head.Position
+                    local currentCFrame = Camera.CFrame
+                    local targetCFrame = CFrame.lookAt(currentCFrame.Position, targetPosition)
+                    
+                    -- Smooth aiming
+                    Camera.CFrame = currentCFrame:Lerp(targetCFrame, 0.2)
+                end
+            end)
+        end)
+    end
+    print("🎯 Aimbot:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleSilentAim(enabled)
+    _G.SilentAimEnabled = enabled
+    if enabled then
+        local mt = getrawmetatable(game)
+        local oldNamecall = mt.__namecall
+        
+        setreadonly(mt, false)
+        mt.__namecall = newcclosure(function(self, ...)
+            local method = getnamecallmethod()
+            local args = {...}
+            
+            if method == "FireServer" or method == "InvokeServer" then
+                if string.find(tostring(self), "Remote") and _G.SilentAimEnabled then
+                    local Players = game:GetService("Players")
+                    local LocalPlayer = Players.LocalPlayer
+                    local Camera = workspace.CurrentCamera
+                    
+                    local closestPlayer = nil
+                    local shortestDistance = math.huge
+                    
+                    for _, player in pairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                            local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                            if distance < shortestDistance and distance < 500 then
+                                shortestDistance = distance
+                                closestPlayer = player
+                            end
+                        end
+                    end
+                    
+                    if closestPlayer and closestPlayer.Character then
+                        -- Replace hit position with target position
+                        for i, arg in pairs(args) do
+                            if typeof(arg) == "Vector3" then
+                                args[i] = closestPlayer.Character.Head.Position
+                            elseif typeof(arg) == "CFrame" then
+                                args[i] = CFrame.new(closestPlayer.Character.Head.Position)
+                            end
+                        end
+                    end
+                end
+            end
+            
+            return oldNamecall(self, unpack(args))
+        end)
+        setreadonly(mt, true)
+    end
+    print("🎯 Silent Aim:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleTriggerbot(enabled)
+    _G.TriggerbotEnabled = enabled
+    if enabled then
+        spawn(function()
+            local RunService = game:GetService("RunService")
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            local Camera = workspace.CurrentCamera
+            
+            local connection
+            connection = RunService.Heartbeat:Connect(function()
+                if not _G.TriggerbotEnabled then
+                    connection:Disconnect()
+                    return
                 end
                 
+                local ray = Camera:ScreenPointToRay(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
+                local raycastParams = RaycastParams.new()
+                raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+                raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
+                
+                local raycastResult = workspace:Raycast(ray.Origin, ray.Direction * 1000, raycastParams)
+                
+                if raycastResult and raycastResult.Instance then
+                    local hit = raycastResult.Instance
+                    local character = hit.Parent
+                    
+                    if character:FindFirstChild("Humanoid") and Players:GetPlayerFromCharacter(character) then
+                        -- Auto click/shoot
+                        mouse1press()
+                        wait(0.01)
+                        mouse1release()
+                    end
+                end
+            end)
+        end)
+    end
+    print("🎯 Triggerbot:", enabled and "ENABLED" or "DISABLED")
+end
+
+-- Weapon Functions
+function Functions.toggleNoRecoil(enabled)
+    _G.NoRecoilEnabled = enabled
+    if enabled then
+        local mt = getrawmetatable(game)
+        local oldIndex = mt.__index
+        
+        setreadonly(mt, false)
+        mt.__index = newcclosure(function(self, key)
+            if key == "CFrame" and _G.NoRecoilEnabled then
+                if tostring(self):find("Camera") then
+                    return oldIndex(self, key)
+                end
+            end
+            return oldIndex(self, key)
+        end)
+        setreadonly(mt, true)
+    end
+    print("🔫 No Recoil:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleNoSpread(enabled)
+    _G.NoSpreadEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.NoSpreadEnabled do
+                for _, tool in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+                    if tool:IsA("Tool") then
+                        for _, obj in pairs(tool:GetDescendants()) do
+                            if obj.Name:lower():find("spread") then
+                                obj.Value = 0
+                            end
+                        end
+                    end
+                end
                 wait(0.1)
             end
         end)
     end
-    print("🎯 Aimbot:", enabled and "ENABLED" or "DISABLED")
+    print("🎯 No Spread:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleNoSway(enabled)
+    _G.NoSwayEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.NoSwayEnabled do
+                for _, tool in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+                    if tool:IsA("Tool") then
+                        for _, obj in pairs(tool:GetDescendants()) do
+                            if obj.Name:lower():find("sway") then
+                                obj.Value = 0
+                            end
+                        end
+                    end
+                end
+                wait(0.1)
+            end
+        end)
+    end
+    print("🎯 No Sway:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleRapidFire(enabled)
+    _G.RapidFireEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.RapidFireEnabled do
+                for _, tool in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+                    if tool:IsA("Tool") then
+                        for _, obj in pairs(tool:GetDescendants()) do
+                            if obj.Name:lower():find("firerate") or obj.Name:lower():find("cooldown") then
+                                obj.Value = 0.01
+                            end
+                        end
+                    end
+                end
+                wait(0.1)
+            end
+        end)
+    end
+    print("⚡ Rapid Fire:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleAutoShoot(enabled)
+    _G.AutoShootEnabled = enabled
+    if enabled then
+        spawn(function()
+            local RunService = game:GetService("RunService")
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            
+            local connection
+            connection = RunService.Heartbeat:Connect(function()
+                if not _G.AutoShootEnabled then
+                    connection:Disconnect()
+                    return
+                end
+                
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                        if distance < 100 then
+                            mouse1press()
+                            wait(0.01)
+                            mouse1release()
+                            wait(0.1)
+                        end
+                    end
+                end
+            end)
+        end)
+    end
+    print("🎯 Auto Shoot:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleInfiniteAmmo(enabled)
+    _G.InfiniteAmmoEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.InfiniteAmmoEnabled do
+                for _, tool in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+                    if tool:IsA("Tool") then
+                        for _, obj in pairs(tool:GetDescendants()) do
+                            if obj.Name:lower():find("ammo") or obj.Name:lower():find("clip") then
+                                obj.Value = 999999
+                            end
+                        end
+                    end
+                end
+                wait(0.1)
+            end
+        end)
+    end
+    print("♾️ Infinite Ammo:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleOneShotKill(enabled)
+    _G.OneShotKillEnabled = enabled
+    if enabled then
+        local mt = getrawmetatable(game)
+        local oldNamecall = mt.__namecall
+        
+        setreadonly(mt, false)
+        mt.__namecall = newcclosure(function(self, ...)
+            local method = getnamecallmethod()
+            local args = {...}
+            
+            if method == "FireServer" and _G.OneShotKillEnabled then
+                if string.find(tostring(self), "Damage") or string.find(tostring(self), "Hit") then
+                    args[2] = 999999 -- Damage value
+                end
+            end
+            
+            return oldNamecall(self, unpack(args))
+        end)
+        setreadonly(mt, true)
+    end
+    print("💥 One Shot Kill:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.togglePenetration(enabled)
+    _G.PenetrationEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.PenetrationEnabled do
+                for _, part in pairs(workspace:GetDescendants()) do
+                    if part:IsA("BasePart") and part.Name:lower():find("wall") then
+                        part.CanCollide = false
+                        part.Transparency = 0.8
+                    end
+                end
+                wait(1)
+            end
+        end)
+    else
+        for _, part in pairs(workspace:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name:lower():find("wall") then
+                part.CanCollide = true
+                part.Transparency = 0
+            end
+        end
+    end
+    print("🔫 Penetration:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleKillAura(enabled)
+    _G.KillAuraEnabled = enabled
+    if enabled then
+        spawn(function()
+            local RunService = game:GetService("RunService")
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            
+            local connection
+            connection = RunService.Heartbeat:Connect(function()
+                if not _G.KillAuraEnabled then
+                    connection:Disconnect()
+                    return
+                end
+                
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") then
+                        local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                        if distance < 15 then
+                            player.Character.Humanoid.Health = 0
+                        end
+                    end
+                end
+            end)
+        end)
+    end
+    print("⚔️ Kill Aura:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleHitboxExpander(enabled)
+    _G.HitboxExpanderEnabled = enabled
+    if enabled then
+        spawn(function()
+            while _G.HitboxExpanderEnabled do
+                for _, player in pairs(game.Players:GetPlayers()) do
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        player.Character.HumanoidRootPart.Size = Vector3.new(20, 20, 20)
+                        player.Character.HumanoidRootPart.Transparency = 0.8
+                        player.Character.HumanoidRootPart.BrickColor = BrickColor.new("Really red")
+                        player.Character.HumanoidRootPart.Material = Enum.Material.Neon
+                    end
+                end
+                wait(0.1)
+            end
+        end)
+    else
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                player.Character.HumanoidRootPart.Transparency = 1
+            end
+        end
+    end
+    print("🎯 Hitbox Expander:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleAutoHeadshot(enabled)
+    _G.AutoHeadshotEnabled = enabled
+    if enabled then
+        local mt = getrawmetatable(game)
+        local oldNamecall = mt.__namecall
+        
+        setreadonly(mt, false)
+        mt.__namecall = newcclosure(function(self, ...)
+            local method = getnamecallmethod()
+            local args = {...}
+            
+            if method == "FireServer" and _G.AutoHeadshotEnabled then
+                if string.find(tostring(self), "Remote") then
+                    local Players = game:GetService("Players")
+                    local LocalPlayer = Players.LocalPlayer
+                    
+                    for _, player in pairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                            local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                            if distance < 200 then
+                                -- Replace hit position with head position
+                                for i, arg in pairs(args) do
+                                    if typeof(arg) == "Vector3" then
+                                        args[i] = player.Character.Head.Position
+                                    end
+                                end
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+            
+            return oldNamecall(self, unpack(args))
+        end)
+        setreadonly(mt, true)
+    end
+    print("🎯 Auto Headshot:", enabled and "ENABLED" or "DISABLED")
 end
 
 -- ESP Functions
@@ -402,7 +936,7 @@ function Functions.toggleBoxESP(enabled)
         spawn(function()
             while _G.BoxESPEnabled do
                 for _, player in pairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
                         if not player.Character:FindFirstChild("ESP_Box") then
                             local box = Instance.new("BoxHandleAdornment")
                             box.Name = "ESP_Box"
@@ -434,10 +968,10 @@ function Functions.toggleNameESP(enabled)
         spawn(function()
             while _G.NameESPEnabled do
                 for _, player in pairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-                        if not player.Character.Head:FindFirstChild("NameESP") then
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                        if not player.Character.Head:FindFirstChild("ESP_Name") then
                             local billboard = Instance.new("BillboardGui")
-                            billboard.Name = "NameESP"
+                            billboard.Name = "ESP_Name"
                             billboard.Parent = player.Character.Head
                             billboard.Size = UDim2.new(0, 200, 0, 50)
                             billboard.StudsOffset = Vector3.new(0, 2, 0)
@@ -475,7 +1009,7 @@ function Functions.toggleDistanceESP(enabled)
         spawn(function()
             while _G.DistanceESPEnabled do
                 for _, player in pairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
                         if not player.Character.Head:FindFirstChild("DistanceESP") then
                             local billboard = Instance.new("BillboardGui")
                             billboard.Name = "DistanceESP"
@@ -528,7 +1062,7 @@ function Functions.toggleTracers(enabled)
         spawn(function()
             while _G.TracersEnabled do
                 for _, player in pairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
                         if not workspace.CurrentCamera:FindFirstChild("Tracer_" .. player.Name) then
                             local beam = Instance.new("Beam")
                             beam.Name = "Tracer_" .. player.Name
@@ -853,38 +1387,63 @@ end
 
 function Functions.explodePlayer(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        -- Create multiple explosions for maximum effect
-        for i = 1, 5 do
-            local explosion = Instance.new("Explosion")
-            explosion.Parent = workspace
-            explosion.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-10, 10), math.random(-5, 5), math.random(-10, 10))
-            explosion.BlastRadius = 100
-            explosion.BlastPressure = 5000000
-            explosion.Visible = true
-            
-            -- Add fire effect
-            local fire = Instance.new("Fire")
-            fire.Parent = player.Character.HumanoidRootPart
-            fire.Size = 30
-            fire.Heat = 25
-            
-            -- Add smoke effect
-            local smoke = Instance.new("Smoke")
-            smoke.Parent = player.Character.HumanoidRootPart
-            smoke.Size = 50
-            smoke.Opacity = 1
-            
-            wait(0.1)
+        -- Damage the player first
+        if player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.Health = player.Character.Humanoid.Health - 50
         end
         
-        -- Fling the player with extreme force
+        -- Create multiple explosions for maximum effect
+        spawn(function()
+            for i = 1, 10 do
+                local explosion = Instance.new("Explosion")
+                explosion.Parent = workspace
+                explosion.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-15, 15), math.random(-10, 10), math.random(-15, 15))
+                explosion.BlastRadius = 150
+                explosion.BlastPressure = 8000000
+                explosion.Visible = true
+                
+                wait(0.05)
+            end
+        end)
+        
+        -- Add multiple fire effects
+        for _, part in pairs(player.Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                local fire = Instance.new("Fire")
+                fire.Parent = part
+                fire.Size = math.random(20, 40)
+                fire.Heat = math.random(20, 30)
+                
+                local smoke = Instance.new("Smoke")
+                smoke.Parent = part
+                smoke.Size = math.random(30, 60)
+                smoke.Opacity = 1
+                smoke.Color = Color3.new(0.1, 0.1, 0.1)
+            end
+        end
+        
+        -- Extreme fling with multiple forces
         local bodyVelocity = Instance.new("BodyVelocity")
         bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bodyVelocity.Velocity = Vector3.new(math.random(-200, 200), 200, math.random(-200, 200))
+        bodyVelocity.Velocity = Vector3.new(math.random(-300, 300), 300, math.random(-300, 300))
         bodyVelocity.Parent = player.Character.HumanoidRootPart
         
-        game:GetService("Debris"):AddItem(bodyVelocity, 2)
-        print("💥 EXPLODED " .. player.Name .. " WITH EXTREME FORCE!")
+        local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+        bodyAngularVelocity.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bodyAngularVelocity.AngularVelocity = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
+        bodyAngularVelocity.Parent = player.Character.HumanoidRootPart
+        
+        -- Break joints for ragdoll effect
+        for _, joint in pairs(player.Character:GetDescendants()) do
+            if joint:IsA("Motor6D") then
+                joint:Destroy()
+            end
+        end
+        
+        game:GetService("Debris"):AddItem(bodyVelocity, 3)
+        game:GetService("Debris"):AddItem(bodyAngularVelocity, 3)
+        
+        print("💥🔥 MASSIVE EXPLOSION ON " .. player.Name .. " - RAGDOLL EFFECT!")
     end
 end
 
@@ -989,46 +1548,76 @@ end
 
 function Functions.blackScreenPlayer(player)
     if player.Character and player.Character:FindFirstChild("Head") then
-        -- Create multiple black screens
-        for i = 1, 10 do
-            local gui = Instance.new("ScreenGui")
-            gui.Name = "BlackScreen" .. i
-            gui.Parent = player.PlayerGui
-            gui.ResetOnSpawn = false
-            
-            local frame = Instance.new("Frame")
-            frame.Parent = gui
-            frame.Size = UDim2.new(2, 0, 2, 0)
-            frame.Position = UDim2.new(-0.5, 0, -0.5, 0)
-            frame.BackgroundColor3 = Color3.new(0, 0, 0)
-            frame.BorderSizePixel = 0
-            frame.ZIndex = 1000 + i
-            
-            -- Add flashing effect
-            spawn(function()
-                while frame.Parent do
-                    frame.BackgroundColor3 = Color3.new(0, 0, 0)
-                    wait(0.1)
-                    frame.BackgroundColor3 = Color3.new(0.1, 0, 0.1)
-                    wait(0.1)
-                end
-            end)
-        end
+        -- Method 1: Create multiple persistent black screens
+        spawn(function()
+            for i = 1, 20 do
+                local gui = Instance.new("ScreenGui")
+                gui.Name = "BlackScreen" .. i .. "_" .. tick()
+                gui.Parent = player.PlayerGui
+                gui.ResetOnSpawn = false
+                gui.DisplayOrder = 1000 + i
+                
+                local frame = Instance.new("Frame")
+                frame.Parent = gui
+                frame.Size = UDim2.new(3, 0, 3, 0)
+                frame.Position = UDim2.new(-1, 0, -1, 0)
+                frame.BackgroundColor3 = Color3.new(0, 0, 0)
+                frame.BorderSizePixel = 0
+                frame.ZIndex = 1000 + i
+                
+                -- Add disturbing text
+                local text = Instance.new("TextLabel")
+                text.Parent = frame
+                text.Size = UDim2.new(1, 0, 1, 0)
+                text.BackgroundTransparency = 1
+                text.Text = "SPWARE OWNS YOU"
+                text.TextColor3 = Color3.new(1, 0, 0)
+                text.TextSize = 50
+                text.Font = Enum.Font.GothamBold
+                text.TextStrokeTransparency = 0
+                text.TextStrokeColor3 = Color3.new(1, 1, 1)
+                
+                -- Flashing effect
+                spawn(function()
+                    while frame.Parent do
+                        frame.BackgroundColor3 = Color3.new(0, 0, 0)
+                        text.TextColor3 = Color3.new(1, 0, 0)
+                        wait(0.05)
+                        frame.BackgroundColor3 = Color3.new(0.1, 0, 0.1)
+                        text.TextColor3 = Color3.new(1, 1, 1)
+                        wait(0.05)
+                    end
+                end)
+                
+                wait(0.01)
+            end
+        end)
         
-        -- Also blind their character
+        -- Method 2: Physical blindfolds on character
         local head = player.Character.Head
-        for i = 1, 5 do
+        for i = 1, 10 do
             local blindfold = Instance.new("Part")
             blindfold.Parent = head
-            blindfold.Size = Vector3.new(2, 1, 1)
+            blindfold.Name = "Blindfold" .. i
+            blindfold.Size = Vector3.new(3, 2, 2)
             blindfold.Color = Color3.new(0, 0, 0)
             blindfold.Material = Enum.Material.Neon
             blindfold.Anchored = true
             blindfold.CanCollide = false
-            blindfold.CFrame = head.CFrame * CFrame.new(0, 0, -0.5 - i * 0.1)
+            blindfold.CFrame = head.CFrame * CFrame.new(0, 0, -0.3 - i * 0.05)
         end
         
-        print("⚫💀 BLACK SCREEN ATTACK ON " .. player.Name .. "!")
+        -- Method 3: Disable camera
+        spawn(function()
+            local camera = workspace.CurrentCamera
+            for i = 1, 100 do
+                camera.CameraType = Enum.CameraType.Scriptable
+                camera.CFrame = CFrame.new(0, -1000, 0)
+                wait(0.01)
+            end
+        end)
+        
+        print("⚫💀 COMPLETE BLACKOUT ON " .. player.Name .. " - CAMERA DISABLED!")
     end
 end
 
@@ -1134,20 +1723,31 @@ function Functions.killPlayer(player)
     if player.Character then
         local humanoid = player.Character:FindFirstChild("Humanoid")
         if humanoid then
-            -- Method 1: Set health to 0
+            -- Method 1: Set health to 0 and break joints
             humanoid.Health = 0
+            humanoid:ChangeState(Enum.HumanoidStateType.Dead)
             
-            -- Method 2: Remove character parts
+            -- Method 2: Break all joints to ragdoll
             spawn(function()
-                wait(0.1)
-                for _, part in pairs(player.Character:GetChildren()) do
-                    if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                        part:Destroy()
+                for _, joint in pairs(player.Character:GetDescendants()) do
+                    if joint:IsA("Motor6D") or joint:IsA("Weld") or joint:IsA("WeldConstraint") then
+                        joint:Destroy()
                     end
                 end
             end)
             
-            -- Method 3: Create deadly explosion
+            -- Method 3: Remove critical parts
+            spawn(function()
+                wait(0.1)
+                if player.Character:FindFirstChild("Head") then
+                    player.Character.Head:Destroy()
+                end
+                if player.Character:FindFirstChild("Torso") then
+                    player.Character.Torso:Destroy()
+                end
+            end)
+            
+            -- Method 4: Create deadly explosion
             if player.Character:FindFirstChild("HumanoidRootPart") then
                 local explosion = Instance.new("Explosion")
                 explosion.Parent = workspace
@@ -1176,19 +1776,27 @@ function Functions.killPlayer(player)
                 tween:Play()
                 
                 game:GetService("Debris"):AddItem(deathEffect, 3)
-            end
-            
-            -- Method 4: Fling with extreme force
-            if player.Character:FindFirstChild("HumanoidRootPart") then
+                
+                -- Method 5: Fling with extreme force
                 local bodyVelocity = Instance.new("BodyVelocity")
                 bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                bodyVelocity.Velocity = Vector3.new(0, 1000, 0)
+                bodyVelocity.Velocity = Vector3.new(math.random(-1000, 1000), 1000, math.random(-1000, 1000))
                 bodyVelocity.Parent = player.Character.HumanoidRootPart
                 
                 game:GetService("Debris"):AddItem(bodyVelocity, 1)
             end
             
-            print("💀⚡ KILLED " .. player.Name .. " WITH EXTREME FORCE!")
+            -- Method 6: Force respawn after delay
+            spawn(function()
+                wait(2)
+                if player.Character then
+                    player.Character:Destroy()
+                end
+                wait(1)
+                player:LoadCharacter()
+            end)
+            
+            print("💀⚡ COMPLETELY KILLED " .. player.Name .. " - FORCED RESPAWN!")
         end
     end
 end
@@ -1210,21 +1818,21 @@ local TabData = {
                     {type = "slider", name = "Smoothness", min = 1, max = 20, default = 5},
                     {type = "dropdown", name = "Target Bone", options = {"Head", "Torso", "Random"}},
                     {type = "slider", name = "Prediction", min = 0, max = 1, default = 0.1},
-                    {type = "toggle", name = "Silent Aim", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Triggerbot", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Silent Aim", func = Functions.toggleSilentAim},
+                    {type = "toggle", name = "Triggerbot", func = Functions.toggleTriggerbot},
                 }
             },
             {
                 title = "Weapons",
                 items = {
-                    {type = "toggle", name = "No Recoil", func = function(e) print("🔫 No Recoil:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "No Spread", func = function(e) print("🎯 No Spread:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "No Sway", func = function(e) print("🎯 No Sway:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Rapid Fire", func = function(e) print("⚡ Rapid Fire:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Auto Shoot", func = function(e) print("🎯 Auto Shoot:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Infinite Ammo", func = function(e) print("♾️ Infinite Ammo:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Instant Reload", func = function(e) print("⚡ Instant Reload:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Wallbang", func = function(e) print("🧱 Wallbang:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "No Recoil", func = Functions.toggleNoRecoil},
+                    {type = "toggle", name = "No Spread", func = Functions.toggleNoSpread},
+                    {type = "toggle", name = "No Sway", func = Functions.toggleNoSway},
+                    {type = "toggle", name = "Rapid Fire", func = Functions.toggleRapidFire},
+                    {type = "toggle", name = "Auto Shoot", func = Functions.toggleAutoShoot},
+                    {type = "toggle", name = "Infinite Ammo", func = Functions.toggleInfiniteAmmo},
+                    {type = "toggle", name = "One Shot Kill", func = Functions.toggleOneShotKill},
+                    {type = "toggle", name = "Penetration", func = Functions.togglePenetration},
                     {type = "toggle", name = "Bullet Tracers", func = function(e) print("📍 Bullet Tracers:", e and "ON" or "OFF") end},
                 }
             },
@@ -1232,11 +1840,11 @@ local TabData = {
                 title = "Combat",
                 items = {
                     {type = "toggle", name = "Hitbox Expander", func = function(e) print("📦 Hitbox Expander:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Kill Aura", func = function(e) print("⚔️ Kill Aura:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "Critical Hits", func = function(e) print("💥 Critical Hits:", e and "ON" or "OFF") end},
-                    {type = "toggle", name = "One Tap Mode", func = function(e) print("💀 One Tap Mode:", e and "ON" or "OFF") end},
-                    {type = "slider", name = "Gun Damage", min = 1, max = 500, default = 100},
-                    {type = "toggle", name = "Explosive Bullets", func = function(e) print("💥 Explosive Bullets:", e and "ON" or "OFF") end},
+                    {type = "toggle", name = "Kill Aura", func = Functions.toggleKillAura},
+                    {type = "slider", name = "Aura Range", min = 5, max = 50, default = 15},
+                    {type = "toggle", name = "Hitbox Expander", func = Functions.toggleHitboxExpander},
+                    {type = "slider", name = "Hitbox Size", min = 1, max = 20, default = 5},
+                    {type = "toggle", name = "Auto Headshot", func = Functions.toggleAutoHeadshot},
                 }
             }
         }
