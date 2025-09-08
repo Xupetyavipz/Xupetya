@@ -1,789 +1,329 @@
--- UI Completa para Roblox
--- Sistema de Menu Moderno
+-- Roblox Cheat UI - Menu Simples
+-- Cores: Roxo e Preto com personalização de foto do usuário
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Verificar se UI já existe e evitar reload
-if _G.MenuLoaded and _G.ScreenGui and _G.ScreenGui.Parent then
-    print("♻️ Menu já existe e está ativo, não recarregando...")
-    return
-end
+-- Variáveis globais
+local currentUserImage = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=420&height=420&format=png"
+local mainFrame = nil
+local isUIVisible = false
 
--- Limpar instância anterior se existir
-if _G.ScreenGui then
-    _G.ScreenGui:Destroy()
-    _G.ScreenGui = nil
-end
-
--- Carregar Functions (apenas uma vez)
-if not _G.FunctionsLoaded then
-    print("🔄 Carregando Functions...")
-    local Functions
-    pcall(function()
-        Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/Xupetyavipz/Xupetya/refs/heads/main/functions.lua"))()
-    end)
-    print("✅ Functions carregado:", Functions and "SUCCESS" or "FAILED")
-    _G.Functions = Functions
-    _G.FunctionsLoaded = true
-else
-    print("♻️ Usando Functions já carregado")
-end
-local Functions = _G.Functions
-
--- Fallback se Functions não carregar
-if not Functions then
-    print("❌ Erro ao carregar Functions, usando fallback...")
-    Functions = {
-        toggleAimbot = function(enabled) print("Aimbot:", enabled) end,
-        toggleESP = function(enabled) print("ESP:", enabled) end,
-        setWalkSpeed = function(speed) 
-            if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
-                game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
-            end
-        end,
-        setJumpPower = function(power)
-            if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
-                game.Players.LocalPlayer.Character.Humanoid.JumpPower = power
-            end
-        end,
-        cleanup = function() print("Cleanup executado") end
-    }
-end
-
--- Configurações
-local config = {
-    menuKey = Enum.KeyCode.Insert,
-    menuVisible = false,
-    currentTab = "Home",
-    settings = {
-        aimbot = false,
-        esp = false,
-        speed = 16,
-        jumpPower = 50,
-        fov = 90
-    }
+-- Cores do tema
+local COLORS = {
+    PRIMARY = Color3.fromRGB(88, 24, 69),      -- Roxo escuro
+    SECONDARY = Color3.fromRGB(138, 43, 226),   -- Roxo médio
+    ACCENT = Color3.fromRGB(186, 85, 211),      -- Roxo claro
+    BACKGROUND = Color3.fromRGB(20, 20, 20),    -- Preto
+    SURFACE = Color3.fromRGB(35, 35, 35),       -- Cinza escuro
+    TEXT = Color3.fromRGB(255, 255, 255),       -- Branco
+    SUCCESS = Color3.fromRGB(46, 204, 113),     -- Verde
+    ERROR = Color3.fromRGB(231, 76, 60)         -- Vermelho
 }
 
--- Criar ScreenGui principal
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "MainUI"
-screenGui.Parent = playerGui
-
--- Marcar menu como carregado e salvar referência
-_G.MenuLoaded = true
-_G.ScreenGui = screenGui
-screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
--- Frame principal do menu
-local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 600, 0, 400)
-mainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
-mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-mainFrame.BorderSizePixel = 0
-mainFrame.Visible = false
-mainFrame.Parent = screenGui
-
--- Adicionar cantos arredondados
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 12)
-corner.Parent = mainFrame
-
--- Sombra do menu
-local shadow = Instance.new("Frame")
-shadow.Name = "Shadow"
-shadow.Size = UDim2.new(1, 10, 1, 10)
-shadow.Position = UDim2.new(0, -5, 0, -5)
-shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-shadow.BackgroundTransparency = 0.7
-shadow.BorderSizePixel = 0
-shadow.ZIndex = mainFrame.ZIndex - 1
-shadow.Parent = mainFrame
-
-local shadowCorner = Instance.new("UICorner")
-shadowCorner.CornerRadius = UDim.new(0, 12)
-shadowCorner.Parent = shadow
-
--- Header do menu
-local header = Instance.new("Frame")
-header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 50)
-header.Position = UDim2.new(0, 0, 0, 0)
-header.BackgroundColor3 = Color3.fromRGB(25, 15, 35)
-header.BorderSizePixel = 0
-header.Parent = mainFrame
-
-local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 12)
-headerCorner.Parent = header
-
--- Logo
-local logo = Instance.new("ImageLabel")
-logo.Name = "Logo"
-logo.Size = UDim2.new(0, 40, 0, 40)
-logo.Position = UDim2.new(0, 10, 0, 5)
-logo.BackgroundTransparency = 1
-logo.Image = "rbxassetid://70651953090646"
-logo.ScaleType = Enum.ScaleType.Fit
-logo.Parent = header
-
--- Título
-local title = Instance.new("TextLabel")
-title.Name = "Title"
-title.Size = UDim2.new(0, 180, 1, 0)
-title.Position = UDim2.new(0, 55, 0, 0)
-title.BackgroundTransparency = 1
-title.Text = "SPWARE"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextSize = 18
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Font = Enum.Font.GothamBold
-title.Parent = header
-
--- Botão fechar
-local closeBtn = Instance.new("TextButton")
-closeBtn.Name = "CloseButton"
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -40, 0, 10)
-closeBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
-closeBtn.Text = "×"
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.TextSize = 20
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.BorderSizePixel = 0
-closeBtn.Parent = header
-
-local closeBtnCorner = Instance.new("UICorner")
-closeBtnCorner.CornerRadius = UDim.new(0, 6)
-closeBtnCorner.Parent = closeBtn
-
--- Sistema de abas
-local tabContainer = Instance.new("Frame")
-tabContainer.Name = "TabContainer"
-tabContainer.Size = UDim2.new(0, 150, 1, -50)
-tabContainer.Position = UDim2.new(0, 0, 0, 50)
-tabContainer.BackgroundColor3 = Color3.fromRGB(20, 15, 25)
-tabContainer.BorderSizePixel = 0
-tabContainer.Parent = mainFrame
-
--- Lista de abas
-local tabList = Instance.new("UIListLayout")
-tabList.SortOrder = Enum.SortOrder.LayoutOrder
-tabList.Padding = UDim.new(0, 2)
-tabList.Parent = tabContainer
-
--- Conteúdo das abas
-local contentFrame = Instance.new("Frame")
-contentFrame.Name = "ContentFrame"
-contentFrame.Size = UDim2.new(1, -150, 1, -50)
-contentFrame.Position = UDim2.new(0, 150, 0, 50)
-contentFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-contentFrame.BorderSizePixel = 0
-contentFrame.Parent = mainFrame
-
--- Scroll para conteúdo
-local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Name = "ScrollFrame"
-scrollFrame.Size = UDim2.new(1, -20, 1, -20)
-scrollFrame.Position = UDim2.new(0, 10, 0, 10)
-scrollFrame.BackgroundTransparency = 1
-scrollFrame.BorderSizePixel = 0
-scrollFrame.ScrollBarThickness = 6
-scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
-scrollFrame.Parent = contentFrame
-
-local contentList = Instance.new("UIListLayout")
-contentList.SortOrder = Enum.SortOrder.LayoutOrder
-contentList.Padding = UDim.new(0, 10)
-contentList.Parent = scrollFrame
-
--- Função para criar abas
-local function createTab(name, icon)
-    local tab = Instance.new("TextButton")
-    tab.Name = name .. "Tab"
-    tab.Size = UDim2.new(1, -10, 0, 40)
-    tab.Position = UDim2.new(0, 5, 0, 0)
-    tab.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-    tab.Text = icon .. " " .. name
-    tab.TextColor3 = Color3.fromRGB(200, 200, 200)
-    tab.TextSize = 14
-    tab.Font = Enum.Font.Gotham
-    tab.BorderSizePixel = 0
-    tab.Parent = tabContainer
-    
-    local tabCorner = Instance.new("UICorner")
-    tabCorner.CornerRadius = UDim.new(0, 6)
-    tabCorner.Parent = tab
-    
-    return tab
+-- Função para criar notificação
+local function createNotification(title, message, color)
+    StarterGui:SetCore("SendNotification", {
+        Title = title,
+        Text = message,
+        Duration = 3,
+        Button1 = "OK"
+    })
 end
 
--- Criar abas com ícones personalizados
-local function createTabWithIcon(name, iconId)
+-- Função para criar elementos UI com estilo
+local function createStyledFrame(parent, size, position, backgroundColor)
+    local frame = Instance.new("Frame")
+    frame.Size = size or UDim2.new(1, 0, 1, 0)
+    frame.Position = position or UDim2.new(0, 0, 0, 0)
+    frame.BackgroundColor3 = backgroundColor or COLORS.SURFACE
+    frame.BorderSizePixel = 0
+    frame.Parent = parent
+    
+    -- Adicionar cantos arredondados
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = frame
+    
+    return frame
+end
+
+local function createStyledButton(parent, size, position, text, callback)
     local button = Instance.new("TextButton")
-    button.Name = name .. "Tab"
-    button.Size = UDim2.new(1, -10, 0, 50)
-    button.Position = UDim2.new(0, 5, 0, 0)
-    button.BackgroundColor3 = Color3.fromRGB(35, 25, 45)
+    button.Size = size
+    button.Position = position
+    button.BackgroundColor3 = COLORS.PRIMARY
+    button.Text = text
+    button.TextColor3 = COLORS.TEXT
+    button.TextScaled = true
+    button.Font = Enum.Font.GothamBold
     button.BorderSizePixel = 0
-    button.Text = ""
-    button.Parent = tabContainer
+    button.Parent = parent
     
-    local tabCorner = Instance.new("UICorner")
-    tabCorner.CornerRadius = UDim.new(0, 6)
-    tabCorner.Parent = button
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = button
     
-    local icon = Instance.new("ImageLabel")
-    icon.Size = UDim2.new(0, 24, 0, 24)
-    icon.Position = UDim2.new(0, 10, 0.5, -12)
-    icon.BackgroundTransparency = 1
-    icon.Image = "rbxassetid://" .. iconId
-    icon.ScaleType = Enum.ScaleType.Fit
-    icon.Parent = button
+    -- Efeito hover
+    button.MouseEnter:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.SECONDARY}):Play()
+    end)
     
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -45, 1, 0)
-    label.Position = UDim2.new(0, 40, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = name
-    label.TextColor3 = Color3.fromRGB(180, 160, 200)
-    label.TextSize = 14
-    label.Font = Enum.Font.Gotham
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = button
+    button.MouseLeave:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.PRIMARY}):Play()
+    end)
+    
+    if callback then
+        button.MouseButton1Click:Connect(callback)
+    end
     
     return button
 end
 
--- Criar abas
-local tabs = {}
-local aimbotTab = createTabWithIcon("Aimbot", "75518636799674")
-local visualTab = createTabWithIcon("Visual", "111612200954692") 
-local miscTab = createTabWithIcon("Misc", "118260954915004")
-
-tabs = {aimbotTab, visualTab, miscTab}
-
--- Função para criar elementos de UI
-local function createElement(type, text, parent, callback, minValue, maxValue, defaultValue)
-    print("🔨 Criando elemento:", type, text, "Parent:", parent and parent.Name or "nil")
+local function createStyledTextBox(parent, size, position, placeholder)
+    local textBox = Instance.new("TextBox")
+    textBox.Size = size
+    textBox.Position = position
+    textBox.BackgroundColor3 = COLORS.SURFACE
+    textBox.Text = ""
+    textBox.PlaceholderText = placeholder
+    textBox.TextColor3 = COLORS.TEXT
+    textBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+    textBox.TextScaled = true
+    textBox.Font = Enum.Font.Gotham
+    textBox.BorderSizePixel = 0
+    textBox.Parent = parent
     
-    -- Forçar parent como scrollFrame se não especificado
-    local targetParent = scrollFrame
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = textBox
     
-    local element = Instance.new("Frame")
-    element.Size = UDim2.new(1, -20, 0, 35)
-    element.BackgroundColor3 = Color3.fromRGB(30, 25, 40)
-    element.BorderSizePixel = 0
-    element.Parent = targetParent
+    -- Padding interno
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.Parent = textBox
     
-    print("✅ Elemento criado e adicionado ao parent:", targetParent.Name)
-    
-    local elementCorner = Instance.new("UICorner")
-    elementCorner.CornerRadius = UDim.new(0, 6)
-    elementCorner.Parent = element
-    
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.6, 0, 1, 0)
-    label.Position = UDim2.new(0, 10, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.TextSize = 14
-    label.Font = Enum.Font.Gotham
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = element
-    
-    if type == "toggle" then
-        local toggle = Instance.new("TextButton")
-        toggle.Size = UDim2.new(0, 50, 0, 20)
-        toggle.Position = UDim2.new(1, -60, 0.5, -10)
-        toggle.BackgroundColor3 = Color3.fromRGB(120, 60, 140)
-        toggle.Text = "OFF"
-        toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-        toggle.TextSize = 12
-        toggle.Font = Enum.Font.GothamBold
-        toggle.BorderSizePixel = 0
-        toggle.Parent = element
-        
-        local toggleCorner = Instance.new("UICorner")
-        toggleCorner.CornerRadius = UDim.new(0, 10)
-        toggleCorner.Parent = toggle
-        
-        -- Verificar estado inicial da função
-        local isEnabled = false
-        if callback and type(callback) == "table" and callback.getState then
-            pcall(function() isEnabled = callback.getState() end)
-        end
-        
-        -- Atualizar visual inicial
-        toggle.Text = isEnabled and "ON" or "OFF"
-        toggle.BackgroundColor3 = isEnabled and Color3.fromRGB(140, 100, 200) or Color3.fromRGB(120, 60, 140)
-        
-        toggle.MouseButton1Click:Connect(function()
-            isEnabled = not isEnabled
-            toggle.Text = isEnabled and "ON" or "OFF"
-            toggle.BackgroundColor3 = isEnabled and Color3.fromRGB(140, 100, 200) or Color3.fromRGB(120, 60, 140)
-            
-            if callback and type(callback) == "table" and callback.toggle then 
-                pcall(function() callback.toggle(isEnabled) end)
-            elseif callback and type(callback) == "function" then 
-                pcall(function() callback(isEnabled) end)
-            end
-        end)
-        
-    elseif type == "slider" then
-        minValue = minValue or 0
-        maxValue = maxValue or 100
-        defaultValue = defaultValue or minValue
-        
-        local currentValue = defaultValue
-        
-        local slider = Instance.new("Frame")
-        slider.Size = UDim2.new(0, 100, 0, 6)
-        slider.Position = UDim2.new(1, -110, 0.5, -3)
-        slider.BackgroundColor3 = Color3.fromRGB(50, 40, 60)
-        slider.BorderSizePixel = 0
-        slider.Parent = element
-        
-        local sliderCorner = Instance.new("UICorner")
-        sliderCorner.CornerRadius = UDim.new(0, 3)
-        sliderCorner.Parent = slider
-        
-        local handle = Instance.new("Frame")
-        handle.Size = UDim2.new(0, 12, 0, 12)
-        handle.Position = UDim2.new((defaultValue - minValue) / (maxValue - minValue), -6, 0.5, -6)
-        handle.BackgroundColor3 = Color3.fromRGB(160, 120, 200)
-        handle.BorderSizePixel = 0
-        handle.Parent = slider
-        
-        local handleCorner = Instance.new("UICorner")
-        handleCorner.CornerRadius = UDim.new(0, 6)
-        handleCorner.Parent = handle
-        
-        -- Atualizar texto inicial
-        label.Text = text:gsub("%d+", tostring(currentValue))
-        
-        -- Sistema de slider simplificado
-        local dragging = false
-        
-        local function updateSlider(inputPos)
-            local relativeX = (inputPos.X - slider.AbsolutePosition.X) / slider.AbsoluteSize.X
-            relativeX = math.clamp(relativeX, 0, 1)
-            
-            currentValue = math.floor(minValue + (maxValue - minValue) * relativeX)
-            handle.Position = UDim2.new(relativeX, -6, 0.5, -6)
-            label.Text = text:gsub("%d+", tostring(currentValue))
-            
-            if callback then
-                pcall(function() callback(currentValue) end)
-            end
-        end
-        
-        -- Clique no slider ou handle
-        local function onInputBegan(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                updateSlider(input.Position)
-            end
-        end
-        
-        slider.InputBegan:Connect(onInputBegan)
-        handle.InputBegan:Connect(onInputBegan)
-        
-        -- Movimento durante drag
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                updateSlider(input.Position)
-            end
-        end)
-        
-        -- Parar drag
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-        
-    elseif type == "button" then
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(0, 80, 0, 25)
-        button.Position = UDim2.new(1, -90, 0.5, -12.5)
-        button.BackgroundColor3 = Color3.fromRGB(140, 100, 200)
-        button.Text = "Execute"
-        button.TextColor3 = Color3.fromRGB(255, 255, 255)
-        button.TextSize = 12
-        button.Font = Enum.Font.Gotham
-        button.BorderSizePixel = 0
-        button.Parent = element
-        
-        local buttonCorner = Instance.new("UICorner")
-        buttonCorner.CornerRadius = UDim.new(0, 4)
-        buttonCorner.Parent = button
-        
-        if callback then
-            button.MouseButton1Click:Connect(callback)
-        end
-    end
-    
-    return element
+    return textBox
 end
 
--- Função para mostrar conteúdo da aba
-local function showTabContent(tabName)
-    print("🔄 Mostrando conteúdo da aba:", tabName)
-    
-    -- Limpar conteúdo anterior
-    for _, child in pairs(scrollFrame:GetChildren()) do
-        if child:IsA("Frame") and child.Name ~= "UIListLayout" then
-            print("🗑️ Removendo:", child.Name)
-            child:Destroy()
-        end
-    end
-    
-    -- Debug: verificar scrollFrame
-    print("📋 ScrollFrame children count:", #scrollFrame:GetChildren())
-    print("📋 ScrollFrame size:", scrollFrame.AbsoluteSize)
-    print("📋 ScrollFrame visible:", scrollFrame.Visible)
-    
-    config.currentTab = tabName
-    
-    -- Atualizar aparência das abas
-    for i, tab in pairs(tabs) do
-        local tabNames = {"Aimbot", "Visual", "Misc"}
-        if tabNames[i] == tabName then
-            tab.BackgroundColor3 = Color3.fromRGB(140, 100, 200)
-            tab.TextColor3 = Color3.fromRGB(255, 255, 255)
-        else
-            tab.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-            tab.TextColor3 = Color3.fromRGB(200, 200, 200)
-        end
-    end
-    
-    -- Conteúdo específico de cada aba
-    print("📋 Criando elementos para aba:", tabName)
-    if tabName == "Aimbot" then
-        createElement("toggle", "Enable Aimbot", scrollFrame, {
-            toggle = function(enabled)
-                print("🔧 UI Toggle clicked - Aimbot:", enabled)
-                if Functions and Functions.toggleAimbot then
-                    Functions.toggleAimbot(enabled)
-                else
-                    print("❌ Functions.toggleAimbot not found!")
-                end
-            end,
-            getState = function()
-                return Functions and Functions.Aimbot and Functions.Aimbot.enabled or false
-            end
-        })
-        createElement("slider", "Aimbot FOV: 100", scrollFrame, function(value)
-            if Functions and Functions.setAimbotFOV then Functions.setAimbotFOV(value) end
-        end, 50, 360, 100)
-        createElement("slider", "Smoothness: 5", scrollFrame, function(value)
-            if Functions and Functions.setAimbotSmoothness then Functions.setAimbotSmoothness(value) end
-        end, 1, 20, 5)
-        createElement("toggle", "Silent Aim", scrollFrame, {
-            toggle = function(enabled)
-                if Functions and Functions.toggleSilentAim then Functions.toggleSilentAim(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Aimbot and Functions.Aimbot.silentAim or false
-            end
-        })
-        createElement("toggle", "Triggerbot", scrollFrame, {
-            toggle = function(enabled)
-                if Functions and Functions.toggleTriggerbot then Functions.toggleTriggerbot(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Aimbot and Functions.Aimbot.triggerbot or false
-            end
-        })
-        createElement("toggle", "Team Check", scrollFrame, {
-            toggle = function(enabled)
-                if Functions then Functions.Aimbot.teamCheck = enabled end
-            end,
-            getState = function()
-                return Functions and Functions.Aimbot and Functions.Aimbot.teamCheck or false
-            end
-        })
-        createElement("toggle", "Target Visible Only", scrollFrame, {
-            toggle = function(enabled)
-                if Functions then Functions.Aimbot.targetVisible = enabled end
-            end,
-            getState = function()
-                return Functions and Functions.Aimbot and Functions.Aimbot.targetVisible or false
-            end
-        })
-        
-        -- Modo de ativação do Aimbot
-        createElement("button", "Mode: Toggle", scrollFrame, function()
-            if Functions and Functions.cycleAimbotMode then
-                Functions.cycleAimbotMode()
-            end
-        end)
-        
-        -- Input de tecla customizada
-        createElement("button", "Key: RMB", scrollFrame, function()
-            if Functions and Functions.setAimbotKey then
-                Functions.setAimbotKey()
-            end
-        end)
-        
-    elseif tabName == "Visual" then
-        print("🔧 Criando elementos Visual...")
-        
-        -- Teste: criar elemento diretamente
-        local testElement = Instance.new("Frame")
-        testElement.Size = UDim2.new(1, -20, 0, 35)
-        testElement.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Vermelho para teste
-        testElement.Parent = scrollFrame
-        print("🔴 Elemento teste vermelho criado")
-        
-        createElement("toggle", "ESP Names", scrollFrame, {
-            toggle = function(enabled)
-                print("ESP Names toggle:", enabled)
-                if Functions and Functions.toggleESPNames then Functions.toggleESPNames(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Visual and Functions.Visual.espNames or false
-            end
-        })
-        createElement("toggle", "ESP Skeleton", scrollFrame, {
-            toggle = function(enabled)
-                print("ESP Skeleton toggle:", enabled)
-                if Functions and Functions.toggleESPSkeleton then Functions.toggleESPSkeleton(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Visual and Functions.Visual.espSkeleton or false
-            end
-        })
-        createElement("toggle", "ESP Distance", scrollFrame, {
-            toggle = function(enabled)
-                print("ESP Distance toggle:", enabled)
-                if Functions and Functions.toggleESPDistance then Functions.toggleESPDistance(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Visual and Functions.Visual.espDistance or false
-            end
-        })
-        createElement("toggle", "ESP Chams", scrollFrame, {
-            toggle = function(enabled)
-                print("ESP Chams toggle:", enabled)
-                if Functions and Functions.toggleESPChams then Functions.toggleESPChams(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Visual and Functions.Visual.espChams or false
-            end
-        })
-        createElement("toggle", "ESP Health", scrollFrame, {
-            toggle = function(enabled)
-                print("ESP Health toggle:", enabled)
-                if Functions and Functions.toggleESPHealth then Functions.toggleESPHealth(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Visual and Functions.Visual.espHealth or false
-            end
-        })
-        createElement("toggle", "ESP Armor", scrollFrame, {
-            toggle = function(enabled)
-                print("ESP Armor toggle:", enabled)
-                if Functions and Functions.toggleESPArmor then Functions.toggleESPArmor(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Visual and Functions.Visual.espArmor or false
-            end
-        })
-        createElement("toggle", "Team Check", scrollFrame, {
-            toggle = function(enabled)
-                print("Visual Team Check toggle:", enabled)
-                if Functions then Functions.Visual.teamCheck = enabled end
-            end,
-            getState = function()
-                return Functions and Functions.Visual and Functions.Visual.teamCheck or false
-            end
-        })
-        createElement("slider", "ESP Distance: 1000", scrollFrame, function(value)
-            print("ESP Distance slider:", value)
-            if Functions and Functions.setESPDistance then Functions.setESPDistance(value) end
-        end, 100, 5000, 1000)
-        createElement("slider", "FOV: 90", scrollFrame, function(value)
-            print("FOV slider:", value)
-            if Functions and Functions.setFOV then Functions.setFOV(value) end
-        end, 60, 120, 90)
-        createElement("toggle", "Fullbright", scrollFrame, {
-            toggle = function(enabled)
-                print("Fullbright toggle:", enabled)
-                if Functions and Functions.toggleFullbright then Functions.toggleFullbright(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Visual and Functions.Visual.fullbright or false
-            end
-        })
-        
-    elseif tabName == "Misc" then
-        print("🔧 Criando elementos Misc...")
-        createElement("slider", "Walk Speed: 16", scrollFrame, function(value)
-            print("Walk Speed slider:", value)
-            if Functions and Functions.setWalkSpeed then Functions.setWalkSpeed(value) end
-        end, 16, 100, 16)
-        createElement("slider", "Jump Power: 50", scrollFrame, function(value)
-            print("Jump Power slider:", value)
-            if Functions and Functions.setJumpPower then Functions.setJumpPower(value) end
-        end, 50, 200, 50)
-        createElement("toggle", "Infinite Jump", scrollFrame, {
-            toggle = function(enabled)
-                print("Infinite Jump toggle:", enabled)
-                if Functions and Functions.toggleInfiniteJump then Functions.toggleInfiniteJump(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Misc and Functions.Misc.infiniteJump or false
-            end
-        })
-        createElement("toggle", "No Clip", scrollFrame, {
-            toggle = function(enabled)
-                print("No Clip toggle:", enabled)
-                if Functions and Functions.toggleNoClip then Functions.toggleNoClip(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Misc and Functions.Misc.noClip or false
-            end
-        })
-        createElement("toggle", "Fly", scrollFrame, {
-            toggle = function(enabled)
-                print("Fly toggle:", enabled)
-                if Functions and Functions.toggleFly then Functions.toggleFly(enabled) end
-            end,
-            getState = function()
-                return Functions and Functions.Misc and Functions.Misc.fly or false
-            end
-        })
-        createElement("button", "Reset Character", scrollFrame, function()
-            print("Reset Character clicked")
-            if Functions and Functions.resetCharacter then Functions.resetCharacter() end
-        end)
-        createElement("button", "Save Config", scrollFrame, function()
-            print("Save Config clicked")
-            if Functions and Functions.saveConfig then Functions.saveConfig() end
-        end)
-        createElement("button", "Load Config", scrollFrame, function()
-            print("Load Config clicked")
-            if Functions and Functions.loadConfig then Functions.loadConfig() end
-        end)
-        createElement("button", "Unload Script", scrollFrame, function()
-            print("Unload Script clicked")
-            if Functions and Functions.cleanup then Functions.cleanup() end
-            screenGui:Destroy()
-        end)
-    end
-    
-    print("✅ Elementos criados para aba:", tabName)
-    
-    -- Atualizar tamanho do scroll
-    RunService.Heartbeat:Wait()
-    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, contentList.AbsoluteContentSize.Y + 20)
-    print("📏 Canvas size atualizado:", contentList.AbsoluteContentSize.Y)
-end
 
--- Conectar eventos das abas
-for i, tab in pairs(tabs) do
-    tab.MouseButton1Click:Connect(function()
-        local tabNames = {"Aimbot", "Visual", "Misc"}
-        print("🖱️ Clicou na aba:", tabNames[i])
-        showTabContent(tabNames[i])
+-- Função para criar UI principal
+local function createMainUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "CheatMainUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = playerGui
+    
+    -- Main Frame
+    mainFrame = createStyledFrame(screenGui, UDim2.new(0, 600, 0, 400), UDim2.new(0.5, -300, 0.5, -200), COLORS.BACKGROUND)
+    
+    -- Header com foto do usuário
+    local header = createStyledFrame(mainFrame, UDim2.new(1, 0, 0, 80), UDim2.new(0, 0, 0, 0), COLORS.PRIMARY)
+    
+    -- Foto do usuário
+    local userImage = Instance.new("ImageLabel")
+    userImage.Size = UDim2.new(0, 50, 0, 50)
+    userImage.Position = UDim2.new(0, 15, 0, 15)
+    userImage.BackgroundTransparency = 1
+    userImage.Image = currentUserImage
+    userImage.Parent = header
+    
+    local userImageCorner = Instance.new("UICorner")
+    userImageCorner.CornerRadius = UDim.new(0, 25)
+    userImageCorner.Parent = userImage
+    
+    -- Nome do usuário
+    local userName = Instance.new("TextLabel")
+    userName.Size = UDim2.new(0, 200, 0, 25)
+    userName.Position = UDim2.new(0, 80, 0, 15)
+    userName.BackgroundTransparency = 1
+    userName.Text = "👋 Olá, " .. player.Name
+    userName.TextColor3 = COLORS.TEXT
+    userName.TextScaled = true
+    userName.Font = Enum.Font.GothamBold
+    userName.TextXAlignment = Enum.TextXAlignment.Left
+    userName.Parent = header
+    
+    -- Status
+    local status = Instance.new("TextLabel")
+    status.Size = UDim2.new(0, 200, 0, 20)
+    status.Position = UDim2.new(0, 80, 0, 40)
+    status.BackgroundTransparency = 1
+    status.Text = "✅ Cheat Ativo"
+    status.TextColor3 = COLORS.SUCCESS
+    status.TextScaled = true
+    status.Font = Enum.Font.Gotham
+    status.TextXAlignment = Enum.TextXAlignment.Left
+    status.Parent = header
+    
+    -- Botão de fechar
+    local closeButton = createStyledButton(header, UDim2.new(0, 30, 0, 30), UDim2.new(1, -45, 0, 10), "✕", function()
+        toggleUI()
     end)
+    closeButton.BackgroundColor3 = COLORS.ERROR
+    
+    -- Botão de minimizar
+    local minimizeButton = createStyledButton(header, UDim2.new(0, 30, 0, 30), UDim2.new(1, -80, 0, 10), "−", function()
+        if mainFrame.Size == UDim2.new(0, 600, 0, 400) then
+            TweenService:Create(mainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 600, 0, 80)}):Play()
+        else
+            TweenService:Create(mainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 600, 0, 400)}):Play()
+        end
+    end)
+    minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 193, 7)
+    
+    -- Conteúdo principal
+    local content = createStyledFrame(mainFrame, UDim2.new(1, 0, 1, -80), UDim2.new(0, 0, 0, 80), COLORS.SURFACE)
+    
+    -- Abas
+    local tabFrame = createStyledFrame(content, UDim2.new(1, 0, 0, 50), UDim2.new(0, 0, 0, 0), COLORS.BACKGROUND)
+    
+    local tabs = {"🎯 Aimbot", "👁️ Visual", "⚙️ Misc", "🎮 Player", "🔧 Settings"}
+    local tabButtons = {}
+    local currentTab = 1
+    
+    for i, tabName in pairs(tabs) do
+        local tabButton = createStyledButton(tabFrame, UDim2.new(0.2, -4, 1, -10), UDim2.new((i-1) * 0.2, 2, 0, 5), tabName, function()
+            currentTab = i
+            updateTabContent()
+            for j, btn in pairs(tabButtons) do
+                btn.BackgroundColor3 = (j == i) and COLORS.ACCENT or COLORS.PRIMARY
+            end
+        end)
+        tabButtons[i] = tabButton
+        if i == 1 then
+            tabButton.BackgroundColor3 = COLORS.ACCENT
+        end
+    end
+    
+    -- Área de conteúdo das abas
+    local tabContent = createStyledFrame(content, UDim2.new(1, -20, 1, -70), UDim2.new(0, 10, 0, 60), COLORS.SURFACE)
+    
+    -- Função para atualizar conteúdo das abas
+    function updateTabContent()
+        -- Limpar conteúdo anterior
+        for _, child in pairs(tabContent:GetChildren()) do
+            if child:IsA("GuiObject") then
+                child:Destroy()
+            end
+        end
+        
+        if currentTab == 1 then -- Aimbot
+            createStyledButton(tabContent, UDim2.new(0.45, 0, 0, 40), UDim2.new(0.025, 0, 0, 10), "🎯 Aimbot ON/OFF", function()
+                createNotification("Aimbot", "Aimbot ativado!", COLORS.SUCCESS)
+            end)
+            
+            createStyledButton(tabContent, UDim2.new(0.45, 0, 0, 40), UDim2.new(0.525, 0, 0, 10), "🔄 Auto Aim", function()
+                createNotification("Auto Aim", "Auto Aim ativado!", COLORS.SUCCESS)
+            end)
+            
+        elseif currentTab == 2 then -- Visual
+            createStyledButton(tabContent, UDim2.new(0.45, 0, 0, 40), UDim2.new(0.025, 0, 0, 10), "💡 Fullbright", function()
+                game.Lighting.Brightness = 2
+                game.Lighting.ClockTime = 14
+                game.Lighting.FogEnd = 100000
+                createNotification("Visual", "Fullbright ativado!", COLORS.SUCCESS)
+            end)
+            
+            createStyledButton(tabContent, UDim2.new(0.45, 0, 0, 40), UDim2.new(0.525, 0, 0, 10), "👻 ESP Players", function()
+                createNotification("ESP", "ESP ativado!", COLORS.SUCCESS)
+            end)
+            
+        elseif currentTab == 3 then -- Misc
+            createStyledButton(tabContent, UDim2.new(0.45, 0, 0, 40), UDim2.new(0.025, 0, 0, 10), "🚫 Anti AFK", function()
+                createNotification("Anti AFK", "Anti AFK ativado!", COLORS.SUCCESS)
+            end)
+            
+            createStyledButton(tabContent, UDim2.new(0.45, 0, 0, 40), UDim2.new(0.525, 0, 0, 10), "⚡ Auto Farm", function()
+                createNotification("Auto Farm", "Auto Farm ativado!", COLORS.SUCCESS)
+            end)
+            
+        elseif currentTab == 4 then -- Player
+            createStyledButton(tabContent, UDim2.new(0.45, 0, 0, 40), UDim2.new(0.025, 0, 0, 10), "🏃 Super Speed", function()
+                player.Character.Humanoid.WalkSpeed = 100
+                createNotification("Speed", "Super Speed ativado!", COLORS.SUCCESS)
+            end)
+            
+            createStyledButton(tabContent, UDim2.new(0.45, 0, 0, 40), UDim2.new(0.525, 0, 0, 10), "🦘 Super Jump", function()
+                player.Character.Humanoid.JumpPower = 100
+                createNotification("Jump", "Super Jump ativado!", COLORS.SUCCESS)
+            end)
+            
+            createStyledButton(tabContent, UDim2.new(0.45, 0, 0, 40), UDim2.new(0.025, 0, 0, 60), "👻 Noclip", function()
+                createNotification("Noclip", "Noclip ativado!", COLORS.SUCCESS)
+            end)
+            
+            createStyledButton(tabContent, UDim2.new(0.45, 0, 0, 40), UDim2.new(0.525, 0, 0, 60), "🕊️ Fly", function()
+                createNotification("Fly", "Fly ativado!", COLORS.SUCCESS)
+            end)
+            
+        elseif currentTab == 5 then -- Settings
+            local imageUrlInput = createStyledTextBox(tabContent, UDim2.new(0.7, 0, 0, 40), UDim2.new(0.025, 0, 0, 10), "Nova URL da foto...")
+            
+            createStyledButton(tabContent, UDim2.new(0.25, 0, 0, 40), UDim2.new(0.725, 0, 0, 10), "📷 Atualizar Foto", function()
+                if imageUrlInput.Text ~= "" then
+                    currentUserImage = imageUrlInput.Text
+                    userImage.Image = currentUserImage
+                    createNotification("Foto", "Foto atualizada!", COLORS.SUCCESS)
+                end
+            end)
+        end
+    end
+    
+    -- Inicializar primeira aba
+    updateTabContent()
+    
+    -- Tornar a janela arrastável
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    isUIVisible = true
 end
 
--- Sistema de drag and drop
-local dragging = false
-local dragStart = nil
-local startPos = nil
-
-header.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = mainFrame.Position
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
-
--- Cursor personalizado
-local customCursor = Instance.new("ImageLabel")
-customCursor.Name = "CustomCursor"
-customCursor.Size = UDim2.new(0, 32, 0, 32)
-customCursor.BackgroundTransparency = 1
-customCursor.Image = "rbxassetid://140428895475044"
-customCursor.ScaleType = Enum.ScaleType.Fit
-customCursor.ZIndex = 1000
-customCursor.Visible = false
-customCursor.Parent = screenGui
-
--- Função para toggle do menu
-local function toggleMenu()
-    config.menuVisible = not config.menuVisible
-    
-    local targetPos = config.menuVisible and UDim2.new(0.5, -300, 0.5, -200) or UDim2.new(0.5, -300, -1, -200)
-    local targetTransparency = config.menuVisible and 0 or 1
-    
-    local tween = TweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {
-        Position = targetPos
-    })
-    
-    tween:Play()
-    mainFrame.Visible = config.menuVisible
-    customCursor.Visible = config.menuVisible
-    
-    -- Controlar cursor padrão
-    UserInputService.MouseIconEnabled = not config.menuVisible
-    
-    if config.menuVisible then
-        showTabContent("Aimbot")
-    end
-    
-    -- Debug: Forçar atualização das abas
-    RunService.Heartbeat:Wait()
-    for i, tab in pairs(tabs) do
-        local tabNames = {"Aimbot", "Visual", "Misc"}
-        print("🔧 Debug - Aba", i, ":", tabNames[i], "existe:", tab ~= nil)
+-- Função para alternar visibilidade da UI
+function toggleUI()
+    if mainFrame then
+        isUIVisible = not isUIVisible
+        mainFrame.Visible = isUIVisible
     end
 end
 
--- Atualizar posição do cursor personalizado
-local cursorConnection
-UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and config.menuVisible then
-        customCursor.Position = UDim2.new(0, input.Position.X - 16, 0, input.Position.Y - 16)
-    end
-end)
-
--- Eventos
-closeBtn.MouseButton1Click:Connect(toggleMenu)
-
+-- Tecla para abrir/fechar (INSERT)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == config.menuKey then
-        toggleMenu()
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.Insert then
+        toggleUI()
     end
 end)
 
 -- Inicializar
-showTabContent("Aimbot")
-
-print("✅ UI Completa carregada! Pressione INSERT para abrir/fechar o menu.")
+createNotification("🎮 Cheat Carregado", "Pressione INSERT para abrir o menu!", COLORS.ACCENT)
+createMainUI()
