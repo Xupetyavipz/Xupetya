@@ -109,7 +109,7 @@ end
 local TabData = {
     {
         name = "FPS",
-        icon = "🎯",
+        icon = "rbxassetid://111612200954692",
         color = Theme.Primary,
         sections = {
             {
@@ -153,7 +153,7 @@ local TabData = {
     },
     {
         name = "Visual",
-        icon = "👁️",
+        icon = "rbxassetid://77345366725078",
         color = Theme.Primary,
         sections = {
             {
@@ -197,8 +197,88 @@ local TabData = {
         }
     },
     {
+        name = "RP",
+        icon = "rbxassetid://122767272714113",
+        color = Theme.Primary,
+        sections = {
+            {
+                title = "Spawning",
+                items = {
+                    {type = "button", name = "Spawn Weapons"},
+                    {type = "button", name = "Spawn Vehicles"},
+                    {type = "button", name = "Spawn Objects"},
+                    {type = "button", name = "Spawn NPCs"},
+                    {type = "toggle", name = "Give Money", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Give All Tools", func = Functions.toggleAimbot},
+                }
+            },
+            {
+                title = "Avatar",
+                items = {
+                    {type = "button", name = "Change Clothes"},
+                    {type = "button", name = "Avatar Changer"},
+                    {type = "button", name = "Copy Avatar"},
+                    {type = "button", name = "Animation Player"},
+                    {type = "toggle", name = "Fake Name", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Fake Rank", func = Functions.toggleAimbot},
+                }
+            },
+            {
+                title = "Interaction",
+                items = {
+                    {type = "button", name = "Teleport All"},
+                    {type = "toggle", name = "Force Emotes", func = Functions.toggleAimbot},
+                    {type = "button", name = "Job Changer"},
+                    {type = "button", name = "Build Spam"},
+                }
+            }
+        }
+    },
+    {
+        name = "Troll",
+        icon = "rbxassetid://102270380454487",
+        color = Theme.Primary,
+        sections = {
+            {
+                title = "Audio/Visual",
+                items = {
+                    {type = "toggle", name = "Sound Spam", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Screen Shaker", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Camera Inverter", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Black Screen", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Blind Effect", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Screen Text Spam", func = Functions.toggleAimbot},
+                }
+            },
+            {
+                title = "Player Manipulation",
+                items = {
+                    {type = "toggle", name = "Freeze Player", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Launch Player", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Fling All", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Ragdoll All", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Loop Kill", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Force Sit", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Giant Player", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Clone Player", func = Functions.toggleAimbot},
+                }
+            },
+            {
+                title = "Server Destruction",
+                items = {
+                    {type = "button", name = "Server Crasher"},
+                    {type = "toggle", name = "Object Spam", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Earthquake Mode", func = Functions.toggleAimbot},
+                    {type = "button", name = "Map Destroy"},
+                    {type = "button", name = "Nuke Effect"},
+                    {type = "toggle", name = "Voice Spam", func = Functions.toggleAimbot},
+                }
+            }
+        }
+    },
+    {
         name = "Misc",
-        icon = "⚙️",
+        icon = "rbxassetid://118260954915004",
         color = Theme.Primary,
         sections = {
             {
@@ -251,86 +331,6 @@ local TabData = {
                     end},
                     {type = "button", name = "Rejoin Server"},
                     {type = "button", name = "Server Hop"},
-                }
-            }
-        }
-    },
-    {
-        name = "RP",
-        icon = "🎭",
-        color = Theme.Primary,
-        sections = {
-            {
-                title = "Spawning",
-                items = {
-                    {type = "button", name = "Spawn Weapons"},
-                    {type = "button", name = "Spawn Vehicles"},
-                    {type = "button", name = "Spawn Objects"},
-                    {type = "button", name = "Spawn NPCs"},
-                    {type = "toggle", name = "Give Money", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Give All Tools", func = Functions.toggleAimbot},
-                }
-            },
-            {
-                title = "Avatar",
-                items = {
-                    {type = "button", name = "Change Clothes"},
-                    {type = "button", name = "Avatar Changer"},
-                    {type = "button", name = "Copy Avatar"},
-                    {type = "button", name = "Animation Player"},
-                    {type = "toggle", name = "Fake Name", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Fake Rank", func = Functions.toggleAimbot},
-                }
-            },
-            {
-                title = "Interaction",
-                items = {
-                    {type = "button", name = "Teleport All"},
-                    {type = "toggle", name = "Force Emotes", func = Functions.toggleAimbot},
-                    {type = "button", name = "Job Changer"},
-                    {type = "button", name = "Build Spam"},
-                }
-            }
-        }
-    },
-    {
-        name = "Troll",
-        icon = "🤡",
-        color = Theme.Primary,
-        sections = {
-            {
-                title = "Audio/Visual",
-                items = {
-                    {type = "toggle", name = "Sound Spam", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Screen Shaker", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Camera Inverter", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Black Screen", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Blind Effect", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Screen Text Spam", func = Functions.toggleAimbot},
-                }
-            },
-            {
-                title = "Player Manipulation",
-                items = {
-                    {type = "toggle", name = "Freeze Player", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Launch Player", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Fling All", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Ragdoll All", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Loop Kill", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Force Sit", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Giant Player", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Clone Player", func = Functions.toggleAimbot},
-                }
-            },
-            {
-                title = "Server Destruction",
-                items = {
-                    {type = "button", name = "Server Crasher"},
-                    {type = "toggle", name = "Object Spam", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Earthquake Mode", func = Functions.toggleAimbot},
-                    {type = "button", name = "Map Destroy"},
-                    {type = "button", name = "Nuke Effect"},
-                    {type = "toggle", name = "Voice Spam", func = Functions.toggleAimbot},
                 }
             }
         }
@@ -398,13 +398,22 @@ headerFix.Position = UDim2.new(0, 0, 1, -12)
 headerFix.BackgroundColor3 = Theme.Surface
 headerFix.BorderSizePixel = 0
 
+-- Logo
+local logo = Instance.new("ImageLabel")
+logo.Parent = header
+logo.Size = UDim2.new(0, 24, 0, 24)
+logo.Position = UDim2.new(0, 15, 0.5, -12)
+logo.BackgroundTransparency = 1
+logo.Image = "rbxassetid://70651953090646"
+logo.ImageColor3 = Theme.Primary
+
 -- Title
 local title = Instance.new("TextLabel")
 title.Parent = header
-title.Size = UDim2.new(0, 200, 1, 0)
-title.Position = UDim2.new(0, 20, 0, 0)
+title.Size = UDim2.new(0, 150, 1, 0)
+title.Position = UDim2.new(0, 45, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "⚡ SPWARE"
+title.Text = "SPWARE"
 title.TextColor3 = Theme.TextPrimary
 title.TextSize = 18
 title.Font = Enum.Font.GothamBold
@@ -493,15 +502,13 @@ local function createTab(tabData, index)
     tabCorner.CornerRadius = UDim.new(0, 8)
     tabCorner.Parent = tab
     
-    local icon = Instance.new("TextLabel")
-    icon.Parent = tab
-    icon.Size = UDim2.new(0, 20, 0, 20)
-    icon.Position = UDim2.new(0, 15, 0.5, -10)
-    icon.BackgroundTransparency = 1
-    icon.Text = tabData.icon
-    icon.TextColor3 = tabData.color
-    icon.TextSize = 16
-    icon.Font = Enum.Font.Gotham
+    local tabIcon = Instance.new("ImageLabel")
+    tabIcon.Parent = tab
+    tabIcon.Size = UDim2.new(0, 20, 0, 20)
+    tabIcon.Position = UDim2.new(0, 15, 0.5, -10)
+    tabIcon.BackgroundTransparency = 1
+    tabIcon.Image = tabData.icon
+    tabIcon.ImageColor3 = Theme.TextSecondary
     
     local label = Instance.new("TextLabel")
     label.Parent = tab
@@ -514,7 +521,7 @@ local function createTab(tabData, index)
     label.Font = Enum.Font.Gotham
     label.TextXAlignment = Enum.TextXAlignment.Left
     
-    return tab, icon, label
+    return tab, tabIcon, label
 end
 
 local function createSection(sectionData)
