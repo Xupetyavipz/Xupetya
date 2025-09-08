@@ -21,26 +21,26 @@ end
 -- 🎨 PROFESSIONAL THEME
 -- ═══════════════════════════════════════════════════════════════
 local Theme = {
-    -- Main colors
-    Background = Color3.fromRGB(24, 24, 27),
-    Surface = Color3.fromRGB(39, 39, 42),
-    Elevated = Color3.fromRGB(52, 52, 56),
+    -- Main colors (Purple/Black theme)
+    Background = Color3.fromRGB(15, 15, 20),
+    Surface = Color3.fromRGB(20, 20, 25),
+    Elevated = Color3.fromRGB(25, 25, 30),
     
-    -- Accent colors
-    Primary = Color3.fromRGB(99, 102, 241),
+    -- Purple accent colors
+    Primary = Color3.fromRGB(139, 69, 255),
     Secondary = Color3.fromRGB(168, 85, 247),
-    Success = Color3.fromRGB(34, 197, 94),
-    Warning = Color3.fromRGB(251, 191, 36),
-    Error = Color3.fromRGB(239, 68, 68),
+    Success = Color3.fromRGB(139, 69, 255),
+    Warning = Color3.fromRGB(139, 69, 255),
+    Error = Color3.fromRGB(139, 69, 255),
     
     -- Text colors
-    TextPrimary = Color3.fromRGB(248, 250, 252),
-    TextSecondary = Color3.fromRGB(148, 163, 184),
-    TextMuted = Color3.fromRGB(100, 116, 139),
+    TextPrimary = Color3.fromRGB(255, 255, 255),
+    TextSecondary = Color3.fromRGB(180, 180, 190),
+    TextMuted = Color3.fromRGB(120, 120, 130),
     
     -- Border and dividers
-    Border = Color3.fromRGB(71, 85, 105),
-    Divider = Color3.fromRGB(51, 65, 85),
+    Border = Color3.fromRGB(139, 69, 255),
+    Divider = Color3.fromRGB(60, 60, 70),
 }
 
 -- ═══════════════════════════════════════════════════════════════
@@ -108,9 +108,9 @@ end
 -- ═══════════════════════════════════════════════════════════════
 local TabData = {
     {
-        name = "Combat",
+        name = "FPS",
         icon = "🎯",
-        color = Theme.Error,
+        color = Theme.Primary,
         sections = {
             {
                 title = "Aimbot",
@@ -119,96 +119,79 @@ local TabData = {
                     {type = "slider", name = "FOV", min = 10, max = 360, default = 90},
                     {type = "slider", name = "Smoothness", min = 1, max = 20, default = 5},
                     {type = "dropdown", name = "Target Bone", options = {"Head", "Torso", "Random"}},
+                    {type = "slider", name = "Prediction", min = 0, max = 1, default = 0.1},
+                    {type = "toggle", name = "Silent Aim", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Triggerbot", func = Functions.toggleAimbot},
                 }
             },
             {
                 title = "Weapons",
                 items = {
                     {type = "toggle", name = "No Recoil", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "No Spread", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "No Sway", func = Functions.toggleAimbot},
                     {type = "toggle", name = "Rapid Fire", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Auto Shoot", func = Functions.toggleAimbot},
                     {type = "toggle", name = "Infinite Ammo", func = Functions.toggleAimbot},
-                    {type = "slider", name = "Damage Multiplier", min = 1, max = 10, default = 1},
+                    {type = "toggle", name = "Instant Reload", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Wallbang", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Bullet Tracers", func = Functions.toggleAimbot},
+                }
+            },
+            {
+                title = "Combat",
+                items = {
+                    {type = "toggle", name = "Hitbox Expander", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Kill Aura", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Critical Hits", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "One Tap Mode", func = Functions.toggleAimbot},
+                    {type = "slider", name = "Gun Damage", min = 1, max = 500, default = 100},
+                    {type = "toggle", name = "Explosive Bullets", func = Functions.toggleAimbot},
                 }
             }
         }
     },
     {
-        name = "Visuals",
+        name = "Visual",
         icon = "👁️",
         color = Theme.Primary,
         sections = {
             {
                 title = "ESP",
                 items = {
-                    {type = "toggle", name = "Player ESP", func = Functions.toggleESP},
+                    {type = "toggle", name = "Box ESP", func = Functions.toggleESP},
+                    {type = "toggle", name = "Skeleton ESP", func = Functions.toggleESP},
+                    {type = "toggle", name = "Name ESP", func = Functions.toggleESP},
+                    {type = "toggle", name = "Distance ESP", func = Functions.toggleESP},
+                    {type = "toggle", name = "Health Bar ESP", func = Functions.toggleESP},
+                    {type = "toggle", name = "Team Colors", func = Functions.toggleESP},
+                    {type = "toggle", name = "Tracers", func = Functions.toggleESP},
                     {type = "toggle", name = "Item ESP", func = Functions.toggleESP},
                     {type = "toggle", name = "Vehicle ESP", func = Functions.toggleESP},
-                    {type = "slider", name = "ESP Distance", min = 100, max = 5000, default = 1000},
+                    {type = "toggle", name = "NPC ESP", func = Functions.toggleESP},
                 }
             },
             {
-                title = "World",
+                title = "Graphics",
                 items = {
+                    {type = "toggle", name = "Chams/Glow", func = Functions.toggleESP},
+                    {type = "toggle", name = "Wallhack", func = Functions.toggleESP},
+                    {type = "toggle", name = "Custom Crosshair", func = Functions.toggleESP},
                     {type = "toggle", name = "Fullbright", func = Functions.toggleFullbright},
-                    {type = "toggle", name = "No Fog", func = Functions.toggleFullbright},
-                    {type = "slider", name = "FOV", min = 60, max = 120, default = 70},
-                    {type = "dropdown", name = "Skybox", options = {"Default", "Space", "Sunset"}},
-                }
-            }
-        }
-    },
-    {
-        name = "Movement",
-        icon = "🏃",
-        color = Theme.Success,
-        sections = {
-            {
-                title = "Speed",
-                items = {
-                    {type = "toggle", name = "Speed Hack", func = function(e) Functions.toggleSpeed(e, 100) end},
-                    {type = "slider", name = "Walk Speed", min = 16, max = 500, default = 100},
-                    {type = "toggle", name = "Jump Boost", func = Functions.toggleSpeed},
-                    {type = "slider", name = "Jump Power", min = 50, max = 500, default = 150},
+                    {type = "toggle", name = "Remove Fog", func = Functions.toggleFullbright},
+                    {type = "toggle", name = "No Shadows", func = Functions.toggleFullbright},
+                    {type = "toggle", name = "X-Ray", func = Functions.toggleESP},
+                    {type = "slider", name = "FOV Changer", min = 60, max = 120, default = 70},
                 }
             },
             {
-                title = "Flight",
+                title = "Environment",
                 items = {
-                    {type = "toggle", name = "Fly Mode", func = Functions.toggleFly},
-                    {type = "slider", name = "Fly Speed", min = 10, max = 200, default = 50},
-                    {type = "toggle", name = "Noclip", func = Functions.toggleNoclip},
-                    {type = "toggle", name = "Infinite Jump", func = Functions.toggleSpeed},
-                }
-            }
-        }
-    },
-    {
-        name = "Player",
-        icon = "👤",
-        color = Theme.Warning,
-        sections = {
-            {
-                title = "Character",
-                items = {
-                    {type = "toggle", name = "God Mode", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Invisible", func = Functions.toggleAimbot},
-                    {type = "button", name = "Reset Character"},
-                    {type = "button", name = "Respawn"},
-                }
-            }
-        }
-    },
-    {
-        name = "World",
-        icon = "🌍",
-        color = Theme.Secondary,
-        sections = {
-            {
-                title = "Teleport",
-                items = {
-                    {type = "button", name = "Teleport to Spawn"},
-                    {type = "button", name = "Teleport to Players"},
-                    {type = "toggle", name = "Click TP", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Day/Night Changer", func = Functions.toggleFullbright},
+                    {type = "toggle", name = "Radar Hack", func = Functions.toggleESP},
+                    {type = "toggle", name = "3D Box ESP", func = Functions.toggleESP},
+                    {type = "toggle", name = "Highlight Players", func = Functions.toggleESP},
+                    {type = "toggle", name = "Third Person", func = Functions.toggleESP},
                 }
             }
         }
@@ -216,14 +199,138 @@ local TabData = {
     {
         name = "Misc",
         icon = "⚙️",
-        color = Theme.TextSecondary,
+        color = Theme.Primary,
         sections = {
             {
-                title = "Automation",
+                title = "Movement",
+                items = {
+                    {type = "toggle", name = "Super Speed", func = function(e) Functions.toggleSpeed(e, 100) end},
+                    {type = "slider", name = "WalkSpeed", min = 16, max = 500, default = 100},
+                    {type = "toggle", name = "Infinite Jump", func = Functions.toggleSpeed},
+                    {type = "slider", name = "JumpPower", min = 50, max = 500, default = 150},
+                    {type = "toggle", name = "Fly Mode", func = Functions.toggleFly},
+                    {type = "slider", name = "Fly Speed", min = 10, max = 200, default = 50},
+                    {type = "toggle", name = "Noclip", func = Functions.toggleNoclip},
+                    {type = "toggle", name = "No Fall Damage", func = Functions.toggleSpeed},
+                }
+            },
+            {
+                title = "Utilities",
                 items = {
                     {type = "toggle", name = "Auto Farm", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Anti AFK", func = Functions.toggleAimbot},
                     {type = "toggle", name = "Auto Collect", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Auto Respawn", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Anti AFK", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Infinite Stamina", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Menu RGB", func = function(e) 
+                        if e then
+                            -- RGB animation for menu border
+                            spawn(function()
+                                while e do
+                                    for i = 0, 1, 0.01 do
+                                        if mainFrame then
+                                            local hue = (tick() * 0.5) % 1
+                                            local rgb = Color3.fromHSV(hue, 1, 1)
+                                            if mainFrame:FindFirstChild("UIStroke") then
+                                                mainFrame.UIStroke.Color = rgb
+                                            else
+                                                local stroke = Instance.new("UIStroke")
+                                                stroke.Color = rgb
+                                                stroke.Thickness = 2
+                                                stroke.Parent = mainFrame
+                                            end
+                                        end
+                                        wait(0.03)
+                                    end
+                                end
+                                if mainFrame and mainFrame:FindFirstChild("UIStroke") then
+                                    mainFrame.UIStroke:Destroy()
+                                end
+                            end)
+                        end
+                    end},
+                    {type = "button", name = "Rejoin Server"},
+                    {type = "button", name = "Server Hop"},
+                }
+            }
+        }
+    },
+    {
+        name = "RP",
+        icon = "🎭",
+        color = Theme.Primary,
+        sections = {
+            {
+                title = "Spawning",
+                items = {
+                    {type = "button", name = "Spawn Weapons"},
+                    {type = "button", name = "Spawn Vehicles"},
+                    {type = "button", name = "Spawn Objects"},
+                    {type = "button", name = "Spawn NPCs"},
+                    {type = "toggle", name = "Give Money", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Give All Tools", func = Functions.toggleAimbot},
+                }
+            },
+            {
+                title = "Avatar",
+                items = {
+                    {type = "button", name = "Change Clothes"},
+                    {type = "button", name = "Avatar Changer"},
+                    {type = "button", name = "Copy Avatar"},
+                    {type = "button", name = "Animation Player"},
+                    {type = "toggle", name = "Fake Name", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Fake Rank", func = Functions.toggleAimbot},
+                }
+            },
+            {
+                title = "Interaction",
+                items = {
+                    {type = "button", name = "Teleport All"},
+                    {type = "toggle", name = "Force Emotes", func = Functions.toggleAimbot},
+                    {type = "button", name = "Job Changer"},
+                    {type = "button", name = "Build Spam"},
+                }
+            }
+        }
+    },
+    {
+        name = "Troll",
+        icon = "🤡",
+        color = Theme.Primary,
+        sections = {
+            {
+                title = "Audio/Visual",
+                items = {
+                    {type = "toggle", name = "Sound Spam", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Screen Shaker", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Camera Inverter", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Black Screen", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Blind Effect", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Screen Text Spam", func = Functions.toggleAimbot},
+                }
+            },
+            {
+                title = "Player Manipulation",
+                items = {
+                    {type = "toggle", name = "Freeze Player", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Launch Player", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Fling All", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Ragdoll All", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Loop Kill", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Force Sit", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Giant Player", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Clone Player", func = Functions.toggleAimbot},
+                }
+            },
+            {
+                title = "Server Destruction",
+                items = {
+                    {type = "button", name = "Server Crasher"},
+                    {type = "toggle", name = "Object Spam", func = Functions.toggleAimbot},
+                    {type = "toggle", name = "Earthquake Mode", func = Functions.toggleAimbot},
+                    {type = "button", name = "Map Destroy"},
+                    {type = "button", name = "Nuke Effect"},
+                    {type = "toggle", name = "Voice Spam", func = Functions.toggleAimbot},
                 }
             }
         }
@@ -297,43 +404,22 @@ title.Parent = header
 title.Size = UDim2.new(0, 200, 1, 0)
 title.Position = UDim2.new(0, 20, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "⚡ CHEAT MENU"
+title.Text = "⚡ SPWARE"
 title.TextColor3 = Theme.TextPrimary
 title.TextSize = 18
 title.Font = Enum.Font.GothamBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Status
-local status = Instance.new("Frame")
-status.Parent = header
-status.Size = UDim2.new(0, 80, 0, 24)
-status.Position = UDim2.new(1, -200, 0.5, -12)
-status.BackgroundColor3 = Theme.Success
-status.BorderSizePixel = 0
-
-local statusCorner = Instance.new("UICorner")
-statusCorner.CornerRadius = UDim.new(0, 12)
-statusCorner.Parent = status
-
-local statusText = Instance.new("TextLabel")
-statusText.Parent = status
-statusText.Size = UDim2.new(1, 0, 1, 0)
-statusText.BackgroundTransparency = 1
-statusText.Text = "ONLINE"
-statusText.TextColor3 = Theme.TextPrimary
-statusText.TextSize = 12
-statusText.Font = Enum.Font.GothamBold
-
--- Close button
+-- Close button (minimalist)
 local closeBtn = Instance.new("TextButton")
 closeBtn.Parent = header
 closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -45, 0.5, -15)
-closeBtn.BackgroundColor3 = Theme.Error
+closeBtn.Position = UDim2.new(1, -40, 0.5, -15)
+closeBtn.BackgroundColor3 = Theme.Surface
 closeBtn.BorderSizePixel = 0
-closeBtn.Text = "✕"
-closeBtn.TextColor3 = Theme.TextPrimary
-closeBtn.TextSize = 14
+closeBtn.Text = "—"
+closeBtn.TextColor3 = Theme.TextSecondary
+closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.GothamBold
 
 local closeBtnCorner = Instance.new("UICorner")
