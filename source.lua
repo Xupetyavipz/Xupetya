@@ -27,8 +27,117 @@ if _G.CheatUILoaded then
     _G.CheatUILoaded = false
 end
 
--- Carregar funções
-local Functions = require(script.Parent.functions) or loadfile("functions.lua")()
+-- ═══════════════════════════════════════════════════════════════
+-- 🔧 FUNÇÕES INTEGRADAS DO CHEAT
+-- ═══════════════════════════════════════════════════════════════
+
+local Functions = {}
+local connections = {}
+
+-- FPS Functions
+function Functions.toggleAimbot(enabled)
+    if enabled then
+        print("🎯 Aimbot ativado")
+        -- Implementar aimbot aqui
+    else
+        print("🎯 Aimbot desativado")
+    end
+end
+
+function Functions.setAimbotFOV(value)
+    print("🎯 Aimbot FOV definido para:", value)
+end
+
+function Functions.setAimbotSmoothness(value)
+    print("🎯 Aimbot Smoothness definido para:", value)
+end
+
+function Functions.toggleSilentAim(enabled)
+    print("🔇 Silent Aim:", enabled and "ON" or "OFF")
+end
+
+function Functions.toggleTriggerbot(enabled)
+    print("🔫 Triggerbot:", enabled and "ON" or "OFF")
+end
+
+-- Visual Functions
+function Functions.toggleBoxESP(enabled)
+    print("📦 Box ESP:", enabled and "ON" or "OFF")
+end
+
+function Functions.toggleNameESP(enabled)
+    print("📝 Name ESP:", enabled and "ON" or "OFF")
+end
+
+function Functions.toggleTracers(enabled)
+    print("📍 Tracers:", enabled and "ON" or "OFF")
+end
+
+function Functions.toggleFullbright(enabled)
+    if enabled then
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 14
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = false
+    else
+        Lighting.Brightness = 1
+        Lighting.ClockTime = 12
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = true
+    end
+    print("💡 Fullbright:", enabled and "ON" or "OFF")
+end
+
+-- Movement Functions
+function Functions.toggleSuperSpeed(enabled, speed)
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.WalkSpeed = enabled and speed or 16
+    end
+    print("🏃 Super Speed:", enabled and "ON" or "OFF")
+end
+
+function Functions.toggleSuperJump(enabled, power)
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.JumpPower = enabled and power or 50
+    end
+    print("🦘 Super Jump:", enabled and "ON" or "OFF")
+end
+
+function Functions.toggleFly(enabled)
+    if enabled then
+        -- Implementar fly básico
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            bodyVelocity.Parent = player.Character.HumanoidRootPart
+        end
+    end
+    print("🛸 Fly:", enabled and "ON" or "OFF")
+end
+
+function Functions.toggleNoclip(enabled)
+    if enabled then
+        connections.noclip = RunService.Stepped:Connect(function()
+            if player.Character then
+                for _, part in pairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        if connections.noclip then
+            connections.noclip:Disconnect()
+            connections.noclip = nil
+        end
+    end
+    print("👻 Noclip:", enabled and "ON" or "OFF")
+end
+
+-- Exportar para escopo global
+_G.CheatFunctions = Functions
 
 -- ═══════════════════════════════════════════════════════════════
 -- 🎨 CONFIGURAÇÕES DE TEMA E CORES
