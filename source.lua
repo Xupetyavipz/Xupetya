@@ -304,36 +304,84 @@ end
 function Functions.teleportToPlayer(player)
     local localPlayer = game.Players.LocalPlayer
     if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        -- Multiple teleport methods for maximum effectiveness
         local targetCFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -5)
+        local myRoot = localPlayer.Character.HumanoidRootPart
         
-        -- Method 1: Direct CFrame
-        localPlayer.Character.HumanoidRootPart.CFrame = targetCFrame
+        -- Method 1: Instant CFrame teleport
+        myRoot.CFrame = targetCFrame
         
-        -- Method 2: Position property
-        localPlayer.Character.HumanoidRootPart.Position = targetCFrame.Position
+        -- Method 2: Backup position set
+        myRoot.Position = targetCFrame.Position
         
-        -- Method 3: MoveTo for Humanoid
+        -- Method 3: Use Humanoid MoveTo as backup
         if localPlayer.Character:FindFirstChild("Humanoid") then
             localPlayer.Character.Humanoid:MoveTo(targetCFrame.Position)
         end
         
-        -- Method 4: Velocity reset
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        bodyVelocity.Parent = localPlayer.Character.HumanoidRootPart
-        game:GetService("Debris"):AddItem(bodyVelocity, 0.1)
+        -- Method 4: Network sync
+        spawn(function()
+            for i = 1, 5 do
+                myRoot.CFrame = targetCFrame
+                wait(0.1)
+            end
+        end)
         
-        print("🚀 TELEPORTED TO " .. player.Name .. " WITH MULTIPLE METHODS!")
+        -- Method 5: Try teleport remotes
+        spawn(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("RemoteEvent") and (string.find(obj.Name:lower(), "teleport") or string.find(obj.Name:lower(), "tp")) then
+                    pcall(function()
+                        obj:FireServer(targetCFrame.Position)
+                        obj:FireServer(player.Character.HumanoidRootPart.Position)
+                    end)
+                end
+            end
+        end)
+        
+        print("🚀 TELEPORTED TO " .. player.Name)
     end
 end
 
 function Functions.pullPlayer(player)
     local localPlayer = game.Players.LocalPlayer
-    if localPlayer.Character and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = localPlayer.Character.HumanoidRootPart.CFrame
-        print("🎣 Pulled " .. player.Name)
+    if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local myPos = localPlayer.Character.HumanoidRootPart.Position
+        local targetRoot = player.Character.HumanoidRootPart
+        
+        -- Method 1: Instant teleport pull
+        targetRoot.CFrame = CFrame.new(myPos + Vector3.new(0, 0, -3))
+        
+        -- Method 2: Use BodyPosition for smooth pull
+        local bodyPos = Instance.new("BodyPosition")
+        bodyPos.MaxForce = Vector3.new(50000, 50000, 50000)
+        bodyPos.Position = myPos
+        bodyPos.D = 2000
+        bodyPos.P = 10000
+        bodyPos.Parent = targetRoot
+        
+        -- Method 3: Velocity-based pull
+        local bodyVel = Instance.new("BodyVelocity")
+        bodyVel.MaxForce = Vector3.new(50000, 50000, 50000)
+        local direction = (myPos - targetRoot.Position).Unit
+        bodyVel.Velocity = direction * 100
+        bodyVel.Parent = targetRoot
+        
+        -- Method 4: Try pull remotes
+        spawn(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("RemoteEvent") and (string.find(obj.Name:lower(), "pull") or string.find(obj.Name:lower(), "drag")) then
+                    pcall(function()
+                        obj:FireServer(player, myPos)
+                        obj:FireServer(targetRoot, myPos)
+                    end)
+                end
+            end
+        end)
+        
+        game:GetService("Debris"):AddItem(bodyPos, 1)
+        game:GetService("Debris"):AddItem(bodyVel, 0.5)
+        
+        print("🪝 FORCE PULLED " .. player.Name .. " TO YOU!")
     end
 end
 
@@ -936,20 +984,26 @@ function Functions.toggleBoxESP(enabled)
         spawn(function()
             while _G.BoxESPEnabled do
                 for _, player in pairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                    -- Only show ESP for alive players (Health > 0) and not respawning
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 and player.Character.Parent == workspace then
                         if not player.Character:FindFirstChild("ESP_Box") then
                             local box = Instance.new("BoxHandleAdornment")
                             box.Name = "ESP_Box"
                             box.Parent = player.Character
                             box.Adornee = player.Character.HumanoidRootPart
                             box.Size = Vector3.new(4, 6, 1)
-                            box.Color3 = Color3.new(1, 0, 0)
+                            box.Color3 = Color3.fromRGB(255, 0, 0)
                             box.Transparency = 0.5
                             box.AlwaysOnTop = true
                         end
+                    else
+                        -- Remove ESP from dead/invisible players
+                        if player.Character and player.Character:FindFirstChild("ESP_Box") then
+                            player.Character.ESP_Box:Destroy()
+                        end
                     end
                 end
-                wait(0.5)
+                wait(0.1)
             end
         end)
     else
@@ -968,7 +1022,8 @@ function Functions.toggleNameESP(enabled)
         spawn(function()
             while _G.NameESPEnabled do
                 for _, player in pairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                    -- Only show ESP for alive players (Health > 0) and not respawning
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 and player.Character.Parent == workspace then
                         if not player.Character.Head:FindFirstChild("ESP_Name") then
                             local billboard = Instance.new("BillboardGui")
                             billboard.Name = "ESP_Name"
@@ -977,26 +1032,31 @@ function Functions.toggleNameESP(enabled)
                             billboard.StudsOffset = Vector3.new(0, 2, 0)
                             billboard.AlwaysOnTop = true
                             
-                            local nameLabel = Instance.new("TextLabel")
-                            nameLabel.Parent = billboard
-                            nameLabel.Size = UDim2.new(1, 0, 1, 0)
-                            nameLabel.BackgroundTransparency = 1
-                            nameLabel.Text = player.Name
-                            nameLabel.TextColor3 = Color3.new(1, 1, 1)
-                            nameLabel.TextSize = 16
-                            nameLabel.Font = Enum.Font.GothamBold
-                            nameLabel.TextStrokeTransparency = 0
-                            nameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+                            local textLabel = Instance.new("TextLabel")
+                            textLabel.Parent = billboard
+                            textLabel.Size = UDim2.new(1, 0, 1, 0)
+                            textLabel.BackgroundTransparency = 1
+                            textLabel.Text = player.Name
+                            textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            textLabel.TextStrokeTransparency = 0
+                            textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                            textLabel.TextScaled = true
+                            textLabel.Font = Enum.Font.SourceSansBold
+                        end
+                    else
+                        -- Remove ESP from dead/invisible players
+                        if player.Character and player.Character:FindFirstChild("Head") and player.Character.Head:FindFirstChild("ESP_Name") then
+                            player.Character.Head.ESP_Name:Destroy()
                         end
                     end
                 end
-                wait(0.5)
+                wait(0.1)
             end
         end)
     else
         for _, player in pairs(game.Players:GetPlayers()) do
-            if player.Character and player.Character:FindFirstChild("Head") and player.Character.Head:FindFirstChild("NameESP") then
-                player.Character.Head.NameESP:Destroy()
+            if player.Character and player.Character:FindFirstChild("Head") and player.Character.Head:FindFirstChild("ESP_Name") then
+                player.Character.Head.ESP_Name:Destroy()
             end
         end
     end
@@ -1009,7 +1069,8 @@ function Functions.toggleDistanceESP(enabled)
         spawn(function()
             while _G.DistanceESPEnabled do
                 for _, player in pairs(game.Players:GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                    -- Only show ESP for alive players (Health > 0) and not respawning
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 and player.Character.Parent == workspace then
                         if not player.Character.Head:FindFirstChild("DistanceESP") then
                             local billboard = Instance.new("BillboardGui")
                             billboard.Name = "DistanceESP"
@@ -1018,23 +1079,29 @@ function Functions.toggleDistanceESP(enabled)
                             billboard.StudsOffset = Vector3.new(0, -1, 0)
                             billboard.AlwaysOnTop = true
                             
-                            local distLabel = Instance.new("TextLabel")
-                            distLabel.Parent = billboard
-                            distLabel.Size = UDim2.new(1, 0, 1, 0)
-                            distLabel.BackgroundTransparency = 1
-                            distLabel.TextColor3 = Color3.new(0, 1, 0)
-                            distLabel.TextSize = 14
-                            distLabel.Font = Enum.Font.Gotham
-                            distLabel.TextStrokeTransparency = 0
-                            distLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+                            local textLabel = Instance.new("TextLabel")
+                            textLabel.Parent = billboard
+                            textLabel.Size = UDim2.new(1, 0, 1, 0)
+                            textLabel.BackgroundTransparency = 1
+                            textLabel.Text = "0m"
+                            textLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+                            textLabel.TextStrokeTransparency = 0
+                            textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                            textLabel.TextScaled = true
+                            textLabel.Font = Enum.Font.SourceSans
+                        end
+                    else
+                        -- Remove ESP from dead/invisible players
+                        if player.Character and player.Character:FindFirstChild("Head") and player.Character.Head:FindFirstChild("DistanceESP") then
+                            player.Character.Head.DistanceESP:Destroy()
                         end
                     end
                 end
                 
-                -- Update distances
+                -- Update distances only for alive players
                 if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                     for _, player in pairs(game.Players:GetPlayers()) do
-                        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 and player.Character.Parent == workspace then
                             local distESP = player.Character.Head:FindFirstChild("DistanceESP")
                             if distESP then
                                 local distance = (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
@@ -1387,63 +1454,111 @@ end
 
 function Functions.explodePlayer(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        -- Damage the player first
-        if player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.Health = player.Character.Humanoid.Health - 50
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        
+        -- Method 1: Real damage through multiple methods
+        if humanoid then
+            -- Direct damage
+            humanoid:TakeDamage(75)
+            humanoid.Health = math.max(0, humanoid.Health - 75)
+            
+            -- Try to find damage remotes
+            spawn(function()
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("RemoteEvent") and string.find(obj.Name:lower(), "damage") then
+                        pcall(function()
+                            obj:FireServer(player, 75)
+                            obj:FireServer(humanoid, 75)
+                        end)
+                    end
+                end
+            end)
         end
         
-        -- Create multiple explosions for maximum effect
+        -- Method 2: Physical explosions with real blast damage
+        local rootPart = player.Character.HumanoidRootPart
         spawn(function()
-            for i = 1, 10 do
+            for i = 1, 15 do
                 local explosion = Instance.new("Explosion")
                 explosion.Parent = workspace
-                explosion.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-15, 15), math.random(-10, 10), math.random(-15, 15))
-                explosion.BlastRadius = 150
-                explosion.BlastPressure = 8000000
+                explosion.Position = rootPart.Position + Vector3.new(math.random(-20, 20), math.random(-15, 15), math.random(-20, 20))
+                explosion.BlastRadius = 100
+                explosion.BlastPressure = 2000000
                 explosion.Visible = true
                 
-                wait(0.05)
+                -- Each explosion damages the player
+                if humanoid and humanoid.Health > 0 then
+                    humanoid:TakeDamage(10)
+                end
+                
+                wait(0.03)
             end
         end)
         
-        -- Add multiple fire effects
-        for _, part in pairs(player.Character:GetChildren()) do
-            if part:IsA("BasePart") then
-                local fire = Instance.new("Fire")
-                fire.Parent = part
-                fire.Size = math.random(20, 40)
-                fire.Heat = math.random(20, 30)
-                
-                local smoke = Instance.new("Smoke")
-                smoke.Parent = part
-                smoke.Size = math.random(30, 60)
-                smoke.Opacity = 1
-                smoke.Color = Color3.new(0.1, 0.1, 0.1)
+        -- Method 3: Realistic fire and smoke effects
+        spawn(function()
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    -- Fire effect
+                    local fire = Instance.new("Fire")
+                    fire.Parent = part
+                    fire.Size = math.random(15, 35)
+                    fire.Heat = math.random(15, 25)
+                    fire.Color = Color3.new(1, 0.3, 0)
+                    fire.SecondaryColor = Color3.new(1, 0, 0)
+                    
+                    -- Smoke effect
+                    local smoke = Instance.new("Smoke")
+                    smoke.Parent = part
+                    smoke.Size = math.random(25, 45)
+                    smoke.Opacity = 0.8
+                    smoke.RiseVelocity = 10
+                    smoke.Color = Color3.new(0.2, 0.2, 0.2)
+                    
+                    -- Damage over time from fire
+                    spawn(function()
+                        for i = 1, 10 do
+                            if humanoid and humanoid.Health > 0 then
+                                humanoid:TakeDamage(2)
+                            end
+                            wait(0.5)
+                        end
+                    end)
+                end
             end
-        end
+        end)
         
-        -- Extreme fling with multiple forces
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bodyVelocity.Velocity = Vector3.new(math.random(-300, 300), 300, math.random(-300, 300))
-        bodyVelocity.Parent = player.Character.HumanoidRootPart
-        
-        local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-        bodyAngularVelocity.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bodyAngularVelocity.AngularVelocity = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
-        bodyAngularVelocity.Parent = player.Character.HumanoidRootPart
-        
-        -- Break joints for ragdoll effect
-        for _, joint in pairs(player.Character:GetDescendants()) do
-            if joint:IsA("Motor6D") then
-                joint:Destroy()
+        -- Method 4: Realistic physics with joint breaking
+        spawn(function()
+            -- Break joints for ragdoll
+            for _, joint in pairs(player.Character:GetDescendants()) do
+                if joint:IsA("Motor6D") or joint:IsA("Weld") then
+                    joint:Destroy()
+                end
             end
-        end
+            
+            -- Apply realistic explosion force
+            local bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.MaxForce = Vector3.new(50000, 50000, 50000)
+            bodyVelocity.Velocity = Vector3.new(math.random(-150, 150), 200, math.random(-150, 150))
+            bodyVelocity.Parent = rootPart
+            
+            local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+            bodyAngularVelocity.MaxTorque = Vector3.new(50000, 50000, 50000)
+            bodyAngularVelocity.AngularVelocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
+            bodyAngularVelocity.Parent = rootPart
+            
+            -- Disable player control
+            if humanoid then
+                humanoid.PlatformStand = true
+                humanoid.Sit = true
+            end
+            
+            game:GetService("Debris"):AddItem(bodyVelocity, 2)
+            game:GetService("Debris"):AddItem(bodyAngularVelocity, 2)
+        end)
         
-        game:GetService("Debris"):AddItem(bodyVelocity, 3)
-        game:GetService("Debris"):AddItem(bodyAngularVelocity, 3)
-        
-        print("💥🔥 MASSIVE EXPLOSION ON " .. player.Name .. " - RAGDOLL EFFECT!")
+        print("💥🔥 REALISTIC EXPLOSION DAMAGE ON " .. player.Name .. "!")
     end
 end
 
@@ -1501,48 +1616,89 @@ end
 
 function Functions.crashPlayer(player)
     if player.Character then
+        -- Method 1: Massive part spam with physics
         spawn(function()
-            -- Spam invisible parts to lag the player
-            for i = 1, 2000 do
+            for i = 1, 5000 do
                 local part = Instance.new("Part")
                 part.Parent = player.Character
-                part.Size = Vector3.new(0.1, 0.1, 0.1)
+                part.Name = "CrashPart" .. i
+                part.Size = Vector3.new(0.05, 0.05, 0.05)
                 part.Anchored = false
                 part.CanCollide = true
-                part.Transparency = 0.99
+                part.Transparency = 0.95
                 part.BrickColor = BrickColor.Random()
                 part.Material = Enum.Material.Neon
+                part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-10, 10), math.random(-10, 10), math.random(-10, 10))
                 
-                -- Add physics to make it worse
-                local bodyVelocity = Instance.new("BodyVelocity")
-                bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-                bodyVelocity.Velocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
-                bodyVelocity.Parent = part
+                -- Add multiple physics objects
+                local bodyVel = Instance.new("BodyVelocity")
+                bodyVel.MaxForce = Vector3.new(10000, 10000, 10000)
+                bodyVel.Velocity = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
+                bodyVel.Parent = part
                 
-                -- Spam sounds
-                if i % 10 == 0 then
+                local bodyAngular = Instance.new("BodyAngularVelocity")
+                bodyAngular.MaxTorque = Vector3.new(10000, 10000, 10000)
+                bodyAngular.AngularVelocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
+                bodyAngular.Parent = part
+                
+                -- Spam sounds every 5 parts
+                if i % 5 == 0 then
                     local sound = Instance.new("Sound")
                     sound.Parent = part
                     sound.SoundId = "rbxassetid://131961136"
-                    sound.Volume = 0.1
-                    sound.Pitch = math.random(50, 200) / 100
+                    sound.Volume = 0.05
+                    sound.Pitch = math.random(10, 500) / 100
+                    sound.Looped = true
                     sound:Play()
                 end
-            end
-            
-            -- Spam GUI elements
-            for i = 1, 100 do
-                local gui = Instance.new("ScreenGui")
-                gui.Parent = player.PlayerGui
                 
-                local frame = Instance.new("Frame")
-                frame.Parent = gui
-                frame.Size = UDim2.new(1, 0, 1, 0)
-                frame.BackgroundColor3 = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
-                frame.BackgroundTransparency = 0.9
+                -- Don't wait to maximize lag
+                if i % 100 == 0 then
+                    wait(0.001)
+                end
             end
         end)
-        print("💻🔥 ATTEMPTING TO CRASH " .. player.Name .. " WITH 2000+ OBJECTS!")
+        
+        -- Method 2: GUI spam attack
+        spawn(function()
+            for i = 1, 500 do
+                local gui = Instance.new("ScreenGui")
+                gui.Name = "CrashGUI" .. i
+                gui.Parent = player.PlayerGui
+                gui.ResetOnSpawn = false
+                
+                for j = 1, 10 do
+                    local frame = Instance.new("Frame")
+                    frame.Parent = gui
+                    frame.Size = UDim2.new(math.random(), 0, math.random(), 0)
+                    frame.Position = UDim2.new(math.random(), 0, math.random(), 0)
+                    frame.BackgroundColor3 = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+                    frame.BackgroundTransparency = math.random()
+                    
+                    local text = Instance.new("TextLabel")
+                    text.Parent = frame
+                    text.Size = UDim2.new(1, 0, 1, 0)
+                    text.Text = "SPWARE CRASH " .. math.random(1, 99999)
+                    text.TextSize = math.random(8, 72)
+                    text.TextColor3 = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+                end
+            end
+        end)
+        
+        -- Method 3: Try to use remotes to crash
+        spawn(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("RemoteEvent") then
+                    pcall(function()
+                        for i = 1, 100 do
+                            obj:FireServer(string.rep("CRASH", 1000))
+                        end
+                    end)
+                end
+            end
+        end)
+        
+        print("💻🔥 EXTREME CRASH ATTACK ON " .. player.Name .. " - 5000+ OBJECTS!")
     end
 end
 
@@ -1624,37 +1780,81 @@ end
 function Functions.soundSpamPlayer(player)
     if player.Character then
         spawn(function()
-            -- Spam 100 different sounds
+            -- Spam 200 different sounds with maximum chaos
             local soundIds = {
                 "rbxassetid://131961136",
                 "rbxassetid://1837829565",
                 "rbxassetid://2865227271",
                 "rbxassetid://1280463188",
-                "rbxassetid://2767090"
+                "rbxassetid://2767090",
+                "rbxassetid://1847661821",
+                "rbxassetid://2767090",
+                "rbxassetid://1837829565"
             }
             
-            for i = 1, 100 do
+            -- Method 1: Spam sounds in character
+            for i = 1, 200 do
                 local sound = Instance.new("Sound")
                 sound.Parent = player.Character
+                sound.Name = "SpamSound" .. i
                 sound.SoundId = soundIds[math.random(1, #soundIds)]
                 sound.Volume = 1
-                sound.Pitch = math.random(10, 300) / 100
+                sound.Pitch = math.random(5, 500) / 100
                 sound.Looped = true
+                sound.EmitterSize = 100
                 sound:Play()
                 
-                -- Create sound in different body parts
+                -- Create sounds in every body part
                 for _, part in pairs(player.Character:GetChildren()) do
                     if part:IsA("BasePart") then
-                        local extraSound = sound:Clone()
-                        extraSound.Parent = part
-                        extraSound:Play()
+                        for j = 1, 3 do
+                            local extraSound = sound:Clone()
+                            extraSound.Parent = part
+                            extraSound.Pitch = math.random(1, 1000) / 100
+                            extraSound:Play()
+                        end
                     end
                 end
+            end
+            
+            -- Method 2: Create sound parts around player
+            for i = 1, 50 do
+                local soundPart = Instance.new("Part")
+                soundPart.Parent = workspace
+                soundPart.Size = Vector3.new(0.1, 0.1, 0.1)
+                soundPart.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-20, 20), math.random(-20, 20), math.random(-20, 20))
+                soundPart.Anchored = true
+                soundPart.Transparency = 1
+                soundPart.CanCollide = false
                 
-                wait(0.01)
+                for j = 1, 5 do
+                    local sound = Instance.new("Sound")
+                    sound.Parent = soundPart
+                    sound.SoundId = soundIds[math.random(1, #soundIds)]
+                    sound.Volume = 1
+                    sound.Pitch = math.random(1, 1000) / 100
+                    sound.Looped = true
+                    sound.EmitterSize = 50
+                    sound:Play()
+                end
             end
         end)
-        print("🔊💥 EXTREME SOUND SPAM ON " .. player.Name .. " - 100+ SOUNDS!")
+        
+        -- Method 3: Try to use sound remotes
+        spawn(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("RemoteEvent") and (string.find(obj.Name:lower(), "sound") or string.find(obj.Name:lower(), "audio") or string.find(obj.Name:lower(), "music")) then
+                    pcall(function()
+                        for i = 1, 50 do
+                            obj:FireServer("rbxassetid://131961136", player)
+                            obj:FireServer("rbxassetid://1837829565", player.Character)
+                        end
+                    end)
+                end
+            end
+        end)
+        
+        print("🔊💥 MAXIMUM SOUND CHAOS ON " .. player.Name .. " - 200+ SOUNDS!")
     end
 end
 
@@ -1722,72 +1922,24 @@ end
 function Functions.killPlayer(player)
     if player.Character then
         local humanoid = player.Character:FindFirstChild("Humanoid")
-        if humanoid then
-            -- Method 1: Set health to 0 and break joints
-            humanoid.Health = 0
-            humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-            
-            -- Method 2: Break all joints to ragdoll
+        local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+        
+        if humanoid and rootPart then
+            -- Method 1: Instant server-side kill with multiple approaches
             spawn(function()
+                -- Direct health manipulation
+                humanoid.Health = 0
+                humanoid:TakeDamage(math.huge)
+                humanoid.MaxHealth = 0
+                
+                -- Break all joints to ragdoll
                 for _, joint in pairs(player.Character:GetDescendants()) do
                     if joint:IsA("Motor6D") or joint:IsA("Weld") or joint:IsA("WeldConstraint") then
                         joint:Destroy()
                     end
                 end
-            end)
-            
-            -- Method 3: Remove critical parts
-            spawn(function()
-                wait(0.1)
-                if player.Character:FindFirstChild("Head") then
-                    player.Character.Head:Destroy()
-                end
-                if player.Character:FindFirstChild("Torso") then
-                    player.Character.Torso:Destroy()
-                end
-            end)
-            
-            -- Method 4: Create deadly explosion
-            if player.Character:FindFirstChild("HumanoidRootPart") then
-                local explosion = Instance.new("Explosion")
-                explosion.Parent = workspace
-                explosion.Position = player.Character.HumanoidRootPart.Position
-                explosion.BlastRadius = 200
-                explosion.BlastPressure = 10000000
-                explosion.Visible = true
                 
-                -- Add death effect
-                local deathEffect = Instance.new("Part")
-                deathEffect.Parent = workspace
-                deathEffect.Size = Vector3.new(10, 10, 10)
-                deathEffect.Position = player.Character.HumanoidRootPart.Position
-                deathEffect.BrickColor = BrickColor.new("Really red")
-                deathEffect.Material = Enum.Material.Neon
-                deathEffect.Shape = Enum.PartType.Ball
-                deathEffect.Anchored = true
-                deathEffect.CanCollide = false
-                
-                -- Expand death effect
-                local tween = game:GetService("TweenService"):Create(
-                    deathEffect,
-                    TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                    {Size = Vector3.new(50, 50, 50), Transparency = 1}
-                )
-                tween:Play()
-                
-                game:GetService("Debris"):AddItem(deathEffect, 3)
-                
-                -- Method 5: Fling with extreme force
-                local bodyVelocity = Instance.new("BodyVelocity")
-                bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                bodyVelocity.Velocity = Vector3.new(math.random(-1000, 1000), 1000, math.random(-1000, 1000))
-                bodyVelocity.Parent = player.Character.HumanoidRootPart
-                
-                game:GetService("Debris"):AddItem(bodyVelocity, 1)
-            end
-            
-            -- Method 6: Force respawn after delay
-            spawn(function()
+                -- Force respawn after delay to prevent invisibility
                 wait(2)
                 if player.Character then
                     player.Character:Destroy()
@@ -1796,7 +1948,165 @@ function Functions.killPlayer(player)
                 player:LoadCharacter()
             end)
             
-            print("💀⚡ COMPLETELY KILLED " .. player.Name .. " - FORCED RESPAWN!")
+            -- Method 2: Physical destruction with real server effects
+            spawn(function()
+                wait(0.2)
+                -- Create massive explosion at player position
+                for i = 1, 10 do
+                    local explosion = Instance.new("Explosion")
+                    explosion.Parent = workspace
+                    explosion.Position = rootPart.Position + Vector3.new(math.random(-10, 10), math.random(-5, 5), math.random(-10, 10))
+                    explosion.BlastRadius = 100
+                    explosion.BlastPressure = 10000000
+                    explosion.Visible = true
+                    
+                    -- Add fire and smoke effects
+                    local fire = Instance.new("Fire")
+                    fire.Parent = rootPart
+                    fire.Size = 30
+                    fire.Heat = 25
+                    
+                    local smoke = Instance.new("Smoke")
+                    smoke.Parent = rootPart
+                    smoke.Size = 50
+                    smoke.Opacity = 1
+                    
+                    wait(0.05)
+                end
+            end)
+            
+            -- Method 3: Try all possible remote events for killing
+            spawn(function()
+                for _, obj in pairs(workspace:GetDescendants()) do
+                    if obj:IsA("RemoteEvent") then
+                        pcall(function()
+                            -- Try different kill parameters
+                            obj:FireServer("kill", player)
+                            obj:FireServer("damage", player, 999999)
+                            obj:FireServer(player, "kill")
+                            obj:FireServer(player.Character, "destroy")
+                            obj:FireServer(humanoid, 0)
+                            obj:FireServer("eliminate", player.Name)
+                        end)
+                    end
+                end
+            end)
+            
+            -- Method 4: Extreme physical manipulation
+            spawn(function()
+                wait(0.5)
+                -- Fling player with extreme force
+                local bodyVel = Instance.new("BodyVelocity")
+                bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bodyVel.Velocity = Vector3.new(math.random(-1000, 1000), 1000, math.random(-1000, 1000))
+                bodyVel.Parent = rootPart
+                
+                -- Spin player violently
+                local bodyAngular = Instance.new("BodyAngularVelocity")
+                bodyAngular.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                bodyAngular.AngularVelocity = Vector3.new(100, 100, 100)
+                bodyAngular.Parent = rootPart
+                
+                game:GetService("Debris"):AddItem(bodyVel, 2)
+                game:GetService("Debris"):AddItem(bodyAngular, 2)
+            end)
+            
+            -- Method 5: Force disconnect attempt
+            spawn(function()
+                wait(3)
+                pcall(function()
+                    player:Kick("💀 SPWARE ELIMINATION PROTOCOL EXECUTED 💀")
+                end)
+            end)
+            
+            print("💀⚡ MAXIMUM KILL PROTOCOL EXECUTED ON " .. player.Name .. " - MULTIPLE METHODS DEPLOYED!")
+        end
+    end
+end
+
+function Functions.explodePlayer(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local position = player.Character.HumanoidRootPart.Position
+        local humanoid = player.Character:FindFirstChild("Humanoid")
+        
+        -- Method 1: Massive explosion barrage with real damage
+        spawn(function()
+            for i = 1, 25 do
+                local explosion = Instance.new("Explosion")
+                explosion.Parent = workspace
+                explosion.Position = position + Vector3.new(math.random(-15, 15), math.random(-10, 10), math.random(-15, 15))
+                explosion.BlastRadius = 75
+                explosion.BlastPressure = 15000000
+                explosion.Visible = true
+                
+                -- Deal real damage with each explosion
+                if humanoid and humanoid.Health > 0 then
+                    humanoid:TakeDamage(25)
+                end
+                
+                wait(0.05)
+            end
+        end)
+        
+        -- Method 2: Physical effects and ragdoll
+        spawn(function()
+            -- Instant ragdoll
+            if humanoid then
+                humanoid.PlatformStand = true
+                humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+                humanoid.Sit = true
+            end
+            
+            -- Break all joints for realistic ragdoll
+            for _, joint in pairs(player.Character:GetDescendants()) do
+                if joint:IsA("Motor6D") then
+                    local attachment0 = Instance.new("Attachment")
+                    local attachment1 = Instance.new("Attachment")
+                    attachment0.Parent = joint.Part0
+                    attachment1.Parent = joint.Part1
+                    attachment0.CFrame = joint.C0
+                    attachment1.CFrame = joint.C1
+                    
+                    local ballSocket = Instance.new("BallSocketConstraint")
+                    ballSocket.Attachment0 = attachment0
+                    ballSocket.Attachment1 = attachment1
+                    ballSocket.Parent = joint.Part0
+                    
+                    joint:Destroy()
+                end
+            end
+        end)
+        
+        -- Method 3: Extreme fling with multiple forces
+        spawn(function()
+            for i = 1, 5 do
+            spawn(function()
+                wait(0.5)
+                -- Fling player with extreme force
+                local bodyVel = Instance.new("BodyVelocity")
+                bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bodyVel.Velocity = Vector3.new(math.random(-1000, 1000), 1000, math.random(-1000, 1000))
+                bodyVel.Parent = rootPart
+                
+                -- Spin player violently
+                local bodyAngular = Instance.new("BodyAngularVelocity")
+                bodyAngular.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+                bodyAngular.AngularVelocity = Vector3.new(100, 100, 100)
+                bodyAngular.Parent = rootPart
+                
+                game:GetService("Debris"):AddItem(bodyVel, 2)
+                game:GetService("Debris"):AddItem(bodyAngular, 2)
+            end)
+            
+            -- Method 5: Force disconnect attempt
+            spawn(function()
+                wait(3)
+                pcall(function()
+                    player:Kick("💀 SPWARE ELIMINATION PROTOCOL EXECUTED 💀")
+                end)
+            end)
+            
+            print("💀⚡ MAXIMUM KILL PROTOCOL EXECUTED ON " .. player.Name .. " - MULTIPLE METHODS DEPLOYED!")
         end
     end
 end
