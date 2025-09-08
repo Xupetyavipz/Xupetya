@@ -2991,9 +2991,15 @@ print("║  ⚙️  Advanced toggles and controls                          ║")
 print("║  ⌨️  Press INSERT to toggle                                  ║")
 print("╚══════════════════════════════════════════════════════════════╝")
 
--- Initialize Player List safely
-pcall(function()
-    if Functions and Functions.createPlayerList then
-        Functions.createPlayerList()
+-- Initialize Player List with proper error handling
+spawn(function()
+    wait(0.5)
+    local success, error = pcall(function()
+        if Functions and type(Functions.createPlayerList) == "function" then
+            Functions.createPlayerList()
+        end
+    end)
+    if not success then
+        warn("Player List initialization failed:", error)
     end
 end)
