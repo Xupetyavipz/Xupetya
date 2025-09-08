@@ -1436,6 +1436,34 @@ print("║  Drag the header to move the window                         ║")
 print("║  Click minimize (-) to collapse window                      ║")
 print("╚══════════════════════════════════════════════════════════════╝")
 
+-- ═══════════════════════════════════════════════════════════════
+-- ⌨️ CONTROLE DE VISIBILIDADE - TECLA INSERT
+-- ═══════════════════════════════════════════════════════════════
+
+-- Função para alternar visibilidade da UI
+local function toggleUI()
+    if mainFrame then
+        mainFrame.Visible = not mainFrame.Visible
+        if mainFrame.Visible then
+            print("🎮 Cheat UI: ABERTO")
+        else
+            print("🎮 Cheat UI: FECHADO")
+        end
+    end
+end
+
+-- Conectar tecla Insert para abrir/fechar
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.Insert then
+        toggleUI()
+    end
+end)
+
 -- Aguardar um frame e mostrar conteúdo inicial
 RunService.Heartbeat:Wait()
 showContent("FPS")
+
+-- Salvar referência global para controle externo
+_G.ToggleCheatUI = toggleUI
