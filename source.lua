@@ -2080,34 +2080,59 @@ function Functions.explodePlayer(player)
         -- Method 3: Extreme fling with multiple forces
         spawn(function()
             for i = 1, 5 do
-            spawn(function()
-                wait(0.5)
-                -- Fling player with extreme force
                 local bodyVel = Instance.new("BodyVelocity")
                 bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                bodyVel.Velocity = Vector3.new(math.random(-1000, 1000), 1000, math.random(-1000, 1000))
-                bodyVel.Parent = rootPart
+                bodyVel.Velocity = Vector3.new(math.random(-200, 200), math.random(100, 300), math.random(-200, 200))
+                bodyVel.Parent = player.Character.HumanoidRootPart
                 
-                -- Spin player violently
                 local bodyAngular = Instance.new("BodyAngularVelocity")
                 bodyAngular.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-                bodyAngular.AngularVelocity = Vector3.new(100, 100, 100)
-                bodyAngular.Parent = rootPart
+                bodyAngular.AngularVelocity = Vector3.new(math.random(-50, 50), math.random(-50, 50), math.random(-50, 50))
+                bodyAngular.Parent = player.Character.HumanoidRootPart
                 
-                game:GetService("Debris"):AddItem(bodyVel, 2)
-                game:GetService("Debris"):AddItem(bodyAngular, 2)
-            end)
-            
-            -- Method 5: Force disconnect attempt
-            spawn(function()
-                wait(3)
-                pcall(function()
-                    player:Kick("💀 SPWARE ELIMINATION PROTOCOL EXECUTED 💀")
-                end)
-            end)
-            
-            print("💀⚡ MAXIMUM KILL PROTOCOL EXECUTED ON " .. player.Name .. " - MULTIPLE METHODS DEPLOYED!")
-        end
+                game:GetService("Debris"):AddItem(bodyVel, 0.5)
+                game:GetService("Debris"):AddItem(bodyAngular, 0.5)
+                wait(0.1)
+            end
+        end)
+        
+        -- Method 4: Visual effects overload
+        spawn(function()
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    -- Add fire to every part
+                    local fire = Instance.new("Fire")
+                    fire.Parent = part
+                    fire.Size = 25
+                    fire.Heat = 20
+                    
+                    -- Add smoke to every part
+                    local smoke = Instance.new("Smoke")
+                    smoke.Parent = part
+                    smoke.Size = 35
+                    smoke.Opacity = 1
+                    
+                    -- Make parts glow
+                    part.Material = Enum.Material.Neon
+                    part.BrickColor = BrickColor.new("Really red")
+                end
+            end
+        end)
+        
+        -- Method 5: Try explosion remotes
+        spawn(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("RemoteEvent") and (string.find(obj.Name:lower(), "explode") or string.find(obj.Name:lower(), "boom") or string.find(obj.Name:lower(), "blast")) then
+                    pcall(function()
+                        obj:FireServer(player, position)
+                        obj:FireServer(player.Character, "explode")
+                        obj:FireServer("explosion", player.Name)
+                    end)
+                end
+            end
+        end)
+        
+        print("💥🔥 NUCLEAR EXPLOSION PROTOCOL ON " .. player.Name .. " - 25 EXPLOSIONS + RAGDOLL!")
     end
 end
 
