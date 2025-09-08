@@ -1,6 +1,6 @@
 -- ╔══════════════════════════════════════════════════════════════╗
--- ║                    ROBLOX CHEAT UI - MODERN DESIGN           ║
--- ║                   Advanced Tab System with Sub-tabs          ║
+-- ║                    ULTRA MODERN CHEAT UI                     ║
+-- ║                  Premium Design with Glassmorphism          ║
 -- ╚══════════════════════════════════════════════════════════════╝
 
 local Players = game:GetService("Players")
@@ -11,41 +11,40 @@ local Lighting = game:GetService("Lighting")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local mouse = player:GetMouse()
 
--- Evitar reload múltiplo
-if _G.ModernCheatUI then
-    _G.ModernCheatUI:Destroy()
+-- Cleanup
+if _G.UltraModernUI then
+    _G.UltraModernUI:Destroy()
 end
 
 -- ═══════════════════════════════════════════════════════════════
--- 🎨 TEMA ROXO/PRETO MODERNO
+-- 🎨 PREMIUM THEME - GLASSMORPHISM DARK
 -- ═══════════════════════════════════════════════════════════════
 local Theme = {
-    -- Cores principais
-    Background = Color3.fromRGB(20, 20, 25),
-    Sidebar = Color3.fromRGB(15, 15, 20),
-    Content = Color3.fromRGB(25, 25, 30),
+    -- Glass/Blur backgrounds
+    Glass = Color3.fromRGB(10, 10, 15),
+    GlassLight = Color3.fromRGB(20, 20, 30),
+    GlassDark = Color3.fromRGB(5, 5, 10),
     
-    -- Roxo principal
-    Primary = Color3.fromRGB(139, 69, 255),    -- Roxo vibrante
-    PrimaryHover = Color3.fromRGB(124, 58, 237), -- Roxo hover
-    PrimaryDark = Color3.fromRGB(109, 40, 217),  -- Roxo escuro
+    -- Neon accents
+    Neon = Color3.fromRGB(138, 43, 226),      -- Purple neon
+    NeonBlue = Color3.fromRGB(0, 191, 255),   -- Cyan neon
+    NeonPink = Color3.fromRGB(255, 20, 147),  -- Pink neon
+    NeonGreen = Color3.fromRGB(50, 205, 50),  -- Green neon
     
-    -- Texto
+    -- Gradients
+    Gradient1 = Color3.fromRGB(138, 43, 226),
+    Gradient2 = Color3.fromRGB(0, 191, 255),
+    
+    -- Text
     TextPrimary = Color3.fromRGB(255, 255, 255),
-    TextSecondary = Color3.fromRGB(156, 163, 175),
-    TextMuted = Color3.fromRGB(107, 114, 128),
+    TextSecondary = Color3.fromRGB(180, 180, 190),
+    TextMuted = Color3.fromRGB(120, 120, 130),
     
-    -- Estados
-    Success = Color3.fromRGB(34, 197, 94),
-    Warning = Color3.fromRGB(245, 158, 11),
-    Error = Color3.fromRGB(239, 68, 68),
-    
-    -- Elementos UI
-    Border = Color3.fromRGB(55, 65, 81),
-    Hover = Color3.fromRGB(31, 41, 55),
-    Active = Color3.fromRGB(139, 69, 255),
+    -- States
+    Success = Color3.fromRGB(0, 255, 127),
+    Warning = Color3.fromRGB(255, 215, 0),
+    Error = Color3.fromRGB(255, 69, 0),
 }
 
 -- ═══════════════════════════════════════════════════════════════
@@ -54,56 +53,23 @@ local Theme = {
 local Functions = {}
 local connections = {}
 
--- FPS Functions
 function Functions.toggleAimbot(enabled)
-    print("🎯 Aimbot:", enabled and "ON" or "OFF")
+    print("🎯 Aimbot:", enabled and "ENABLED" or "DISABLED")
 end
 
-function Functions.toggleSilentAim(enabled)
-    print("🔇 Silent Aim:", enabled and "ON" or "OFF")
-end
-
-function Functions.toggleTriggerbot(enabled)
-    print("🔫 Triggerbot:", enabled and "ON" or "OFF")
-end
-
--- Visual Functions
 function Functions.toggleESP(enabled)
-    print("👁️ ESP:", enabled and "ON" or "OFF")
+    print("👁️ ESP:", enabled and "ENABLED" or "DISABLED")
 end
 
-function Functions.toggleFullbright(enabled)
-    if enabled then
-        Lighting.Brightness = 2
-        Lighting.ClockTime = 14
-        Lighting.FogEnd = 100000
-        Lighting.GlobalShadows = false
-    else
-        Lighting.Brightness = 1
-        Lighting.ClockTime = 12
-        Lighting.FogEnd = 100000
-        Lighting.GlobalShadows = true
-    end
-    print("💡 Fullbright:", enabled and "ON" or "OFF")
-end
-
--- Movement Functions
 function Functions.toggleSpeed(enabled, value)
     if player.Character and player.Character:FindFirstChild("Humanoid") then
         player.Character.Humanoid.WalkSpeed = enabled and value or 16
     end
-    print("🏃 Speed:", enabled and "ON" or "OFF")
-end
-
-function Functions.toggleJump(enabled, value)
-    if player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.JumpPower = enabled and value or 50
-    end
-    print("🦘 Jump:", enabled and "ON" or "OFF")
+    print("🏃 Speed:", enabled and "ENABLED" or "DISABLED")
 end
 
 function Functions.toggleFly(enabled)
-    print("🛸 Fly:", enabled and "ON" or "OFF")
+    print("🛸 Fly:", enabled and "ENABLED" or "DISABLED")
 end
 
 function Functions.toggleNoclip(enabled)
@@ -123,154 +89,221 @@ function Functions.toggleNoclip(enabled)
             connections.noclip = nil
         end
     end
-    print("👻 Noclip:", enabled and "ON" or "OFF")
+    print("👻 Noclip:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleFullbright(enabled)
+    if enabled then
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 14
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = false
+    else
+        Lighting.Brightness = 1
+        Lighting.ClockTime = 12
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = true
+    end
+    print("💡 Fullbright:", enabled and "ENABLED" or "DISABLED")
 end
 
 -- ═══════════════════════════════════════════════════════════════
--- 📋 CONFIGURAÇÃO DAS ABAS E SUB-ABAS
+-- 📋 CONFIGURAÇÃO PREMIUM
 -- ═══════════════════════════════════════════════════════════════
-local TabConfig = {
+local Categories = {
     {
-        name = "Combat",
-        icon = "🎯",
-        color = Theme.Primary,
-        subtabs = {
-            {name = "Aimbot", items = {"Enable Aimbot", "FOV Circle", "Smoothness", "Target Bone"}},
-            {name = "Weapons", items = {"No Recoil", "Rapid Fire", "Infinite Ammo", "Silent Aim"}},
-            {name = "Combat", items = {"Triggerbot", "Kill Aura", "Auto Shoot", "Hitbox Expander"}}
+        name = "COMBAT",
+        icon = "⚔️",
+        color = Theme.NeonPink,
+        items = {
+            {name = "Aimbot", desc = "Auto aim at enemies", func = Functions.toggleAimbot},
+            {name = "Silent Aim", desc = "Invisible aim assistance", func = Functions.toggleAimbot},
+            {name = "Triggerbot", desc = "Auto shoot when aiming", func = Functions.toggleAimbot},
+            {name = "Kill Aura", desc = "Attack nearby enemies", func = Functions.toggleAimbot},
         }
     },
     {
-        name = "Visuals",
+        name = "VISUALS",
         icon = "👁️",
-        color = Color3.fromRGB(59, 130, 246),
-        subtabs = {
-            {name = "ESP", items = {"Player ESP", "Item ESP", "Vehicle ESP", "Distance ESP"}},
-            {name = "World", items = {"Fullbright", "No Fog", "Skybox Changer", "Time Changer"}},
-            {name = "UI", items = {"Crosshair", "FOV Changer", "Third Person", "Camera Mods"}}
+        color = Theme.NeonBlue,
+        items = {
+            {name = "Player ESP", desc = "See players through walls", func = Functions.toggleESP},
+            {name = "Item ESP", desc = "Highlight items", func = Functions.toggleESP},
+            {name = "Fullbright", desc = "Remove darkness", func = Functions.toggleFullbright},
+            {name = "Chams", desc = "Player highlighting", func = Functions.toggleESP},
         }
     },
     {
-        name = "Movement",
-        icon = "🏃",
-        color = Color3.fromRGB(34, 197, 94),
-        subtabs = {
-            {name = "Speed", items = {"Walk Speed", "Run Speed", "Swim Speed", "Climb Speed"}},
-            {name = "Jump", items = {"Jump Power", "Infinite Jump", "High Jump", "Long Jump"}},
-            {name = "Flight", items = {"Fly Mode", "Fly Speed", "Noclip", "Teleport"}}
+        name = "MOVEMENT",
+        icon = "🚀",
+        color = Theme.NeonGreen,
+        items = {
+            {name = "Speed Hack", desc = "Move faster", func = function(e) Functions.toggleSpeed(e, 100) end},
+            {name = "Fly Mode", desc = "Fly around the map", func = Functions.toggleFly},
+            {name = "Noclip", desc = "Walk through walls", func = Functions.toggleNoclip},
+            {name = "Jump Boost", desc = "Jump higher", func = Functions.toggleSpeed},
         }
     },
     {
-        name = "Player",
+        name = "PLAYER",
         icon = "👤",
-        color = Color3.fromRGB(245, 158, 11),
-        subtabs = {
-            {name = "Character", items = {"God Mode", "Invisible", "Name Spoof", "Avatar Changer"}},
-            {name = "Stats", items = {"Infinite Health", "Infinite Stamina", "Level Changer", "XP Multiplier"}},
-            {name = "Tools", items = {"All Tools", "Tool Giver", "Backpack", "Inventory"}}
+        color = Theme.Warning,
+        items = {
+            {name = "God Mode", desc = "Invincibility", func = Functions.toggleAimbot},
+            {name = "Infinite Health", desc = "Never die", func = Functions.toggleAimbot},
+            {name = "Invisible", desc = "Hide from others", func = Functions.toggleAimbot},
+            {name = "Name Spoof", desc = "Change your name", func = Functions.toggleAimbot},
         }
     },
     {
-        name = "World",
+        name = "WORLD",
         icon = "🌍",
-        color = Color3.fromRGB(168, 85, 247),
-        subtabs = {
-            {name = "Spawn", items = {"Vehicle Spawner", "Weapon Spawner", "Item Spawner", "NPC Spawner"}},
-            {name = "Teleport", items = {"Player TP", "Location TP", "Waypoints", "TP History"}},
-            {name = "Server", items = {"Server Hop", "Rejoin", "VIP Server", "Private Server"}}
+        color = Theme.Neon,
+        items = {
+            {name = "Teleport", desc = "Instant travel", func = Functions.toggleAimbot},
+            {name = "Spawn Items", desc = "Create objects", func = Functions.toggleAimbot},
+            {name = "Time Control", desc = "Change game time", func = Functions.toggleAimbot},
+            {name = "Weather", desc = "Control weather", func = Functions.toggleAimbot},
         }
     },
     {
-        name = "Misc",
+        name = "MISC",
         icon = "⚙️",
-        color = Color3.fromRGB(239, 68, 68),
-        subtabs = {
-            {name = "Auto", items = {"Auto Farm", "Auto Collect", "Auto Click", "Auto Buy"}},
-            {name = "Anti", items = {"Anti AFK", "Anti Ban", "Anti Kick", "Anti Lag"}},
-            {name = "Fun", items = {"Chat Spam", "Sound Spam", "Troll Tools", "Crash Server"}}
+        color = Theme.Error,
+        items = {
+            {name = "Auto Farm", desc = "Automatic farming", func = Functions.toggleAimbot},
+            {name = "Anti AFK", desc = "Stay active", func = Functions.toggleAimbot},
+            {name = "Chat Spam", desc = "Spam messages", func = Functions.toggleAimbot},
+            {name = "Crash Server", desc = "Lag the server", func = Functions.toggleAimbot},
         }
     }
 }
 
 -- ═══════════════════════════════════════════════════════════════
--- 🏗️ CRIAÇÃO DA UI PRINCIPAL
+-- 🏗️ CRIAÇÃO DA UI PREMIUM
 -- ═══════════════════════════════════════════════════════════════
 
 -- ScreenGui principal
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ModernCheatUI"
+screenGui.Name = "UltraModernUI"
 screenGui.Parent = playerGui
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Frame principal
-local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.Parent = screenGui
-mainFrame.Size = UDim2.new(0, 900, 0, 600)
-mainFrame.Position = UDim2.new(0.5, -450, 0.5, -300)
-mainFrame.BackgroundColor3 = Theme.Background
-mainFrame.BorderSizePixel = 0
-mainFrame.ClipsDescendants = true
+-- Background blur effect
+local blurEffect = Instance.new("BlurEffect")
+blurEffect.Size = 20
+blurEffect.Parent = game.Lighting
 
--- Corner arredondado
+-- Main container
+local mainContainer = Instance.new("Frame")
+mainContainer.Name = "MainContainer"
+mainContainer.Parent = screenGui
+mainContainer.Size = UDim2.new(0, 1100, 0, 700)
+mainContainer.Position = UDim2.new(0.5, -550, 0.5, -350)
+mainContainer.BackgroundColor3 = Theme.Glass
+mainContainer.BackgroundTransparency = 0.1
+mainContainer.BorderSizePixel = 0
+
+-- Glass effect corner
 local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 12)
-mainCorner.Parent = mainFrame
+mainCorner.CornerRadius = UDim.new(0, 20)
+mainCorner.Parent = mainContainer
 
--- Sombra
-local shadow = Instance.new("Frame")
-shadow.Name = "Shadow"
-shadow.Parent = screenGui
-shadow.Size = UDim2.new(0, 920, 0, 620)
-shadow.Position = UDim2.new(0.5, -460, 0.5, -310)
-shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-shadow.BackgroundTransparency = 0.8
-shadow.BorderSizePixel = 0
-shadow.ZIndex = -1
+-- Gradient background
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Theme.Gradient1),
+    ColorSequenceKeypoint.new(1, Theme.Gradient2)
+}
+gradient.Rotation = 45
+gradient.Transparency = NumberSequence.new{
+    NumberSequenceKeypoint.new(0, 0.8),
+    NumberSequenceKeypoint.new(1, 0.9)
+}
+gradient.Parent = mainContainer
 
-local shadowCorner = Instance.new("UICorner")
-shadowCorner.CornerRadius = UDim.new(0, 12)
-shadowCorner.Parent = shadow
+-- Glow effect
+local glow = Instance.new("ImageLabel")
+glow.Name = "Glow"
+glow.Parent = screenGui
+glow.Size = UDim2.new(0, 1140, 0, 740)
+glow.Position = UDim2.new(0.5, -570, 0.5, -370)
+glow.BackgroundTransparency = 1
+glow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+glow.ImageColor3 = Theme.Neon
+glow.ImageTransparency = 0.7
+glow.ZIndex = -1
+
+local glowCorner = Instance.new("UICorner")
+glowCorner.CornerRadius = UDim.new(0, 25)
+glowCorner.Parent = glow
 
 -- ═══════════════════════════════════════════════════════════════
--- 📱 HEADER/TÍTULO
+-- 🎯 HEADER PREMIUM
 -- ═══════════════════════════════════════════════════════════════
 local header = Instance.new("Frame")
 header.Name = "Header"
-header.Parent = mainFrame
-header.Size = UDim2.new(1, 0, 0, 60)
-header.Position = UDim2.new(0, 0, 0, 0)
-header.BackgroundColor3 = Theme.Sidebar
+header.Parent = mainContainer
+header.Size = UDim2.new(1, 0, 0, 80)
+header.BackgroundColor3 = Theme.GlassLight
+header.BackgroundTransparency = 0.3
 header.BorderSizePixel = 0
 
 local headerCorner = Instance.new("UICorner")
-headerCorner.CornerRadius = UDim.new(0, 12)
+headerCorner.CornerRadius = UDim.new(0, 20)
 headerCorner.Parent = header
 
--- Fix para cantos inferiores
-local headerFix = Instance.new("Frame")
-headerFix.Parent = header
-headerFix.Size = UDim2.new(1, 0, 0, 12)
-headerFix.Position = UDim2.new(0, 0, 1, -12)
-headerFix.BackgroundColor3 = Theme.Sidebar
-headerFix.BorderSizePixel = 0
+-- Header gradient
+local headerGradient = Instance.new("UIGradient")
+headerGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Theme.Neon),
+    ColorSequenceKeypoint.new(1, Theme.NeonBlue)
+}
+headerGradient.Transparency = NumberSequence.new{
+    NumberSequenceKeypoint.new(0, 0.7),
+    NumberSequenceKeypoint.new(1, 0.9)
+}
+headerGradient.Parent = header
 
--- Logo/Título
-local title = Instance.new("TextLabel")
-title.Name = "Title"
-title.Parent = header
-title.Size = UDim2.new(0, 200, 1, 0)
-title.Position = UDim2.new(0, 20, 0, 0)
-title.BackgroundTransparency = 1
-title.Text = "🎮 CHEAT MENU"
-title.TextColor3 = Theme.TextPrimary
-title.TextScaled = true
-title.Font = Enum.Font.GothamBold
+-- Logo/Title
+local logo = Instance.new("TextLabel")
+logo.Name = "Logo"
+logo.Parent = header
+logo.Size = UDim2.new(0, 300, 1, 0)
+logo.Position = UDim2.new(0, 30, 0, 0)
+logo.BackgroundTransparency = 1
+logo.Text = "⚡ ULTRA CHEAT"
+logo.TextColor3 = Theme.TextPrimary
+logo.TextScaled = true
+logo.Font = Enum.Font.GothamBold
+logo.TextXAlignment = Enum.TextXAlignment.Left
 
--- Botão fechar
+-- Status indicator
+local status = Instance.new("Frame")
+status.Name = "Status"
+status.Parent = header
+status.Size = UDim2.new(0, 120, 0, 30)
+status.Position = UDim2.new(1, -150, 0.5, -15)
+status.BackgroundColor3 = Theme.Success
+status.BorderSizePixel = 0
+
+local statusCorner = Instance.new("UICorner")
+statusCorner.CornerRadius = UDim.new(0, 15)
+statusCorner.Parent = status
+
+local statusText = Instance.new("TextLabel")
+statusText.Parent = status
+statusText.Size = UDim2.new(1, 0, 1, 0)
+statusText.BackgroundTransparency = 1
+statusText.Text = "🟢 ONLINE"
+statusText.TextColor3 = Theme.TextPrimary
+statusText.TextScaled = true
+statusText.Font = Enum.Font.GothamBold
+
+-- Close button
 local closeBtn = Instance.new("TextButton")
-closeBtn.Name = "CloseButton"
+closeBtn.Name = "CloseBtn"
 closeBtn.Parent = header
 closeBtn.Size = UDim2.new(0, 40, 0, 40)
 closeBtn.Position = UDim2.new(1, -50, 0.5, -20)
@@ -282,328 +315,240 @@ closeBtn.TextScaled = true
 closeBtn.Font = Enum.Font.GothamBold
 
 local closeBtnCorner = Instance.new("UICorner")
-closeBtnCorner.CornerRadius = UDim.new(0, 8)
+closeBtnCorner.CornerRadius = UDim.new(0, 20)
 closeBtnCorner.Parent = closeBtn
 
 -- ═══════════════════════════════════════════════════════════════
--- 📂 SIDEBAR COM ABAS PRINCIPAIS
--- ═══════════════════════════════════════════════════════════════
-local sidebar = Instance.new("Frame")
-sidebar.Name = "Sidebar"
-sidebar.Parent = mainFrame
-sidebar.Size = UDim2.new(0, 200, 1, -60)
-sidebar.Position = UDim2.new(0, 0, 0, 60)
-sidebar.BackgroundColor3 = Theme.Sidebar
-sidebar.BorderSizePixel = 0
-
--- Container para as abas
-local tabContainer = Instance.new("Frame")
-tabContainer.Name = "TabContainer"
-tabContainer.Parent = sidebar
-tabContainer.Size = UDim2.new(1, 0, 1, 0)
-tabContainer.BackgroundTransparency = 1
-
-local tabLayout = Instance.new("UIListLayout")
-tabLayout.Parent = tabContainer
-tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-tabLayout.Padding = UDim.new(0, 2)
-
--- ═══════════════════════════════════════════════════════════════
--- 📄 ÁREA DE CONTEÚDO PRINCIPAL
+-- 📱 CONTENT AREA
 -- ═══════════════════════════════════════════════════════════════
 local contentArea = Instance.new("Frame")
 contentArea.Name = "ContentArea"
-contentArea.Parent = mainFrame
-contentArea.Size = UDim2.new(1, -200, 1, -60)
-contentArea.Position = UDim2.new(0, 200, 0, 60)
-contentArea.BackgroundColor3 = Theme.Content
-contentArea.BorderSizePixel = 0
+contentArea.Parent = mainContainer
+contentArea.Size = UDim2.new(1, -40, 1, -120)
+contentArea.Position = UDim2.new(0, 20, 0, 100)
+contentArea.BackgroundTransparency = 1
 
--- Sub-tabs header
-local subtabHeader = Instance.new("Frame")
-subtabHeader.Name = "SubtabHeader"
-subtabHeader.Parent = contentArea
-subtabHeader.Size = UDim2.new(1, 0, 0, 50)
-subtabHeader.BackgroundColor3 = Theme.Background
-subtabHeader.BorderSizePixel = 0
+-- Categories grid
+local categoriesFrame = Instance.new("Frame")
+categoriesFrame.Name = "Categories"
+categoriesFrame.Parent = contentArea
+categoriesFrame.Size = UDim2.new(1, 0, 1, 0)
+categoriesFrame.BackgroundTransparency = 1
 
-local subtabLayout = Instance.new("UIListLayout")
-subtabLayout.Parent = subtabHeader
-subtabLayout.FillDirection = Enum.FillDirection.Horizontal
-subtabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-subtabLayout.Padding = UDim.new(0, 2)
-
--- Conteúdo das sub-abas
-local subtabContent = Instance.new("ScrollingFrame")
-subtabContent.Name = "SubtabContent"
-subtabContent.Parent = contentArea
-subtabContent.Size = UDim2.new(1, -20, 1, -70)
-subtabContent.Position = UDim2.new(0, 10, 0, 60)
-subtabContent.BackgroundTransparency = 1
-subtabContent.BorderSizePixel = 0
-subtabContent.ScrollBarThickness = 6
-subtabContent.ScrollBarImageColor3 = Theme.Primary
-
-local contentLayout = Instance.new("UIListLayout")
-contentLayout.Parent = subtabContent
-contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-contentLayout.Padding = UDim.new(0, 8)
+local gridLayout = Instance.new("UIGridLayout")
+gridLayout.Parent = categoriesFrame
+gridLayout.CellSize = UDim2.new(0, 340, 0, 300)
+gridLayout.CellPadding = UDim2.new(0, 20, 0, 20)
+gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 -- ═══════════════════════════════════════════════════════════════
--- 🔧 FUNÇÕES DE CRIAÇÃO DE ELEMENTOS
+-- 🎴 FUNÇÃO PARA CRIAR CARDS PREMIUM
 -- ═══════════════════════════════════════════════════════════════
-
--- Função para criar aba principal
-local function createMainTab(config, index)
-    local tab = Instance.new("TextButton")
-    tab.Name = config.name .. "Tab"
-    tab.Parent = tabContainer
-    tab.Size = UDim2.new(1, -10, 0, 50)
-    tab.Position = UDim2.new(0, 5, 0, 0)
-    tab.BackgroundColor3 = Theme.Hover
-    tab.BorderSizePixel = 0
-    tab.Text = ""
-    tab.LayoutOrder = index
+local function createCategoryCard(category, index)
+    local card = Instance.new("Frame")
+    card.Name = category.name .. "Card"
+    card.Parent = categoriesFrame
+    card.BackgroundColor3 = Theme.GlassLight
+    card.BackgroundTransparency = 0.2
+    card.BorderSizePixel = 0
+    card.LayoutOrder = index
     
-    local tabCorner = Instance.new("UICorner")
-    tabCorner.CornerRadius = UDim.new(0, 8)
-    tabCorner.Parent = tab
+    local cardCorner = Instance.new("UICorner")
+    cardCorner.CornerRadius = UDim.new(0, 15)
+    cardCorner.Parent = card
+    
+    -- Card glow
+    local cardGlow = Instance.new("UIStroke")
+    cardGlow.Color = category.color
+    cardGlow.Thickness = 2
+    cardGlow.Transparency = 0.5
+    cardGlow.Parent = card
+    
+    -- Card header
+    local cardHeader = Instance.new("Frame")
+    cardHeader.Name = "Header"
+    cardHeader.Parent = card
+    cardHeader.Size = UDim2.new(1, 0, 0, 60)
+    cardHeader.BackgroundColor3 = category.color
+    cardHeader.BackgroundTransparency = 0.1
+    cardHeader.BorderSizePixel = 0
+    
+    local cardHeaderCorner = Instance.new("UICorner")
+    cardHeaderCorner.CornerRadius = UDim.new(0, 15)
+    cardHeaderCorner.Parent = cardHeader
+    
+    -- Fix bottom corners
+    local headerFix = Instance.new("Frame")
+    headerFix.Parent = cardHeader
+    headerFix.Size = UDim2.new(1, 0, 0, 15)
+    headerFix.Position = UDim2.new(0, 0, 1, -15)
+    headerFix.BackgroundColor3 = category.color
+    headerFix.BackgroundTransparency = 0.1
+    headerFix.BorderSizePixel = 0
     
     -- Icon
     local icon = Instance.new("TextLabel")
-    icon.Parent = tab
-    icon.Size = UDim2.new(0, 30, 0, 30)
-    icon.Position = UDim2.new(0, 10, 0.5, -15)
+    icon.Parent = cardHeader
+    icon.Size = UDim2.new(0, 40, 0, 40)
+    icon.Position = UDim2.new(0, 15, 0.5, -20)
     icon.BackgroundTransparency = 1
-    icon.Text = config.icon
-    icon.TextColor3 = config.color
+    icon.Text = category.icon
+    icon.TextColor3 = Theme.TextPrimary
     icon.TextScaled = true
     icon.Font = Enum.Font.Gotham
     
-    -- Label
-    local label = Instance.new("TextLabel")
-    label.Parent = tab
-    label.Size = UDim2.new(1, -50, 1, 0)
-    label.Position = UDim2.new(0, 45, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = config.name
-    label.TextColor3 = Theme.TextSecondary
-    label.TextScaled = true
-    label.Font = Enum.Font.Gotham
-    label.TextXAlignment = Enum.TextXAlignment.Left
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Parent = cardHeader
+    title.Size = UDim2.new(1, -70, 1, 0)
+    title.Position = UDim2.new(0, 60, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = category.name
+    title.TextColor3 = Theme.TextPrimary
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
     
-    return tab, icon, label
-end
-
--- Função para criar sub-aba
-local function createSubTab(name, index)
-    local subtab = Instance.new("TextButton")
-    subtab.Name = name .. "Subtab"
-    subtab.Parent = subtabHeader
-    subtab.Size = UDim2.new(0, 120, 1, -10)
-    subtab.Position = UDim2.new(0, 5, 0, 5)
-    subtab.BackgroundColor3 = Theme.Hover
-    subtab.BorderSizePixel = 0
-    subtab.Text = name
-    subtab.TextColor3 = Theme.TextSecondary
-    subtab.TextScaled = true
-    subtab.Font = Enum.Font.Gotham
-    subtab.LayoutOrder = index
+    -- Items container
+    local itemsContainer = Instance.new("ScrollingFrame")
+    itemsContainer.Name = "Items"
+    itemsContainer.Parent = card
+    itemsContainer.Size = UDim2.new(1, -20, 1, -80)
+    itemsContainer.Position = UDim2.new(0, 10, 0, 70)
+    itemsContainer.BackgroundTransparency = 1
+    itemsContainer.BorderSizePixel = 0
+    itemsContainer.ScrollBarThickness = 4
+    itemsContainer.ScrollBarImageColor3 = category.color
     
-    local subtabCorner = Instance.new("UICorner")
-    subtabCorner.CornerRadius = UDim.new(0, 6)
-    subtabCorner.Parent = subtab
+    local itemsLayout = Instance.new("UIListLayout")
+    itemsLayout.Parent = itemsContainer
+    itemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    itemsLayout.Padding = UDim.new(0, 8)
     
-    return subtab
-end
-
--- Função para criar toggle
-local function createToggle(text, callback)
-    local toggle = Instance.new("Frame")
-    toggle.Name = text .. "Toggle"
-    toggle.Parent = subtabContent
-    toggle.Size = UDim2.new(1, 0, 0, 40)
-    toggle.BackgroundColor3 = Theme.Background
-    toggle.BorderSizePixel = 0
-    
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 8)
-    toggleCorner.Parent = toggle
-    
-    -- Label
-    local label = Instance.new("TextLabel")
-    label.Parent = toggle
-    label.Size = UDim2.new(1, -60, 1, 0)
-    label.Position = UDim2.new(0, 15, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = Theme.TextPrimary
-    label.TextScaled = true
-    label.Font = Enum.Font.Gotham
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    
-    -- Switch
-    local switch = Instance.new("TextButton")
-    switch.Parent = toggle
-    switch.Size = UDim2.new(0, 40, 0, 20)
-    switch.Position = UDim2.new(1, -50, 0.5, -10)
-    switch.BackgroundColor3 = Theme.Border
-    switch.BorderSizePixel = 0
-    switch.Text = ""
-    
-    local switchCorner = Instance.new("UICorner")
-    switchCorner.CornerRadius = UDim.new(0, 10)
-    switchCorner.Parent = switch
-    
-    local knob = Instance.new("Frame")
-    knob.Parent = switch
-    knob.Size = UDim2.new(0, 16, 0, 16)
-    knob.Position = UDim2.new(0, 2, 0.5, -8)
-    knob.BackgroundColor3 = Theme.TextPrimary
-    knob.BorderSizePixel = 0
-    
-    local knobCorner = Instance.new("UICorner")
-    knobCorner.CornerRadius = UDim.new(0, 8)
-    knobCorner.Parent = knob
-    
-    local isEnabled = false
-    switch.MouseButton1Click:Connect(function()
-        isEnabled = not isEnabled
+    -- Create items
+    for i, item in ipairs(category.items) do
+        local itemFrame = Instance.new("Frame")
+        itemFrame.Name = item.name
+        itemFrame.Parent = itemsContainer
+        itemFrame.Size = UDim2.new(1, 0, 0, 50)
+        itemFrame.BackgroundColor3 = Theme.Glass
+        itemFrame.BackgroundTransparency = 0.3
+        itemFrame.BorderSizePixel = 0
+        itemFrame.LayoutOrder = i
         
-        local switchTween = TweenService:Create(switch, 
-            TweenInfo.new(0.2, Enum.EasingStyle.Quad), 
-            {BackgroundColor3 = isEnabled and Theme.Primary or Theme.Border}
-        )
+        local itemCorner = Instance.new("UICorner")
+        itemCorner.CornerRadius = UDim.new(0, 10)
+        itemCorner.Parent = itemFrame
         
-        local knobTween = TweenService:Create(knob,
-            TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-            {Position = UDim2.new(0, isEnabled and 22 or 2, 0.5, -8)}
-        )
+        -- Item text
+        local itemLabel = Instance.new("TextLabel")
+        itemLabel.Parent = itemFrame
+        itemLabel.Size = UDim2.new(1, -70, 0, 25)
+        itemLabel.Position = UDim2.new(0, 15, 0, 5)
+        itemLabel.BackgroundTransparency = 1
+        itemLabel.Text = item.name
+        itemLabel.TextColor3 = Theme.TextPrimary
+        itemLabel.TextScaled = true
+        itemLabel.Font = Enum.Font.GothamBold
+        itemLabel.TextXAlignment = Enum.TextXAlignment.Left
         
-        switchTween:Play()
-        knobTween:Play()
+        -- Item description
+        local itemDesc = Instance.new("TextLabel")
+        itemDesc.Parent = itemFrame
+        itemDesc.Size = UDim2.new(1, -70, 0, 20)
+        itemDesc.Position = UDim2.new(0, 15, 0, 25)
+        itemDesc.BackgroundTransparency = 1
+        itemDesc.Text = item.desc
+        itemDesc.TextColor3 = Theme.TextSecondary
+        itemDesc.TextScaled = true
+        itemDesc.Font = Enum.Font.Gotham
+        itemDesc.TextXAlignment = Enum.TextXAlignment.Left
         
-        if callback then
-            callback(isEnabled)
-        end
-    end)
-    
-    return toggle
-end
-
--- ═══════════════════════════════════════════════════════════════
--- 🎮 SISTEMA DE NAVEGAÇÃO
--- ═══════════════════════════════════════════════════════════════
-local currentTab = 1
-local currentSubtab = 1
-local tabs = {}
-local subtabs = {}
-
--- Criar todas as abas principais
-for i, config in ipairs(TabConfig) do
-    local tab, icon, label = createMainTab(config, i)
-    tabs[i] = {button = tab, icon = icon, label = label, config = config}
-    
-    tab.MouseButton1Click:Connect(function()
-        currentTab = i
-        currentSubtab = 1
-        updateTabDisplay()
-        updateSubtabDisplay()
-        updateContent()
-    end)
-end
-
--- Função para atualizar display das abas
-function updateTabDisplay()
-    for i, tab in ipairs(tabs) do
-        local isActive = (i == currentTab)
-        tab.button.BackgroundColor3 = isActive and Theme.Primary or Theme.Hover
-        tab.label.TextColor3 = isActive and Theme.TextPrimary or Theme.TextSecondary
-        tab.icon.TextColor3 = isActive and Theme.TextPrimary or tab.config.color
-    end
-end
-
--- Função para atualizar sub-abas
-function updateSubtabDisplay()
-    -- Limpar sub-abas existentes
-    for _, child in pairs(subtabHeader:GetChildren()) do
-        if child:IsA("TextButton") then
-            child:Destroy()
-        end
-    end
-    
-    subtabs = {}
-    local config = TabConfig[currentTab]
-    
-    -- Criar novas sub-abas
-    for i, subtabConfig in ipairs(config.subtabs) do
-        local subtab = createSubTab(subtabConfig.name, i)
-        subtabs[i] = {button = subtab, config = subtabConfig}
+        -- Toggle switch
+        local switch = Instance.new("TextButton")
+        switch.Parent = itemFrame
+        switch.Size = UDim2.new(0, 50, 0, 25)
+        switch.Position = UDim2.new(1, -60, 0.5, -12.5)
+        switch.BackgroundColor3 = Theme.GlassDark
+        switch.BorderSizePixel = 0
+        switch.Text = ""
         
-        subtab.MouseButton1Click:Connect(function()
-            currentSubtab = i
-            updateSubtabColors()
-            updateContent()
-        end)
-    end
-    
-    updateSubtabColors()
-end
-
--- Função para atualizar cores das sub-abas
-function updateSubtabColors()
-    for i, subtab in ipairs(subtabs) do
-        local isActive = (i == currentSubtab)
-        subtab.button.BackgroundColor3 = isActive and Theme.Primary or Theme.Hover
-        subtab.button.TextColor3 = isActive and Theme.TextPrimary or Theme.TextSecondary
-    end
-end
-
--- Função para atualizar conteúdo
-function updateContent()
-    -- Limpar conteúdo existente
-    for _, child in pairs(subtabContent:GetChildren()) do
-        if child:IsA("Frame") then
-            child:Destroy()
-        end
-    end
-    
-    local config = TabConfig[currentTab]
-    local subtabConfig = config.subtabs[currentSubtab]
-    
-    -- Criar toggles para os itens
-    for _, item in ipairs(subtabConfig.items) do
-        createToggle(item, function(enabled)
-            print("🎮", item .. ":", enabled and "ON" or "OFF")
+        local switchCorner = Instance.new("UICorner")
+        switchCorner.CornerRadius = UDim.new(0, 12.5)
+        switchCorner.Parent = switch
+        
+        local knob = Instance.new("Frame")
+        knob.Parent = switch
+        knob.Size = UDim2.new(0, 21, 0, 21)
+        knob.Position = UDim2.new(0, 2, 0.5, -10.5)
+        knob.BackgroundColor3 = Theme.TextPrimary
+        knob.BorderSizePixel = 0
+        
+        local knobCorner = Instance.new("UICorner")
+        knobCorner.CornerRadius = UDim.new(0, 10.5)
+        knobCorner.Parent = knob
+        
+        -- Switch functionality
+        local isEnabled = false
+        switch.MouseButton1Click:Connect(function()
+            isEnabled = not isEnabled
             
-            -- Conectar às funções reais
-            if item:find("Speed") then
-                Functions.toggleSpeed(enabled, 100)
-            elseif item:find("Jump") then
-                Functions.toggleJump(enabled, 100)
-            elseif item:find("Fly") then
-                Functions.toggleFly(enabled)
-            elseif item:find("Noclip") then
-                Functions.toggleNoclip(enabled)
-            elseif item:find("Fullbright") then
-                Functions.toggleFullbright(enabled)
-            elseif item:find("ESP") then
-                Functions.toggleESP(enabled)
-            elseif item:find("Aimbot") then
-                Functions.toggleAimbot(enabled)
+            -- Animate switch
+            local switchTween = TweenService:Create(switch,
+                TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+                {BackgroundColor3 = isEnabled and category.color or Theme.GlassDark}
+            )
+            
+            local knobTween = TweenService:Create(knob,
+                TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+                {Position = UDim2.new(0, isEnabled and 27 or 2, 0.5, -10.5)}
+            )
+            
+            switchTween:Play()
+            knobTween:Play()
+            
+            -- Call function
+            if item.func then
+                item.func(isEnabled)
             end
         end)
+        
+        -- Hover effects
+        itemFrame.MouseEnter:Connect(function()
+            local hoverTween = TweenService:Create(itemFrame,
+                TweenInfo.new(0.2, Enum.EasingStyle.Quad),
+                {BackgroundTransparency = 0.1}
+            )
+            hoverTween:Play()
+        end)
+        
+        itemFrame.MouseLeave:Connect(function()
+            local hoverTween = TweenService:Create(itemFrame,
+                TweenInfo.new(0.2, Enum.EasingStyle.Quad),
+                {BackgroundTransparency = 0.3}
+            )
+            hoverTween:Play()
+        end)
     end
     
-    -- Atualizar tamanho do scroll
-    subtabContent.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y + 20)
+    -- Update canvas size
+    itemsContainer.CanvasSize = UDim2.new(0, 0, 0, itemsLayout.AbsoluteContentSize.Y + 10)
+    
+    return card
+end
+
+-- ═══════════════════════════════════════════════════════════════
+-- 🎮 CRIAR TODAS AS CATEGORIAS
+-- ═══════════════════════════════════════════════════════════════
+for i, category in ipairs(Categories) do
+    createCategoryCard(category, i)
 end
 
 -- ═══════════════════════════════════════════════════════════════
 -- ⌨️ CONTROLES E EVENTOS
 -- ═══════════════════════════════════════════════════════════════
 
--- Drag & Drop
+-- Drag functionality
 local dragging = false
 local dragStart = nil
 local startPos = nil
@@ -612,17 +557,17 @@ header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
-        startPos = mainFrame.Position
+        startPos = mainContainer.Position
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
         local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, 
-                                      startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        shadow.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X - 10, 
-                                   startPos.Y.Scale, startPos.Y.Offset + delta.Y - 10)
+        mainContainer.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                          startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        glow.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X - 20,
+                                 startPos.Y.Scale, startPos.Y.Offset + delta.Y - 20)
     end
 end)
 
@@ -632,18 +577,37 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- Botão fechar
+-- Close button
 closeBtn.MouseButton1Click:Connect(function()
-    mainFrame.Visible = false
+    local closeTween = TweenService:Create(mainContainer,
+        TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+        {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}
+    )
+    closeTween:Play()
+    
+    closeTween.Completed:Connect(function()
+        screenGui.Enabled = false
+    end)
 end)
 
--- Toggle com INSERT
+-- Toggle with INSERT
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
     if input.KeyCode == Enum.KeyCode.Insert then
-        mainFrame.Visible = not mainFrame.Visible
-        shadow.Visible = mainFrame.Visible
+        screenGui.Enabled = not screenGui.Enabled
+        
+        if screenGui.Enabled then
+            -- Entrance animation
+            mainContainer.Size = UDim2.new(0, 0, 0, 0)
+            mainContainer.BackgroundTransparency = 1
+            
+            local entranceTween = TweenService:Create(mainContainer,
+                TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+                {Size = UDim2.new(0, 1100, 0, 700), BackgroundTransparency = 0.1}
+            )
+            entranceTween:Play()
+        end
     end
 end)
 
@@ -651,19 +615,25 @@ end)
 -- 🚀 INICIALIZAÇÃO
 -- ═══════════════════════════════════════════════════════════════
 
--- Salvar referência global
-_G.ModernCheatUI = screenGui
+-- Save reference
+_G.UltraModernUI = screenGui
 
--- Inicializar display
-updateTabDisplay()
-updateSubtabDisplay()
-updateContent()
+-- Welcome animation
+mainContainer.Size = UDim2.new(0, 0, 0, 0)
+wait(0.1)
 
--- Mensagem de sucesso
+local welcomeTween = TweenService:Create(mainContainer,
+    TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+    {Size = UDim2.new(0, 1100, 0, 700)}
+)
+welcomeTween:Play()
+
+-- Success message
 print("╔══════════════════════════════════════════════════════════════╗")
-print("║                   🎮 MODERN CHEAT UI LOADED                  ║")
+print("║                  ⚡ ULTRA MODERN UI LOADED ⚡                ║")
 print("╠══════════════════════════════════════════════════════════════╣")
-print("║  Press INSERT to toggle menu                                 ║")
-print("║  Modern tab system with sub-tabs                             ║")
-print("║  Purple/Black theme                                          ║")
+print("║  🎮 Premium glassmorphism design                             ║")
+print("║  🌟 Neon accents and smooth animations                      ║")
+print("║  ⌨️  Press INSERT to toggle                                  ║")
+print("║  🎯 6 categories with modern cards                          ║")
 print("╚══════════════════════════════════════════════════════════════╝")
