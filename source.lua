@@ -49,39 +49,155 @@ local Theme = {
 local Functions = {}
 local connections = {}
 
-function Functions.toggleAimbot(enabled)
-    print("🎯 Aimbot:", enabled and "ENABLED" or "DISABLED")
-end
-
-function Functions.toggleESP(enabled)
-    print("👁️ ESP:", enabled and "ENABLED" or "DISABLED")
-end
-
-function Functions.toggleSpeed(enabled, value)
-    if player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.WalkSpeed = enabled and (value or 100) or 16
+-- Player List System
+function Functions.createPlayerList()
+    local Players = game:GetService("Players")
+    local UserInputService = game:GetService("UserInputService")
+    local TweenService = game:GetService("TweenService")
+    
+    if _G.PlayerListFrame then
+        _G.PlayerListFrame:Destroy()
     end
-    print("🏃 Speed:", enabled and "ENABLED" or "DISABLED")
-end
-
-function Functions.toggleFly(enabled)
-    print("🛸 Fly:", enabled and "ENABLED" or "DISABLED")
-end
-
-function Functions.toggleNoclip(enabled)
-    if enabled then
-        connections.noclip = RunService.Stepped:Connect(function()
-            if player.Character then
-                for _, part in pairs(player.Character:GetDescendants()) do
-                    if part:IsA("BasePart") and part.CanCollide then
-                        part.CanCollide = false
-                    end
-                end
+    
+    -- Create Player List GUI
+    local playerListGui = Instance.new("ScreenGui")
+    playerListGui.Name = "PlayerListGUI"
+    playerListGui.Parent = game.CoreGui
+    
+    local frame = Instance.new("Frame")
+    frame.Name = "PlayerListFrame"
+    frame.Parent = playerListGui
+    frame.Size = UDim2.new(0, 300, 0, 400)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -200)
+    frame.BackgroundColor3 = Theme.Background
+    frame.BorderSizePixel = 0
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = frame
+    
+    -- Header
+    local header = Instance.new("Frame")
+    header.Parent = frame
+    header.Size = UDim2.new(1, 0, 0, 40)
+    header.BackgroundColor3 = Theme.Primary
+    header.BorderSizePixel = 0
+    
+    local headerCorner = Instance.new("UICorner")
+    headerCorner.CornerRadius = UDim.new(0, 10)
+    headerCorner.Parent = header
+    
+    local headerFix = Instance.new("Frame")
+    headerFix.Parent = header
+    headerFix.Size = UDim2.new(1, 0, 0, 10)
+    headerFix.Position = UDim2.new(0, 0, 1, -10)
+    headerFix.BackgroundColor3 = Theme.Primary
+    headerFix.BorderSizePixel = 0
+    
+    local title = Instance.new("TextLabel")
+    title.Parent = header
+    title.Size = UDim2.new(1, -40, 1, 0)
+    title.Position = UDim2.new(0, 10, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "Player List"
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.TextSize = 16
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Parent = header
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -35, 0.5, -15)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Text = "×"
+    closeBtn.TextColor3 = Color3.new(1, 1, 1)
+    closeBtn.TextSize = 18
+    closeBtn.Font = Enum.Font.GothamBold
+    
+    -- Search Box
+    local searchBox = Instance.new("TextBox")
+    searchBox.Parent = frame
+    searchBox.Size = UDim2.new(1, -20, 0, 30)
+    searchBox.Position = UDim2.new(0, 10, 0, 50)
+    searchBox.BackgroundColor3 = Theme.Surface
+    searchBox.BorderSizePixel = 0
+    searchBox.PlaceholderText = "Search players..."
+    searchBox.Text = ""
+    searchBox.TextColor3 = Theme.TextPrimary
+    searchBox.TextSize = 14
+    searchBox.Font = Enum.Font.Gotham
+    
+    local searchCorner = Instance.new("UICorner")
+    searchCorner.CornerRadius = UDim.new(0, 5)
+    searchCorner.Parent = searchBox
+    
+    -- Player List Scroll
+    local scrollFrame = Instance.new("ScrollingFrame")
+    scrollFrame.Parent = frame
+    scrollFrame.Size = UDim2.new(1, -20, 1, -140)
+    scrollFrame.Position = UDim2.new(0, 10, 0, 90)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.ScrollBarThickness = 4
+    scrollFrame.ScrollBarImageColor3 = Theme.Primary
+    
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Parent = scrollFrame
+    listLayout.SortOrder = Enum.SortOrder.Name
+    listLayout.Padding = UDim.new(0, 2)
+    
+    -- Selected Player Actions
+    local actionsFrame = Instance.new("Frame")
+    actionsFrame.Parent = frame
+    actionsFrame.Size = UDim2.new(1, -20, 0, 40)
+    actionsFrame.Position = UDim2.new(0, 10, 1, -50)
+    actionsFrame.BackgroundColor3 = Theme.Surface
+    actionsFrame.BorderSizePixel = 0
+    actionsFrame.Visible = false
+    
+    local actionsCorner = Instance.new("UICorner")
+    actionsCorner.CornerRadius = UDim.new(0, 5)
+    actionsCorner.Parent = actionsFrame
+    
+    local actionsLayout = Instance.new("UIListLayout")
+    actionsLayout.Parent = actionsFrame
+    actionsLayout.FillDirection = Enum.FillDirection.Horizontal
+    actionsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    actionsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    actionsLayout.Padding = UDim.new(0, 5)
+    
+    local selectedPlayer = nil
+    
+    -- Action Buttons
+    local actions = {
+        {name = "TP", func = function(player) Functions.teleportToPlayer(player) end},
+        {name = "Pull", func = function(player) Functions.pullPlayer(player) end},
+        {name = "Copy", func = function(player) Functions.copyOutfit(player) end},
+        {name = "Steal", func = function(player) Functions.stealItems(player) end},
+        {name = "Freeze", func = function(player) Functions.freezePlayer(player) end},
+        {name = "Fling", func = function(player) Functions.flingPlayer(player) end}
+    }
+    
+    for _, action in pairs(actions) do
+        local btn = Instance.new("TextButton")
+        btn.Parent = actionsFrame
+        btn.Size = UDim2.new(0, 40, 0, 30)
+        btn.BackgroundColor3 = Theme.Primary
+        btn.BorderSizePixel = 0
+        btn.Text = action.name
+        btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.TextSize = 12
+        btn.Font = Enum.Font.Gotham
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.Parent = btn
+        
+        btn.MouseButton1Click:Connect(function()
+            if selectedPlayer then
+                action.func(selectedPlayer)
             end
         end)
-    else
-        if connections.noclip then
-            connections.noclip:Disconnect()
             connections.noclip = nil
         end
     end
@@ -224,6 +340,24 @@ local TabData = {
                 }
             },
             {
+                title = "Player List",
+                items = {
+                    {type = "toggle", name = "Player List", func = function(enabled)
+                        if enabled then
+                            -- Create player list GUI
+                            _G.PlayerListEnabled = true
+                            Functions.createPlayerList()
+                        else
+                            _G.PlayerListEnabled = false
+                            if _G.PlayerListFrame then
+                                _G.PlayerListFrame:Destroy()
+                                _G.PlayerListFrame = nil
+                            end
+                        end
+                    end},
+                }
+            },
+            {
                 title = "Interaction",
                 items = {
                     {type = "button", name = "Teleport All"},
@@ -248,19 +382,6 @@ local TabData = {
                     {type = "toggle", name = "Black Screen", func = Functions.toggleAimbot},
                     {type = "toggle", name = "Blind Effect", func = Functions.toggleAimbot},
                     {type = "toggle", name = "Screen Text Spam", func = Functions.toggleAimbot},
-                }
-            },
-            {
-                title = "Player Manipulation",
-                items = {
-                    {type = "toggle", name = "Freeze Player", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Launch Player", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Fling All", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Ragdoll All", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Loop Kill", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Force Sit", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Giant Player", func = Functions.toggleAimbot},
-                    {type = "toggle", name = "Clone Player", func = Functions.toggleAimbot},
                 }
             },
             {
