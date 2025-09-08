@@ -1,6 +1,6 @@
 -- Roblox Cheat UI com Sistema de Login por Key
 -- Cores: Roxo e Preto com personalização de foto do usuário
-loadstring(game:HttpGet("URL_DO_SEU_GITHUB/key_generator.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Xupetyavipz/Xupetya/refs/heads/main/S.lua"))()
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
