@@ -198,13 +198,312 @@ function Functions.createPlayerList()
                 action.func(selectedPlayer)
             end
         end)
-            connections.noclip = nil
+    end
+    
+    -- Update Player List
+    local function updatePlayerList()
+        for _, child in pairs(scrollFrame:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
+        
+        local searchTerm = searchBox.Text:lower()
+        
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Players.LocalPlayer and (searchTerm == "" or player.Name:lower():find(searchTerm)) then
+                local playerBtn = Instance.new("TextButton")
+                playerBtn.Parent = scrollFrame
+                playerBtn.Size = UDim2.new(1, 0, 0, 30)
+                playerBtn.BackgroundColor3 = Theme.Elevated
+                playerBtn.BorderSizePixel = 0
+                playerBtn.Text = player.Name .. " (" .. player.DisplayName .. ")"
+                playerBtn.TextColor3 = Theme.TextPrimary
+                playerBtn.TextSize = 12
+                playerBtn.Font = Enum.Font.Gotham
+                playerBtn.TextXAlignment = Enum.TextXAlignment.Left
+                
+                local playerCorner = Instance.new("UICorner")
+                playerCorner.CornerRadius = UDim.new(0, 4)
+                playerCorner.Parent = playerBtn
+                
+                playerBtn.MouseButton1Click:Connect(function()
+                    selectedPlayer = player
+                    actionsFrame.Visible = true
+                    
+                    -- Highlight selected
+                    for _, btn in pairs(scrollFrame:GetChildren()) do
+                        if btn:IsA("TextButton") then
+                            btn.BackgroundColor3 = Theme.Elevated
+                        end
+                    end
+                    playerBtn.BackgroundColor3 = Theme.Primary
+                end)
+            end
+        end
+        
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+    end
+    
+    -- Events
+    searchBox:GetPropertyChangedSignal("Text"):Connect(updatePlayerList)
+    Players.PlayerAdded:Connect(updatePlayerList)
+    Players.PlayerRemoving:Connect(updatePlayerList)
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        playerListGui:Destroy()
+        _G.PlayerListFrame = nil
+        _G.PlayerListEnabled = false
+    end)
+    
+    -- Make draggable
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                      startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    _G.PlayerListFrame = playerListGui
+    updatePlayerList()
+end
+
+-- Player Action Functions
+function Functions.teleportToPlayer(player)
+    local localPlayer = game.Players.LocalPlayer
+    if localPlayer.Character and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        localPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame
+        print("🚀 Teleported to " .. player.Name)
+    end
+end
+
+function Functions.pullPlayer(player)
+    local localPlayer = game.Players.LocalPlayer
+    if localPlayer.Character and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = localPlayer.Character.HumanoidRootPart.CFrame
+        print("🎣 Pulled " .. player.Name)
+    end
+end
+
+function Functions.copyOutfit(player)
+    local localPlayer = game.Players.LocalPlayer
+    if localPlayer.Character and player.Character then
+        for _, item in pairs(player.Character:GetChildren()) do
+            if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") then
+                local clone = item:Clone()
+                clone.Parent = localPlayer.Character
+            end
+        end
+        print("👕 Copied outfit from " .. player.Name)
+    end
+end
+
+function Functions.stealItems(player)
+    if player.Backpack then
+        local localPlayer = game.Players.LocalPlayer
+        for _, tool in pairs(player.Backpack:GetChildren()) do
+            if tool:IsA("Tool") then
+                tool.Parent = localPlayer.Backpack
+            end
+        end
+        print("💰 Stole items from " .. player.Name)
+    end
+end
+
+function Functions.freezePlayer(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.Anchored = true
+        print("🧊 Froze " .. player.Name)
+    end
+end
+
+function Functions.flingPlayer(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+        bodyVelocity.Velocity = Vector3.new(math.random(-100, 100), 100, math.random(-100, 100))
+        bodyVelocity.Parent = player.Character.HumanoidRootPart
+        game:GetService("Debris"):AddItem(bodyVelocity, 1)
+        print("🌪️ Flung " .. player.Name)
+    end
+end
+
+-- Combat Functions
+function Functions.toggleAimbot(enabled)
+    _G.AimbotEnabled = enabled
+    if enabled then
+        spawn(function()
+            local Camera = workspace.CurrentCamera
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            local Mouse = LocalPlayer:GetMouse()
+            
+            while _G.AimbotEnabled do
+                local closestPlayer = nil
+                local shortestDistance = math.huge
+                
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                        local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.Head.Position).Magnitude
+                        if distance < shortestDistance then
+                            shortestDistance = distance
+                            closestPlayer = player
+                        end
+                    end
+                end
+                
+                if closestPlayer then
+                    Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, closestPlayer.Character.Head.Position)
+                end
+                
+                wait(0.1)
+            end
+        end)
+    end
+    print("🎯 Aimbot:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleESP(enabled)
+    _G.ESPEnabled = enabled
+    if enabled then
+        spawn(function()
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            
+            while _G.ESPEnabled do
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        if not player.Character:FindFirstChild("ESP_Box") then
+                            local box = Instance.new("BoxHandleAdornment")
+                            box.Name = "ESP_Box"
+                            box.Parent = player.Character
+                            box.Adornee = player.Character.HumanoidRootPart
+                            box.Size = Vector3.new(4, 6, 1)
+                            box.Color3 = Color3.new(1, 0, 0)
+                            box.Transparency = 0.5
+                            box.AlwaysOnTop = true
+                        end
+                    end
+                end
+                wait(1)
+            end
+        end)
+    else
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("ESP_Box") then
+                player.Character.ESP_Box:Destroy()
+            end
+        end
+    end
+    print("👁️ ESP:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleSpeed(enabled, speed)
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.WalkSpeed = enabled and (speed or 100) or 16
+    end
+    print("🏃 Speed:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleFly(enabled)
+    _G.FlyEnabled = enabled
+    local player = game.Players.LocalPlayer
+    
+    if enabled then
+        spawn(function()
+            local character = player.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                local bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                bodyVelocity.Parent = character.HumanoidRootPart
+                
+                local UserInputService = game:GetService("UserInputService")
+                
+                while _G.FlyEnabled do
+                    local moveVector = Vector3.new(0, 0, 0)
+                    
+                    if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                        moveVector = moveVector + workspace.CurrentCamera.CFrame.LookVector
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                        moveVector = moveVector - workspace.CurrentCamera.CFrame.LookVector
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                        moveVector = moveVector - workspace.CurrentCamera.CFrame.RightVector
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                        moveVector = moveVector + workspace.CurrentCamera.CFrame.RightVector
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                        moveVector = moveVector + Vector3.new(0, 1, 0)
+                    end
+                    if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                        moveVector = moveVector - Vector3.new(0, 1, 0)
+                    end
+                    
+                    bodyVelocity.Velocity = moveVector * 50
+                    wait()
+                end
+                
+                bodyVelocity:Destroy()
+            end
+        end)
+    end
+    print("✈️ Fly:", enabled and "ENABLED" or "DISABLED")
+end
+
+function Functions.toggleNoclip(enabled)
+    _G.NoclipEnabled = enabled
+    local player = game.Players.LocalPlayer
+    
+    if enabled then
+        spawn(function()
+            while _G.NoclipEnabled do
+                if player.Character then
+                    for _, part in pairs(player.Character:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+                wait()
+            end
+        end)
+    else
+        if player.Character then
+            for _, part in pairs(player.Character:GetChildren()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part.CanCollide = true
+                end
+            end
         end
     end
     print("👻 Noclip:", enabled and "ENABLED" or "DISABLED")
 end
 
 function Functions.toggleFullbright(enabled)
+    local Lighting = game:GetService("Lighting")
     if enabled then
         Lighting.Brightness = 2
         Lighting.ClockTime = 14
@@ -212,7 +511,7 @@ function Functions.toggleFullbright(enabled)
         Lighting.GlobalShadows = false
     else
         Lighting.Brightness = 1
-        Lighting.ClockTime = 12
+        Lighting.ClockTime = 14
         Lighting.FogEnd = 100000
         Lighting.GlobalShadows = true
     end
