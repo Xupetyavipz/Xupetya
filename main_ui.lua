@@ -608,6 +608,413 @@ CreateToggle(VisualSection, "Full Bright", "FullBright", function(state)
     end
 end)
 
+-- Roleplay Tab Content
+local RoleplayFrame = TabFrames[4]
+
+local VehicleSection = CreateSection(RoleplayFrame, "🚗 Spawn / Veículos")
+CreateButton(VehicleSection, "Spawn Cars", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Car spawned!", Duration = 2})
+end)
+CreateToggle(VehicleSection, "Super Speed Car", "SuperSpeedCar")
+CreateToggle(VehicleSection, "Fly Car", "FlyCar")
+CreateButton(VehicleSection, "Boat Spawner", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Boat spawned!", Duration = 2})
+end)
+CreateButton(VehicleSection, "Helicopter Spawner", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Helicopter spawned!", Duration = 2})
+end)
+
+local WeaponsSection = CreateSection(RoleplayFrame, "🔫 Armas / Itens")
+CreateButton(WeaponsSection, "Spawn Weapons", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Weapons spawned!", Duration = 2})
+end)
+CreateToggle(WeaponsSection, "Infinite Ammo", "InfiniteAmmo")
+CreateToggle(WeaponsSection, "Dual Wield", "DualWield")
+CreateButton(WeaponsSection, "Item Spawner", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Items spawned!", Duration = 2})
+end)
+
+local PlayerSection = CreateSection(RoleplayFrame, "👤 Player / Personagem")
+CreateButton(PlayerSection, "Animal Morphs", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Morph applied!", Duration = 2})
+end)
+CreateToggle(PlayerSection, "Size Changer", "SizeChanger")
+CreateToggle(PlayerSection, "Invisible Mode", "Invisible")
+CreateToggle(PlayerSection, "Godmode", "Godmode")
+CreateButton(PlayerSection, "Teleport Locations", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Teleported!", Duration = 2})
+end)
+CreateButton(PlayerSection, "Unlimited Emotes", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Emotes unlocked!", Duration = 2})
+end)
+
+local UtilitiesSection = CreateSection(RoleplayFrame, "⚙️ Utilidades")
+CreateToggle(UtilitiesSection, "Auto Farm Dinheiro", "AutoFarmMoney")
+CreateToggle(UtilitiesSection, "Auto Collect Items", "AutoCollectItems")
+CreateButton(UtilitiesSection, "TP até Amigos", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Teleported to friend!", Duration = 2})
+end)
+CreateButton(UtilitiesSection, "Unlock Animations", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Animations unlocked!", Duration = 2})
+end)
+CreateToggle(UtilitiesSection, "Auto Daily Rewards", "AutoDailyRewards")
+CreateToggle(UtilitiesSection, "Auto Buy", "AutoBuy")
+
+local WorldSection = CreateSection(RoleplayFrame, "🌍 Ambiente / Mundo")
+CreateButton(WorldSection, "Open All Doors", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "All doors opened!", Duration = 2})
+end)
+CreateButton(WorldSection, "Teleport All Cars", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "All cars teleported!", Duration = 2})
+end)
+CreateButton(WorldSection, "Day/Night Control", function()
+    if Lighting.ClockTime == 14 then
+        Lighting.ClockTime = 0
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Night mode!", Duration = 2})
+    else
+        Lighting.ClockTime = 14
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Day mode!", Duration = 2})
+    end
+end)
+CreateButton(WorldSection, "Weather Changer", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Weather changed!", Duration = 2})
+end)
+CreateToggle(WorldSection, "Disable Gravity", "DisableGravity")
+CreateToggle(WorldSection, "Super Jump", "SuperJump")
+
+-- Blox Fruits Tab Content
+local BloxFruitsFrame = TabFrames[5]
+
+local FarmSection = CreateSection(BloxFruitsFrame, "🌾 Farm")
+CreateToggle(FarmSection, "Auto Farm Level", "AutoFarmLevel")
+CreateToggle(FarmSection, "Auto Farm Boss", "AutoFarmBoss")
+CreateToggle(FarmSection, "Auto Farm Quest", "AutoFarmQuest")
+CreateToggle(FarmSection, "Auto Farm Fruits", "AutoFarmFruits")
+CreateToggle(FarmSection, "Auto Farm Mastery", "AutoFarmMastery")
+
+local BloxCombatSection = CreateSection(BloxFruitsFrame, "⚔️ Combat")
+CreateToggle(BloxCombatSection, "Auto Aim Skills", "AutoAimSkills")
+CreateToggle(BloxCombatSection, "No Cooldown Skills", "NoSkillCooldown")
+CreateToggle(BloxCombatSection, "Skill Spam", "SkillSpam")
+CreateToggle(BloxCombatSection, "Kill Aura", "KillAura")
+CreateSlider(BloxCombatSection, "Damage Multiplier", "DamageMultiplier", 1, 10)
+
+local TeleportSection = CreateSection(BloxFruitsFrame, "📍 Teleport")
+CreateButton(TeleportSection, "TP to Sea", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Teleported to sea!", Duration = 2})
+end)
+CreateButton(TeleportSection, "TP to Island", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Teleported to island!", Duration = 2})
+end)
+CreateButton(TeleportSection, "TP to NPC", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Teleported to NPC!", Duration = 2})
+end)
+CreateButton(TeleportSection, "TP to Fruits", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Teleported to fruit!", Duration = 2})
+end)
+
+local BloxMiscSection = CreateSection(BloxFruitsFrame, "🔧 Misc")
+CreateToggle(BloxMiscSection, "ESP Fruits", "ESPFruits")
+CreateToggle(BloxMiscSection, "Auto Fruit Sniper", "AutoFruitSniper")
+CreateToggle(BloxMiscSection, "Walk on Water", "WalkOnWater")
+CreateToggle(BloxMiscSection, "Auto Buy", "AutoBuyBlox")
+CreateButton(BloxMiscSection, "Raid Helper", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Raid helper activated!", Duration = 2})
+end)
+
+-- Player List Tab Content
+local PlayerListFrame = TabFrames[6]
+
+-- Create player list
+local PlayerListSection = CreateSection(PlayerListFrame, "📋 Player List")
+
+local SearchBox = Instance.new("TextBox")
+SearchBox.Name = "SearchBox"
+SearchBox.Parent = PlayerListSection
+SearchBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SearchBox.BorderSizePixel = 0
+SearchBox.Size = UDim2.new(1, 0, 0, 30)
+SearchBox.Font = Enum.Font.Gotham
+SearchBox.PlaceholderText = "Search players..."
+SearchBox.Text = ""
+SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBox.TextSize = 14
+
+local SearchCorner = Instance.new("UICorner")
+SearchCorner.CornerRadius = UDim.new(0, 6)
+SearchCorner.Parent = SearchBox
+
+local PlayerScrollFrame = Instance.new("ScrollingFrame")
+PlayerScrollFrame.Name = "PlayerScrollFrame"
+PlayerScrollFrame.Parent = PlayerListSection
+PlayerScrollFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+PlayerScrollFrame.BorderSizePixel = 0
+PlayerScrollFrame.Size = UDim2.new(1, 0, 0, 200)
+PlayerScrollFrame.ScrollBarThickness = 6
+PlayerScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(138, 43, 226)
+PlayerScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+local PlayerScrollCorner = Instance.new("UICorner")
+PlayerScrollCorner.CornerRadius = UDim.new(0, 6)
+PlayerScrollCorner.Parent = PlayerScrollFrame
+
+local PlayerLayout = Instance.new("UIListLayout")
+PlayerLayout.Parent = PlayerScrollFrame
+PlayerLayout.SortOrder = Enum.SortOrder.LayoutOrder
+PlayerLayout.Padding = UDim.new(0, 5)
+
+local function UpdatePlayerList()
+    for _, child in pairs(PlayerScrollFrame:GetChildren()) do
+        if child:IsA("Frame") then
+            child:Destroy()
+        end
+    end
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local PlayerFrame = Instance.new("Frame")
+            PlayerFrame.Name = player.Name
+            PlayerFrame.Parent = PlayerScrollFrame
+            PlayerFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+            PlayerFrame.BorderSizePixel = 0
+            PlayerFrame.Size = UDim2.new(1, -10, 0, 60)
+            
+            local PlayerFrameCorner = Instance.new("UICorner")
+            PlayerFrameCorner.CornerRadius = UDim.new(0, 4)
+            PlayerFrameCorner.Parent = PlayerFrame
+            
+            local PlayerName = Instance.new("TextLabel")
+            PlayerName.Name = "PlayerName"
+            PlayerName.Parent = PlayerFrame
+            PlayerName.BackgroundTransparency = 1
+            PlayerName.Position = UDim2.new(0, 10, 0, 5)
+            PlayerName.Size = UDim2.new(1, -20, 0, 20)
+            PlayerName.Font = Enum.Font.GothamBold
+            PlayerName.Text = player.Name
+            PlayerName.TextColor3 = Color3.fromRGB(255, 255, 255)
+            PlayerName.TextSize = 14
+            PlayerName.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local ButtonFrame = Instance.new("Frame")
+            ButtonFrame.Name = "ButtonFrame"
+            ButtonFrame.Parent = PlayerFrame
+            ButtonFrame.BackgroundTransparency = 1
+            ButtonFrame.Position = UDim2.new(0, 10, 0, 25)
+            ButtonFrame.Size = UDim2.new(1, -20, 0, 30)
+            
+            local ButtonLayout = Instance.new("UIListLayout")
+            ButtonLayout.Parent = ButtonFrame
+            ButtonLayout.FillDirection = Enum.FillDirection.Horizontal
+            ButtonLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            ButtonLayout.Padding = UDim.new(0, 5)
+            
+            -- Action buttons
+            local actions = {"TP", "Kill", "Fling", "Freeze", "Troll"}
+            for i, action in ipairs(actions) do
+                local ActionButton = Instance.new("TextButton")
+                ActionButton.Name = action .. "Button"
+                ActionButton.Parent = ButtonFrame
+                ActionButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+                ActionButton.BorderSizePixel = 0
+                ActionButton.Size = UDim2.new(0, 50, 1, 0)
+                ActionButton.Font = Enum.Font.Gotham
+                ActionButton.Text = action
+                ActionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+                ActionButton.TextSize = 10
+                
+                local ActionCorner = Instance.new("UICorner")
+                ActionCorner.CornerRadius = UDim.new(0, 4)
+                ActionCorner.Parent = ActionButton
+                
+                ActionButton.MouseButton1Click:Connect(function()
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "SPWARE",
+                        Text = action .. " applied to " .. player.Name,
+                        Duration = 2
+                    })
+                end)
+            end
+        end
+    end
+    
+    PlayerScrollFrame.CanvasSize = UDim2.new(0, 0, 0, PlayerLayout.AbsoluteContentSize.Y + 10)
+end
+
+-- Update player list initially and when players join/leave
+UpdatePlayerList()
+Players.PlayerAdded:Connect(UpdatePlayerList)
+Players.PlayerRemoving:Connect(UpdatePlayerList)
+
+-- Chat Tab Content
+local ChatFrame = TabFrames[7]
+
+local QuickMessagesSection = CreateSection(ChatFrame, "💬 Mensagens Rápidas")
+CreateButton(QuickMessagesSection, "GG", function()
+    game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("GG! SPWARE is the best!", "All")
+end)
+CreateButton(QuickMessagesSection, "Hello Everyone", function()
+    game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Hello everyone! Using SPWARE V4", "All")
+end)
+CreateButton(QuickMessagesSection, "SPWARE Best", function()
+    game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("SPWARE - Melhor script Roblox!", "All")
+end)
+
+local AutoChatSection = CreateSection(ChatFrame, "🤖 Auto Chat")
+CreateToggle(AutoChatSection, "Auto Reply", "AutoReply")
+CreateToggle(AutoChatSection, "Auto Greet", "AutoGreet")
+CreateToggle(AutoChatSection, "Auto GG", "AutoGG")
+
+local SpamSection = CreateSection(ChatFrame, "📢 Spam / Flood")
+CreateToggle(SpamSection, "Chat Spam", "ChatSpam")
+CreateButton(SpamSection, "Emoji Spam", function()
+    for i = 1, 5 do
+        game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("🔥💯⚡🎯🚀", "All")
+        wait(0.5)
+    end
+end)
+CreateButton(SpamSection, "Unicode Spam", function()
+    for i = 1, 3 do
+        game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer("░░░░░░░░░░░░░░░░░░░░", "All")
+        wait(0.5)
+    end
+end)
+
+local FakeChatSection = CreateSection(ChatFrame, "🎭 Fake / Troll Chat")
+CreateToggle(FakeChatSection, "Fake Messages", "FakeMessages")
+CreateButton(FakeChatSection, "Fake Admin", function()
+    StarterGui:SetCore("ChatMakeSystemMessage", {
+        Text = "[SYSTEM] Admin has joined the server!";
+        Color = Color3.fromRGB(255, 0, 0);
+    })
+end)
+CreateButton(FakeChatSection, "Fake Kick", function()
+    StarterGui:SetCore("ChatMakeSystemMessage", {
+        Text = "[SYSTEM] You have been kicked for exploiting!";
+        Color = Color3.fromRGB(255, 165, 0);
+    })
+end)
+
+-- Car List Tab Content
+local CarListFrame = TabFrames[8]
+
+local CarManagementSection = CreateSection(CarListFrame, "🚗 Car Management")
+
+local CarScrollFrame = Instance.new("ScrollingFrame")
+CarScrollFrame.Name = "CarScrollFrame"
+CarScrollFrame.Parent = CarManagementSection
+CarScrollFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+CarScrollFrame.BorderSizePixel = 0
+CarScrollFrame.Size = UDim2.new(1, 0, 0, 250)
+CarScrollFrame.ScrollBarThickness = 6
+CarScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(138, 43, 226)
+CarScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+local CarScrollCorner = Instance.new("UICorner")
+CarScrollCorner.CornerRadius = UDim.new(0, 6)
+CarScrollCorner.Parent = CarScrollFrame
+
+local CarLayout = Instance.new("UIListLayout")
+CarLayout.Parent = CarScrollFrame
+CarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+CarLayout.Padding = UDim.new(0, 5)
+
+local function UpdateCarList()
+    for _, child in pairs(CarScrollFrame:GetChildren()) do
+        if child:IsA("Frame") then
+            child:Destroy()
+        end
+    end
+    
+    -- Find all vehicles in workspace
+    local cars = {}
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("VehicleSeat") and obj.Parent then
+            table.insert(cars, obj.Parent)
+        end
+    end
+    
+    for i, car in ipairs(cars) do
+        local CarFrame = Instance.new("Frame")
+        CarFrame.Name = "Car" .. i
+        CarFrame.Parent = CarScrollFrame
+        CarFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        CarFrame.BorderSizePixel = 0
+        CarFrame.Size = UDim2.new(1, -10, 0, 70)
+        
+        local CarFrameCorner = Instance.new("UICorner")
+        CarFrameCorner.CornerRadius = UDim.new(0, 4)
+        CarFrameCorner.Parent = CarFrame
+        
+        local CarName = Instance.new("TextLabel")
+        CarName.Name = "CarName"
+        CarName.Parent = CarFrame
+        CarName.BackgroundTransparency = 1
+        CarName.Position = UDim2.new(0, 10, 0, 5)
+        CarName.Size = UDim2.new(1, -20, 0, 20)
+        CarName.Font = Enum.Font.GothamBold
+        CarName.Text = car.Name or "Vehicle " .. i
+        CarName.TextColor3 = Color3.fromRGB(255, 255, 255)
+        CarName.TextSize = 14
+        CarName.TextXAlignment = Enum.TextXAlignment.Left
+        
+        local CarButtonFrame = Instance.new("Frame")
+        CarButtonFrame.Name = "CarButtonFrame"
+        CarButtonFrame.Parent = CarFrame
+        CarButtonFrame.BackgroundTransparency = 1
+        CarButtonFrame.Position = UDim2.new(0, 10, 0, 25)
+        CarButtonFrame.Size = UDim2.new(1, -20, 0, 40)
+        
+        local CarButtonLayout = Instance.new("UIListLayout")
+        CarButtonLayout.Parent = CarButtonFrame
+        CarButtonLayout.FillDirection = Enum.FillDirection.Horizontal
+        CarButtonLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        CarButtonLayout.Padding = UDim.new(0, 5)
+        
+        -- Car action buttons
+        local carActions = {"Spawn", "TP Car", "Clone", "Bring"}
+        for j, action in ipairs(carActions) do
+            local CarActionButton = Instance.new("TextButton")
+            CarActionButton.Name = action .. "Button"
+            CarActionButton.Parent = CarButtonFrame
+            CarActionButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+            CarActionButton.BorderSizePixel = 0
+            CarActionButton.Size = UDim2.new(0, 60, 1, 0)
+            CarActionButton.Font = Enum.Font.Gotham
+            CarActionButton.Text = action
+            CarActionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            CarActionButton.TextSize = 10
+            
+            local CarActionCorner = Instance.new("UICorner")
+            CarActionCorner.CornerRadius = UDim.new(0, 4)
+            CarActionCorner.Parent = CarActionButton
+            
+            CarActionButton.MouseButton1Click:Connect(function()
+                if action == "TP Car" and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = car.PrimaryPart.CFrame + Vector3.new(0, 5, 0)
+                elseif action == "Bring" and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    car:SetPrimaryPartCFrame(LocalPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(5, 0, 0))
+                end
+                
+                StarterGui:SetCore("SendNotification", {
+                    Title = "SPWARE",
+                    Text = action .. " applied to " .. (car.Name or "Vehicle"),
+                    Duration = 2
+                })
+            end)
+        end
+    end
+    
+    CarScrollFrame.CanvasSize = UDim2.new(0, 0, 0, CarLayout.AbsoluteContentSize.Y + 10)
+end
+
+CreateButton(CarManagementSection, "🔄 Refresh Car List", UpdateCarList)
+CreateButton(CarManagementSection, "🚗 Spawn Random Car", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE", Text = "Random car spawned!", Duration = 2})
+end)
+
+-- Initial car list update
+UpdateCarList()
+
 -- Update canvas sizes
 for i, frame in ipairs(TabFrames) do
     frame.ChildAdded:Connect(function()
