@@ -11,6 +11,8 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local Lighting = game:GetService("Lighting")
+local Debris = game:GetService("Debris")
+local workspace = game:GetService("Workspace")
 
 -- Wait for LocalPlayer
 local LocalPlayer = Players.LocalPlayer
@@ -917,6 +919,10 @@ CarListLayout.Padding = UDim.new(0, 5)
 
 -- Helper Functions
 function GetClosestPlayer()
+    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        return nil
+    end
+    
     local closestPlayer = nil
     local shortestDistance = math.huge
     
@@ -942,12 +948,18 @@ end
 local ESPObjects = {}
 
 function CreateESP(player)
-    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    if not player or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then 
+        return 
+    end
     
     -- Team check for ESP
-    if Settings.ESPTeamCheck and player.Team == LocalPlayer.Team then return end
+    if Settings.ESPTeamCheck and player.Team and LocalPlayer.Team and player.Team == LocalPlayer.Team then 
+        return 
+    end
     
-    RemoveESP(player) -- Remove existing ESP first
+    pcall(function()
+        RemoveESP(player) -- Remove existing ESP first
+    end)
     ESPObjects[player] = {}
     
     -- Name ESP
@@ -1084,33 +1096,37 @@ function CreateSkeletonESP(player)
 end
 
 function RemoveESP(player)
-    if ESPObjects[player] then
-        -- Remove name ESP
-        if ESPObjects[player].nameESP then
-            ESPObjects[player].nameESP:Destroy()
-        end
-        
-        -- Remove box ESP
-        if ESPObjects[player].boxESP then
-            ESPObjects[player].boxESP:Destroy()
-        end
-        
-        -- Remove head dot ESP
-        if ESPObjects[player].headDot then
-            ESPObjects[player].headDot:Destroy()
-        end
-        
-        -- Remove skeleton ESP
-        if ESPObjects[player].skeletonConnections then
-            for _, connection in pairs(ESPObjects[player].skeletonConnections) do
-                if connection.beam then connection.beam:Destroy() end
-                if connection.att1 then connection.att1:Destroy() end
-                if connection.att2 then connection.att2:Destroy() end
+    if not player then return end
+    
+    pcall(function()
+        if ESPObjects[player] then
+            -- Remove name ESP
+            if ESPObjects[player].nameESP then
+                ESPObjects[player].nameESP:Destroy()
             end
+            
+            -- Remove box ESP
+            if ESPObjects[player].boxESP then
+                ESPObjects[player].boxESP:Destroy()
+            end
+            
+            -- Remove head dot ESP
+            if ESPObjects[player].headDot then
+                ESPObjects[player].headDot:Destroy()
+            end
+            
+            -- Remove skeleton ESP
+            if ESPObjects[player].skeletonConnections then
+                for _, connection in pairs(ESPObjects[player].skeletonConnections) do
+                    if connection.beam then connection.beam:Destroy() end
+                    if connection.att1 then connection.att1:Destroy() end
+                    if connection.att2 then connection.att2:Destroy() end
+                end
+            end
+            
+            ESPObjects[player] = nil
         end
-        
-        ESPObjects[player] = nil
-    end
+    end)
     
     -- Fallback cleanup
     if player.Character then
