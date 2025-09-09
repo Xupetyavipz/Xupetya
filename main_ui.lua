@@ -1,5 +1,10 @@
--- SPWARE V5 | Premium Roblox Script
+-- SPWARE V5 | Premium Roblox Script - FIXED VERSION
 -- Ultra Modern Design with Advanced UI
+
+-- Wait for game to load
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -13,6 +18,12 @@ local Lighting = game:GetService("Lighting")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
+
+-- Ensure LocalPlayer exists
+if not LocalPlayer then
+    warn("LocalPlayer not found!")
+    return
+end
 
 -- Settings
 local Settings = {
@@ -89,21 +100,19 @@ local Settings = {
     AutoGG = false
 }
 
--- Create ScreenGui with error handling
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "SPWARE_V5"
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.ResetOnSpawn = false
-
--- Wait for PlayerGui and parent the ScreenGui
-local success, err = pcall(function()
-    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-end)
-
-if not success then
-    warn("Failed to create ScreenGui: " .. tostring(err))
+-- Create ScreenGui with better error handling
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui", 10)
+if not PlayerGui then
+    warn("PlayerGui not found!")
     return
 end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SPWARE_V5"
+ScreenGui.Parent = PlayerGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
 
 -- Main Frame with Gradient Background
 local MainFrame = Instance.new("Frame")
@@ -1795,7 +1804,7 @@ CarScrollCorner.Parent = CarScrollFrame
 local CarLayout = Instance.new("UIListLayout")
 CarLayout.Parent = CarScrollFrame
 CarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-CarLayout.Padding = UDim2.new(0, 8)
+CarLayout.Padding = UDim.new(0, 8)
 
 local function UpdateCarList()
     for _, child in pairs(CarScrollFrame:GetChildren()) do
@@ -1992,18 +2001,24 @@ spawn(function()
     end
 end)
 
--- Initial notification and debug
-wait(1) -- Wait for UI to fully load
-StarterGui:SetCore("SendNotification", {
-    Title = "SPWARE V5 Premium",
-    Text = "Loaded successfully! Press INSERT to toggle",
-    Duration = 5
-})
+-- Initial notification with better error handling
+spawn(function()
+    wait(2) -- Wait for UI to fully load
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "SPWARE V5 Premium",
+            Text = "Loaded! Press INSERT to toggle",
+            Duration = 3
+        })
+    end)
+end)
 
--- Debug: Show UI immediately for testing
+-- Show UI immediately and add debug info
 MainFrame.Visible = true
 GlowFrame.Visible = true
 
--- Debug print
-print("SPWARE V5 Premium Edition Loaded Successfully!")
-print("UI should now be visible. Press INSERT to toggle.")
+-- Debug prints
+print("=== SPWARE V5 PREMIUM LOADED ===")
+print("UI Elements Created Successfully!")
+print("Press INSERT key to toggle menu")
+print("================================")
