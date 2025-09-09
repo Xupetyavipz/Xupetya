@@ -526,124 +526,36 @@ end
 local function SwitchTab(tabIndex)
     if CurrentTab == tabIndex then return end
     
-    local currentTabData = TabsData[CurrentTab]
-    local newTabData = TabsData[tabIndex]
-    
-    -- Animate current tab to inactive state
-    local currentButton = TabButtons[CurrentTab]
-    local currentGradient = currentButton:FindFirstChild("UIGradient")
-    local currentStroke = currentButton:FindFirstChild("UIStroke")
-    local currentIcon = currentButton.IconFrame.IconText
-    local currentLabel = currentButton.TabLabel
-    local currentIndicator = currentButton.ActiveIndicator
-    
-    TweenService:Create(currentButton, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-        BackgroundTransparency = 0.3
-    }):Play()
-    
-    if currentGradient then
-        TweenService:Create(currentGradient, TweenInfo.new(0.3), {
-            Color = ColorSequence.new{
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 25)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 30))
-            }
-        }):Play()
+    -- Hide current tab frame
+    for i, frame in pairs(TabFrames) do
+        frame.Visible = (i == tabIndex)
     end
     
-    if currentStroke then
-        TweenService:Create(currentStroke, TweenInfo.new(0.3), {
-            Color = Color3.fromRGB(147, 51, 234),
-            Thickness = 1,
-            Transparency = 0.8
-        }):Play()
+    -- Update tab buttons
+    for i, button in pairs(TabButtons) do
+        if i == tabIndex then
+            -- Active tab
+            TweenService:Create(button, TweenInfo.new(0.2), {
+                BackgroundColor3 = TabsData[i].color,
+                TextColor3 = Color3.fromRGB(255, 255, 255)
+            }):Play()
+        else
+            -- Inactive tab
+            TweenService:Create(button, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(25, 25, 30),
+                TextColor3 = Color3.fromRGB(156, 163, 175)
+            }):Play()
+        end
     end
-    
-    TweenService:Create(currentIcon, TweenInfo.new(0.3), {
-        TextColor3 = currentTabData.color
-    }):Play()
-    
-    TweenService:Create(currentLabel, TweenInfo.new(0.3), {
-        TextColor3 = Color3.fromRGB(200, 200, 200)
-    }):Play()
-    
-    TweenService:Create(currentIndicator, TweenInfo.new(0.3), {
-        Transparency = 1
-    }):Play()
-    
-    -- Animate new tab to active state
-    local newButton = TabButtons[tabIndex]
-    local newGradient = newButton:FindFirstChild("UIGradient")
-    local newStroke = newButton:FindFirstChild("UIStroke")
-    local newIcon = newButton.IconFrame.IconText
-    local newLabel = newButton.TabLabel
-    local newIndicator = newButton.ActiveIndicator
-    
-    TweenService:Create(newButton, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-        BackgroundTransparency = 0
-    }):Play()
-    
-    if newGradient then
-        TweenService:Create(newGradient, TweenInfo.new(0.3), {
-            Color = ColorSequence.new{
-                ColorSequenceKeypoint.new(0, newTabData.color),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(
-                    math.max(0, newTabData.color.R * 255 - 30),
-                    math.max(0, newTabData.color.G * 255 - 30),
-                    math.max(0, newTabData.color.B * 255 - 30)
-                ))
-            }
-        }):Play()
-    end
-    
-    if newStroke then
-        TweenService:Create(newStroke, TweenInfo.new(0.3), {
-            Color = newTabData.color,
-            Thickness = 2,
-            Transparency = 0.3
-        }):Play()
-    end
-    
-    TweenService:Create(newIcon, TweenInfo.new(0.3), {
-        TextColor3 = Color3.fromRGB(255, 255, 255)
-    }):Play()
-    
-    TweenService:Create(newLabel, TweenInfo.new(0.3), {
-        TextColor3 = Color3.fromRGB(255, 255, 255)
-    }):Play()
-    
-    newIndicator.Visible = true
-    TweenService:Create(newIndicator, TweenInfo.new(0.3), {
-        Transparency = 0
-    }):Play()
-    
-    -- Hide current tab frame and show new one
-    TabFrames[CurrentTab].Visible = false
-    TabFrames[tabIndex].Visible = true
     
     CurrentTab = tabIndex
+    print("Switched to tab: " .. tabIndex .. " (" .. TabsData[tabIndex].name .. ")")
 end
 
--- Connect tab buttons with hover effects
-for i, button in ipairs(TabButtons) do
+-- Tab button click events
+for i, button in pairs(TabButtons) do
     button.MouseButton1Click:Connect(function()
         SwitchTab(i)
-    end)
-    
-    -- Hover effects
-    button.MouseEnter:Connect(function()
-        if i ~= CurrentTab then
-            TweenService:Create(button, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.1
-            }):Play()
-        end
-    end)
-    
-    button.MouseLeave:Connect(function()
-        if i ~= CurrentTab then
-            TweenService:Create(button, TweenInfo.new(0.2), {
-                BackgroundTransparency = 0.3
-            }):Play()
-        end
     end)
 end
 
@@ -672,90 +584,87 @@ local function CreateSection(parent, title, color)
     
     local SectionStroke = Instance.new("UIStroke")
     SectionStroke.Color = color or Color3.fromRGB(147, 51, 234)
-    SectionStroke.Thickness = 1
+    SectionStroke.Thickness = 2
     SectionStroke.Transparency = 0.7
     SectionStroke.Parent = Section
     
-    -- Header Frame
     local HeaderFrame = Instance.new("Frame")
     HeaderFrame.Name = "HeaderFrame"
     HeaderFrame.Parent = Section
     HeaderFrame.BackgroundColor3 = color or Color3.fromRGB(147, 51, 234)
     HeaderFrame.BackgroundTransparency = 0.9
-    HeaderFrame.BorderSizePixel = 0
-    HeaderFrame.Size = UDim2.new(1, 0, 0, 45)
+    HeaderFrame.Position = UDim2.new(0, 0, 0, 0)
+    HeaderFrame.Size = UDim2.new(1, 0, 0, 60)
     
     local HeaderCorner = Instance.new("UICorner")
-    HeaderCorner.CornerRadius = UDim.new(0, 12)
+    HeaderCorner.CornerRadius = UDim.new(0, 15)
     HeaderCorner.Parent = HeaderFrame
     
-    local HeaderFix = Instance.new("Frame")
-    HeaderFix.Parent = HeaderFrame
-    HeaderFix.BackgroundColor3 = color or Color3.fromRGB(147, 51, 234)
-    HeaderFix.BackgroundTransparency = 0.9
-    HeaderFix.BorderSizePixel = 0
-    HeaderFix.Position = UDim2.new(0, 0, 0.6, 0)
-    HeaderFix.Size = UDim2.new(1, 0, 0.4, 0)
+    local HeaderText = Instance.new("TextLabel")
+    HeaderText.Name = "HeaderText"
+    HeaderText.Parent = HeaderFrame
+    HeaderText.BackgroundTransparency = 1
+    HeaderText.Position = UDim2.new(0, 25, 0, 0)
+    HeaderText.Size = UDim2.new(1, -50, 1, 0)
+    HeaderText.Font = Enum.Font.GothamBold
+    HeaderText.Text = title
+    HeaderText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    HeaderText.TextSize = 18
+    HeaderText.TextXAlignment = Enum.TextXAlignment.Left
+    HeaderText.TextYAlignment = Enum.TextYAlignment.Center
     
-    local SectionTitle = Instance.new("TextLabel")
-    SectionTitle.Name = "Title"
-    SectionTitle.Parent = HeaderFrame
-    SectionTitle.BackgroundTransparency = 1
-    SectionTitle.Position = UDim2.new(0, 20, 0, 0)
-    SectionTitle.Size = UDim2.new(1, -40, 1, 0)
-    SectionTitle.Font = Enum.Font.GothamBold
-    SectionTitle.Text = title
-    SectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    SectionTitle.TextSize = 16
-    SectionTitle.TextXAlignment = Enum.TextXAlignment.Left
-    SectionTitle.TextYAlignment = Enum.TextYAlignment.Center
+    -- Grid Layout for toggles/buttons
+    local GridFrame = Instance.new("Frame")
+    GridFrame.Name = "GridFrame"
+    GridFrame.Parent = Section
+    GridFrame.BackgroundTransparency = 1
+    GridFrame.Position = UDim2.new(0, 0, 0, 70)
+    GridFrame.Size = UDim2.new(1, 0, 1, -80)
     
-    -- Accent Line
-    local AccentLine = Instance.new("Frame")
-    AccentLine.Name = "AccentLine"
-    AccentLine.Parent = HeaderFrame
-    AccentLine.BackgroundColor3 = color or Color3.fromRGB(147, 51, 234)
-    AccentLine.BorderSizePixel = 0
-    AccentLine.Position = UDim2.new(0, 20, 1, -2)
-    AccentLine.Size = UDim2.new(0, 60, 0, 2)
+    local GridLayout = Instance.new("UIGridLayout")
+    GridLayout.Parent = GridFrame
+    GridLayout.CellPadding = UDim2.new(0, 15, 0, 15)
+    GridLayout.CellSize = UDim2.new(0, 180, 0, 60)
+    GridLayout.SortOrder = Enum.SortOrder.LayoutOrder
     
-    local AccentCorner = Instance.new("UICorner")
-    AccentCorner.CornerRadius = UDim.new(1, 0)
-    AccentCorner.Parent = AccentLine
+    local GridPadding = Instance.new("UIPadding")
+    GridPadding.Parent = GridFrame
+    GridPadding.PaddingTop = UDim.new(0, 15)
+    GridPadding.PaddingLeft = UDim.new(0, 20)
+    GridPadding.PaddingRight = UDim.new(0, 20)
+    GridPadding.PaddingBottom = UDim.new(0, 15)
     
-    local SectionLayout = Instance.new("UIListLayout")
-    SectionLayout.Parent = Section
-    SectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SectionLayout.Padding = UDim.new(0, 12)
-    
-    local SectionPadding = Instance.new("UIPadding")
-    SectionPadding.Parent = Section
-    SectionPadding.PaddingTop = UDim.new(0, 55)
-    SectionPadding.PaddingLeft = UDim.new(0, 20)
-    SectionPadding.PaddingRight = UDim.new(0, 20)
-    SectionPadding.PaddingBottom = UDim.new(0, 20)
-    
+    Section.GridFrame = GridFrame
     return Section
 end
 
 local function CreateToggle(parent, text, setting, callback)
-    local Toggle = Instance.new("Frame")
+    local Toggle = Instance.new("TextButton")
     Toggle.Name = text .. "Toggle"
-    Toggle.Parent = parent
-    Toggle.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
-    Toggle.BackgroundTransparency = 0.2
+    Toggle.Parent = parent.GridFrame or parent
+    Toggle.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
     Toggle.BorderSizePixel = 0
-    Toggle.Size = UDim2.new(1, 0, 0, 45)
+    Toggle.Size = UDim2.new(0, 180, 0, 60)
+    Toggle.AutoButtonColor = false
+    Toggle.Text = ""
     
     local ToggleCorner = Instance.new("UICorner")
-    ToggleCorner.CornerRadius = UDim.new(0, 8)
+    ToggleCorner.CornerRadius = UDim.new(0, 12)
     ToggleCorner.Parent = Toggle
     
     local ToggleStroke = Instance.new("UIStroke")
     ToggleStroke.Color = Color3.fromRGB(147, 51, 234)
-    ToggleStroke.Thickness = 1
-    ToggleStroke.Transparency = 0.8
+    ToggleStroke.Thickness = 2
+    ToggleStroke.Transparency = Settings[setting] and 0.3 or 0.8
     ToggleStroke.Parent = Toggle
+    
+    local ToggleGradient = Instance.new("UIGradient")
+    ToggleGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 42)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 32))
+    })
+    ToggleGradient.Rotation = 45
+    ToggleGradient.Parent = Toggle
     
     local ToggleButton = Instance.new("TextButton")
     ToggleButton.Name = "Button"
@@ -804,32 +713,57 @@ local function CreateToggle(parent, text, setting, callback)
     CircleShadow.Transparency = 0.9
     CircleShadow.Parent = ToggleCircle
     
-    local ToggleLabel = Instance.new("TextLabel")
-    ToggleLabel.Name = "Label"
-    ToggleLabel.Parent = Toggle
-    ToggleLabel.BackgroundTransparency = 1
-    ToggleLabel.Position = UDim2.new(0, 15, 0, 0)
-    ToggleLabel.Size = UDim2.new(1, -80, 1, 0)
-    ToggleLabel.Font = Enum.Font.GothamMedium
-    ToggleLabel.Text = text
-    ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ToggleLabel.TextSize = 14
-    ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    ToggleLabel.TextYAlignment = Enum.TextYAlignment.Center
+    local ToggleText = Instance.new("TextLabel")
+    ToggleText.Name = "ToggleText"
+    ToggleText.Parent = Toggle
+    ToggleText.BackgroundTransparency = 1
+    ToggleText.Position = UDim2.new(0, 15, 0, 5)
+    ToggleText.Size = UDim2.new(1, -70, 0, 25)
+    ToggleText.Font = Enum.Font.GothamBold
+    ToggleText.Text = text
+    ToggleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleText.TextSize = 13
+    ToggleText.TextXAlignment = Enum.TextXAlignment.Left
+    ToggleText.TextYAlignment = Enum.TextYAlignment.Center
     
     -- Status Text
     local StatusText = Instance.new("TextLabel")
     StatusText.Name = "StatusText"
     StatusText.Parent = Toggle
     StatusText.BackgroundTransparency = 1
-    StatusText.Position = UDim2.new(1, -55, 0, 0)
-    StatusText.Size = UDim2.new(0, 25, 1, 0)
-    StatusText.Font = Enum.Font.GothamBold
-    StatusText.Text = Settings[setting] and "ON" or "OFF"
-    StatusText.TextColor3 = Settings[setting] and Color3.fromRGB(34, 197, 94) or Color3.fromRGB(239, 68, 68)
-    StatusText.TextSize = 10
-    StatusText.TextXAlignment = Enum.TextXAlignment.Center
+    StatusText.Position = UDim2.new(0, 15, 0, 30)
+    StatusText.Size = UDim2.new(1, -30, 0, 20)
+    StatusText.Font = Enum.Font.Gotham
+    StatusText.Text = Settings[setting] and "✓ ENABLED" or "✗ DISABLED"
+    StatusText.TextColor3 = Settings[setting] and Color3.fromRGB(34, 197, 94) or Color3.fromRGB(156, 163, 175)
+    StatusText.TextSize = 11
+    StatusText.TextXAlignment = Enum.TextXAlignment.Left
     StatusText.TextYAlignment = Enum.TextYAlignment.Center
+    
+    -- Modern toggle switch
+    local ToggleSwitch = Instance.new("Frame")
+    ToggleSwitch.Name = "ToggleSwitch"
+    ToggleSwitch.Parent = Toggle
+    ToggleSwitch.BackgroundColor3 = Settings[setting] and Color3.fromRGB(147, 51, 234) or Color3.fromRGB(55, 65, 81)
+    ToggleSwitch.BorderSizePixel = 0
+    ToggleSwitch.Position = UDim2.new(1, -45, 0.5, -8)
+    ToggleSwitch.Size = UDim2.new(0, 35, 0, 16)
+    
+    local SwitchCorner = Instance.new("UICorner")
+    SwitchCorner.CornerRadius = UDim.new(1, 0)
+    SwitchCorner.Parent = ToggleSwitch
+    
+    local SwitchKnob = Instance.new("Frame")
+    SwitchKnob.Name = "SwitchKnob"
+    SwitchKnob.Parent = ToggleSwitch
+    SwitchKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    SwitchKnob.BorderSizePixel = 0
+    SwitchKnob.Position = Settings[setting] and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
+    SwitchKnob.Size = UDim2.new(0, 12, 0, 12)
+    
+    local KnobCorner = Instance.new("UICorner")
+    KnobCorner.CornerRadius = UDim.new(1, 0)
+    KnobCorner.Parent = SwitchKnob
     
     ToggleButton.MouseButton1Click:Connect(function()
         Settings[setting] = not Settings[setting]
