@@ -504,11 +504,11 @@ for i, tabData in ipairs(TabsData) do
     TabLayout.Padding = UDim.new(0, 15)
     
     local TabPadding = Instance.new("UIPadding")
+    TabPadding.Parent = TabFrame
     TabPadding.PaddingTop = UDim.new(0, 25)
     TabPadding.PaddingLeft = UDim.new(0, 25)
     TabPadding.PaddingRight = UDim.new(0, 25)
     TabPadding.PaddingBottom = UDim.new(0, 25)
-    TabPadding.Parent = TabFrame
     
     TabFrames[i] = TabFrame
 end
@@ -720,11 +720,11 @@ local function CreateSection(parent, title, color)
     SectionLayout.Padding = UDim.new(0, 12)
     
     local SectionPadding = Instance.new("UIPadding")
+    SectionPadding.Parent = Section
     SectionPadding.PaddingTop = UDim.new(0, 55)
     SectionPadding.PaddingLeft = UDim.new(0, 20)
     SectionPadding.PaddingRight = UDim.new(0, 20)
     SectionPadding.PaddingBottom = UDim.new(0, 20)
-    SectionPadding.Parent = Section
     
     return Section
 end
