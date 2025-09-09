@@ -1,5 +1,5 @@
--- SPWARE - Professional Roblox Cheat UI
--- Modern FiveM Style Design
+-- SPWARE V2 - Advanced Roblox Cheat Menu
+-- Modern Design with Full Functionality
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -7,272 +7,230 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local mouse = player:GetMouse()
 
--- Global Variables
+-- Clean up existing UI
+pcall(function()
+    if playerGui:FindFirstChild("SPWARE_V2") then
+        playerGui:FindFirstChild("SPWARE_V2"):Destroy()
+    end
+end)
+
+-- Variables
 local mainFrame = nil
-local isUIVisible = false
 local currentTab = "Combat"
-local currentSubTab = "Aimbot"
-local playerListWindow = nil
-local isPlayerListVisible = false
-local selectedPlayer = nil
-local carListWindow = nil
+local isVisible = true
 
--- Cheat States
-local cheatStates = {
-    -- Combat
-    aimbot = false,
-    aimbotFOV = false,
-    aimbotSmooth = false,
-    silentAim = false,
-    ragebot = false,
-    triggerBot = false,
-    hitboxExpander = false,
-    oneShot = false,
-    noRecoil = false,
-    infiniteAmmo = false,
-    
-    -- Movement
-    bunnyHop = false,
-    strafeHack = false,
-    speedHack = false,
-    fly = false,
-    noclip = false,
-    teleportKill = false,
-    
-    -- Visuals
-    espPlayers = false,
-    espBox = false,
-    espSkeleton = false,
-    espHeadDot = false,
-    espItems = false,
-    espAdmin = false,
-    chams = false,
-    radar = false,
-    crosshair = false,
-    fullbright = false,
-    
-    -- Other states...
+-- Colors
+local COLORS = {
+    BACKGROUND = Color3.fromRGB(15, 15, 20),
+    SURFACE = Color3.fromRGB(25, 25, 35),
+    PRIMARY = Color3.fromRGB(138, 43, 226),
+    ACCENT = Color3.fromRGB(186, 85, 211),
+    SUCCESS = Color3.fromRGB(46, 204, 113),
+    ERROR = Color3.fromRGB(231, 76, 60),
+    TEXT = Color3.fromRGB(255, 255, 255),
+    TEXT_DIM = Color3.fromRGB(170, 170, 170),
+    BORDER = Color3.fromRGB(45, 45, 55)
 }
 
--- ESP Admin System
-local adminESP = {}
-local adminPlayers = {}
-
--- Premium Color Scheme - Purple/Black Theme
-local COLORS = {
-    BACKGROUND = Color3.fromRGB(8, 8, 12),        -- Deep Black
-    SURFACE = Color3.fromRGB(16, 16, 20),         -- Dark Surface
-    CARD = Color3.fromRGB(22, 22, 28),            -- Card Background
-    PRIMARY = Color3.fromRGB(139, 69, 255),       -- Vibrant Purple
-    SECONDARY = Color3.fromRGB(124, 58, 237),     -- Purple Secondary
-    ACCENT = Color3.fromRGB(168, 85, 247),        -- Purple Light
-    HOVER = Color3.fromRGB(196, 181, 253),        -- Purple Hover
-    TEXT = Color3.fromRGB(255, 255, 255),         -- Pure White
-    TEXT_SECONDARY = Color3.fromRGB(156, 163, 175), -- Gray Text
-    SUCCESS = Color3.fromRGB(34, 197, 94),        -- Green
-    ERROR = Color3.fromRGB(239, 68, 68),          -- Red
-    BORDER = Color3.fromRGB(55, 48, 163),         -- Purple Border
-    GLOW = Color3.fromRGB(79, 70, 229),           -- Purple Glow
+-- Cheat States
+local cheats = {
+    aimbot = false,
+    esp = false,
+    fly = false,
+    noclip = false,
+    speed = false,
+    fullbright = false,
+    infiniteJump = false,
+    walkSpeed = 16,
+    jumpPower = 50,
+    flySpeed = 50
 }
 
 -- Notification System
-local function createNotification(title, message)
+local function notify(title, text)
     StarterGui:SetCore("SendNotification", {
         Title = title,
-        Text = message,
+        Text = text,
         Duration = 3
     })
 end
 
--- ESP Admin Functions
-local function createAdminESP(targetPlayer)
-    if adminESP[targetPlayer] then return end
+-- ESP System
+local espObjects = {}
+local function createESP(target)
+    if not target.Character or not target.Character:FindFirstChild("HumanoidRootPart") then return end
     
-    local character = targetPlayer.Character
-    if not character then return end
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESP_" .. target.Name
+    billboardGui.Adornee = target.Character.HumanoidRootPart
+    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.Parent = target.Character.HumanoidRootPart
     
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return end
-    
-    -- Create RGB cycling ESP
-    local espGui = Instance.new("BillboardGui")
-    espGui.Name = "AdminESP"
-    espGui.Adornee = humanoidRootPart
-    espGui.Size = UDim2.new(0, 200, 0, 50)
-    espGui.StudsOffset = Vector3.new(0, 3, 0)
-    espGui.Parent = workspace
-    
-    local espFrame = Instance.new("Frame")
-    espFrame.Size = UDim2.new(1, 0, 1, 0)
-    espFrame.BackgroundTransparency = 0.3
-    espFrame.BorderSizePixel = 2
-    espFrame.Parent = espGui
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundTransparency = 0.3
+    frame.BackgroundColor3 = COLORS.PRIMARY
+    frame.BorderSizePixel = 0
+    frame.Parent = billboardGui
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = espFrame
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = frame
     
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Size = UDim2.new(1, 0, 0.6, 0)
     nameLabel.BackgroundTransparency = 1
-    nameLabel.Text = targetPlayer.Name .. " [ADMIN]"
-    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLabel.Text = target.Name
+    nameLabel.TextColor3 = COLORS.TEXT
     nameLabel.TextScaled = true
     nameLabel.Font = Enum.Font.GothamBold
-    nameLabel.Parent = espFrame
+    nameLabel.Parent = frame
     
     local distanceLabel = Instance.new("TextLabel")
     distanceLabel.Size = UDim2.new(1, 0, 0.4, 0)
     distanceLabel.Position = UDim2.new(0, 0, 0.6, 0)
     distanceLabel.BackgroundTransparency = 1
     distanceLabel.Text = "0m"
-    distanceLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    distanceLabel.TextColor3 = COLORS.TEXT_DIM
     distanceLabel.TextScaled = true
     distanceLabel.Font = Enum.Font.Gotham
-    distanceLabel.Parent = espFrame
+    distanceLabel.Parent = frame
     
-    adminESP[targetPlayer] = {gui = espGui, frame = espFrame, distance = distanceLabel}
+    espObjects[target] = {gui = billboardGui, distance = distanceLabel}
     
-    -- RGB Animation
+    -- Update distance
     spawn(function()
-        local hue = 0
-        while adminESP[targetPlayer] and espFrame.Parent do
-            hue = (hue + 0.01) % 1
-            local color = Color3.fromHSV(hue, 1, 1)
-            espFrame.BackgroundColor3 = color
-            espFrame.BorderColor3 = color
+        while espObjects[target] and target.Character and target.Character:FindFirstChild("HumanoidRootPart") do
             wait(0.1)
-        end
-    end)
-    
-    -- Distance Update
-    spawn(function()
-        while adminESP[targetPlayer] and character.Parent and humanoidRootPart.Parent do
-            local distance = (player.Character.HumanoidRootPart.Position - humanoidRootPart.Position).Magnitude
-            distanceLabel.Text = math.floor(distance) .. "m"
-            wait(0.5)
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local distance = (player.Character.HumanoidRootPart.Position - target.Character.HumanoidRootPart.Position).Magnitude
+                distanceLabel.Text = math.floor(distance) .. "m"
+            end
         end
     end)
 end
 
-local function removeAdminESP(targetPlayer)
-    if adminESP[targetPlayer] then
-        adminESP[targetPlayer].gui:Destroy()
-        adminESP[targetPlayer] = nil
+local function removeESP(target)
+    if espObjects[target] then
+        espObjects[target].gui:Destroy()
+        espObjects[target] = nil
     end
 end
 
-local function checkForAdmins()
-    for _, targetPlayer in pairs(Players:GetPlayers()) do
-        if targetPlayer ~= player then
-            -- Check if player is admin (you can customize this logic)
-            local isAdmin = targetPlayer:GetRankInGroup(0) >= 100 or 
-                           targetPlayer.Name:lower():find("admin") or
-                           targetPlayer.Name:lower():find("mod") or
-                           targetPlayer.Name:lower():find("owner")
-            
-            if isAdmin and not adminPlayers[targetPlayer] then
-                adminPlayers[targetPlayer] = true
-                if cheatStates.espAdmin then
-                    createAdminESP(targetPlayer)
-                end
-            elseif not isAdmin and adminPlayers[targetPlayer] then
-                adminPlayers[targetPlayer] = nil
-                removeAdminESP(targetPlayer)
+local function toggleESP()
+    if cheats.esp then
+        for _, target in pairs(Players:GetPlayers()) do
+            if target ~= player then
+                createESP(target)
             end
+        end
+    else
+        for target, _ in pairs(espObjects) do
+            removeESP(target)
         end
     end
 end
 
 -- Movement Functions
+local flyConnection = nil
 local function toggleFly()
-    if not cheatStates.fly then return end
-    
-    local character = player.Character
-    if not character then return end
-    
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return end
-    
-    local bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-    bodyVelocity.Parent = humanoidRootPart
-    
-    local connection
-    connection = RunService.Heartbeat:Connect(function()
-        if not cheatStates.fly then
-            bodyVelocity:Destroy()
-            connection:Disconnect()
-            return
-        end
+    if cheats.fly then
+        local character = player.Character
+        if not character then return end
         
-        local camera = workspace.CurrentCamera
-        local moveVector = Vector3.new(0, 0, 0)
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if not humanoidRootPart then return end
         
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            moveVector = moveVector + camera.CFrame.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            moveVector = moveVector - camera.CFrame.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-            moveVector = moveVector - camera.CFrame.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-            moveVector = moveVector + camera.CFrame.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            moveVector = moveVector + Vector3.new(0, 1, 0)
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-            moveVector = moveVector - Vector3.new(0, 1, 0)
-        end
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        bodyVelocity.Parent = humanoidRootPart
         
-        bodyVelocity.Velocity = moveVector * 50
-    end)
-end
-
-local function toggleNoclip()
-    if not cheatStates.noclip then return end
-    
-    local character = player.Character
-    if not character then return end
-    
-    local connection
-    connection = RunService.Stepped:Connect(function()
-        if not cheatStates.noclip then
-            connection:Disconnect()
-            return
-        end
-        
-        for _, part in pairs(character:GetChildren()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
+        flyConnection = RunService.Heartbeat:Connect(function()
+            if not cheats.fly then
+                bodyVelocity:Destroy()
+                flyConnection:Disconnect()
+                return
             end
+            
+            local moveVector = Vector3.new(0, 0, 0)
+            
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                moveVector = moveVector + (workspace.CurrentCamera.CFrame.LookVector * cheats.flySpeed)
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                moveVector = moveVector - (workspace.CurrentCamera.CFrame.LookVector * cheats.flySpeed)
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                moveVector = moveVector - (workspace.CurrentCamera.CFrame.RightVector * cheats.flySpeed)
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                moveVector = moveVector + (workspace.CurrentCamera.CFrame.RightVector * cheats.flySpeed)
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                moveVector = moveVector + Vector3.new(0, cheats.flySpeed, 0)
+            end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+                moveVector = moveVector - Vector3.new(0, cheats.flySpeed, 0)
+            end
+            
+            bodyVelocity.Velocity = moveVector
+        end)
+    else
+        if flyConnection then
+            flyConnection:Disconnect()
         end
-    end)
+    end
 end
 
-local function toggleSpeed()
-    if not cheatStates.speedHack then return end
-    
+local noclipConnection = nil
+local function toggleNoclip()
+    if cheats.noclip then
+        noclipConnection = RunService.Stepped:Connect(function()
+            if not cheats.noclip then
+                noclipConnection:Disconnect()
+                return
+            end
+            
+            local character = player.Character
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        if noclipConnection then
+            noclipConnection:Disconnect()
+        end
+    end
+end
+
+local function updateWalkSpeed()
     local character = player.Character
-    if not character then return end
-    
-    local humanoid = character:FindFirstChild("Humanoid")
-    if not humanoid then return end
-    
-    humanoid.WalkSpeed = cheatStates.speedHack and 100 or 16
+    if character and character:FindFirstChild("Humanoid") then
+        character.Humanoid.WalkSpeed = cheats.speed and cheats.walkSpeed or 16
+    end
 end
 
--- Visual Functions
+local function updateJumpPower()
+    local character = player.Character
+    if character and character:FindFirstChild("Humanoid") then
+        character.Humanoid.JumpPower = cheats.infiniteJump and cheats.jumpPower or 50
+    end
+end
+
 local function toggleFullbright()
-    if cheatStates.fullbright then
+    if cheats.fullbright then
         Lighting.Brightness = 2
         Lighting.ClockTime = 14
         Lighting.FogEnd = 100000
@@ -287,1015 +245,418 @@ local function toggleFullbright()
     end
 end
 
--- UI Components
-local function createFrame(parent, size, position, color, radius)
-    local frame = Instance.new("Frame")
-    frame.Size = size
-    frame.Position = position
-    frame.BackgroundColor3 = color
-    frame.BorderSizePixel = 0
-    frame.Parent = parent
-    
-    if radius then
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, radius)
-        corner.Parent = frame
-    end
-    
-    return frame
-end
-
-local function createButton(parent, size, position, text, callback)
-    local button = Instance.new("TextButton")
-    button.Size = size
-    button.Position = position
-    button.BackgroundColor3 = COLORS.PRIMARY
-    button.Text = text
-    button.TextColor3 = COLORS.TEXT
-    button.TextSize = 14
-    button.Font = Enum.Font.GothamBold
-    button.BorderSizePixel = 0
-    button.Parent = parent
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = button
-    
-    -- Enhanced hover effects
-    button.MouseEnter:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {
-            BackgroundColor3 = COLORS.HOVER,
-            Size = UDim2.new(size.X.Scale, size.X.Offset + 4, size.Y.Scale, size.Y.Offset + 2)
-        }):Play()
-    end)
-    
-    button.MouseLeave:Connect(function()
-        TweenService:Create(button, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {
-            BackgroundColor3 = COLORS.PRIMARY,
-            Size = size
-        }):Play()
-    end)
-    
-    if callback then
-        button.MouseButton1Click:Connect(callback)
-    end
-    
-    return button
-end
-
-local function createToggle(parent, position, text, callback)
-    local toggleFrame = createFrame(parent, UDim2.new(1, -20, 0, 40), position, COLORS.CARD, 6)
-    
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -60, 1, 0)
-    label.Position = UDim2.new(0, 10, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = COLORS.TEXT
-    label.TextSize = 14
-    label.Font = Enum.Font.Gotham
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = toggleFrame
-    
-    local toggleBg = createFrame(toggleFrame, UDim2.new(0, 40, 0, 20), UDim2.new(1, -50, 0.5, -10), COLORS.BORDER, 10)
-    local toggleCircle = createFrame(toggleBg, UDim2.new(0, 16, 0, 16), UDim2.new(0, 2, 0, 2), COLORS.TEXT_SECONDARY, 8)
-    
-    local isToggled = false
-    
-    local clickBtn = Instance.new("TextButton")
-    clickBtn.Size = UDim2.new(1, 0, 1, 0)
-    clickBtn.BackgroundTransparency = 1
-    clickBtn.Text = ""
-    clickBtn.Parent = toggleFrame
-    
-    clickBtn.MouseButton1Click:Connect(function()
-        isToggled = not isToggled
-        
-        if isToggled then
-            TweenService:Create(toggleBg, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.PRIMARY}):Play()
-            TweenService:Create(toggleCircle, TweenInfo.new(0.2), {
-                Position = UDim2.new(1, -18, 0, 2),
-                BackgroundColor3 = COLORS.TEXT
-            }):Play()
-        else
-            TweenService:Create(toggleBg, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.BORDER}):Play()
-            TweenService:Create(toggleCircle, TweenInfo.new(0.2), {
-                Position = UDim2.new(0, 2, 0, 2),
-                BackgroundColor3 = COLORS.TEXT_SECONDARY
-            }):Play()
-        end
-        
-        if callback then
-            callback(isToggled)
-        end
-    end)
-    
-    return toggleFrame
-end
-
--- Tab Configuration
-local TABS = {
-    {name = "Combat", icon = "rbxassetid://75518636799674"},
-    {name = "Movement", icon = "rbxassetid://102270380454487"},
-    {name = "Visuals", icon = "rbxassetid://77345366725078"},
-    {name = "Car List", icon = "rbxassetid://111612200954692"},
-    {name = "Roleplay", icon = "rbxassetid://111612200954692"},
-    {name = "Blox Fruits", icon = "rbxassetid://111612200954692"},
-    {name = "Player List", icon = "rbxassetid://122767272714113"},
-    {name = "Chat", icon = "rbxassetid://118260954915004"}
-}
-
--- Main UI Creation
-local function createMainUI()
-    -- Clean up existing UI
-    local existing = playerGui:FindFirstChild("SPWARECheatUI")
-    if existing then
-        existing:Destroy()
-    end
-    
+-- UI Creation
+local function createUI()
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "SPWARECheatUI"
+    screenGui.Name = "SPWARE_V2"
     screenGui.ResetOnSpawn = false
     screenGui.Parent = playerGui
     
-    -- Main Container with Shadow Effect
-    mainFrame = createFrame(screenGui, UDim2.new(0, 950, 0, 650), UDim2.new(0.5, -475, 0.5, -325), COLORS.BACKGROUND, 16)
+    -- Main Frame
+    mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0, 600, 0, 400)
+    mainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    mainFrame.BackgroundColor3 = COLORS.BACKGROUND
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
     
-    -- Add shadow/glow effect
-    local shadow = Instance.new("ImageLabel")
-    shadow.Size = UDim2.new(1, 40, 1, 40)
-    shadow.Position = UDim2.new(0, -20, 0, -20)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-    shadow.ImageColor3 = COLORS.GLOW
-    shadow.ImageTransparency = 0.7
-    shadow.ZIndex = -1
-    shadow.Parent = mainFrame
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 12)
+    mainCorner.Parent = mainFrame
     
-    -- Header with Gradient Effect
-    local header = createFrame(mainFrame, UDim2.new(1, 0, 0, 70), UDim2.new(0, 0, 0, 0), COLORS.SURFACE, 16)
-    
-    -- Header gradient overlay
-    local headerGradient = Instance.new("Frame")
-    headerGradient.Size = UDim2.new(1, 0, 1, 0)
-    headerGradient.BackgroundColor3 = COLORS.PRIMARY
-    headerGradient.BackgroundTransparency = 0.9
-    headerGradient.BorderSizePixel = 0
-    headerGradient.Parent = header
+    -- Header
+    local header = Instance.new("Frame")
+    header.Name = "Header"
+    header.Size = UDim2.new(1, 0, 0, 50)
+    header.BackgroundColor3 = COLORS.PRIMARY
+    header.BorderSizePixel = 0
+    header.Parent = mainFrame
     
     local headerCorner = Instance.new("UICorner")
-    headerCorner.CornerRadius = UDim.new(0, 16)
-    headerCorner.Parent = headerGradient
+    headerCorner.CornerRadius = UDim.new(0, 12)
+    headerCorner.Parent = header
     
-    -- User Avatar
-    local userImage = Instance.new("ImageLabel")
-    userImage.Size = UDim2.new(0, 40, 0, 40)
-    userImage.Position = UDim2.new(0, 15, 0, 10)
-    userImage.BackgroundTransparency = 1
-    userImage.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=420&height=420&format=png"
-    userImage.Parent = header
+    local headerBottom = Instance.new("Frame")
+    headerBottom.Size = UDim2.new(1, 0, 0, 12)
+    headerBottom.Position = UDim2.new(0, 0, 1, -12)
+    headerBottom.BackgroundColor3 = COLORS.PRIMARY
+    headerBottom.BorderSizePixel = 0
+    headerBottom.Parent = header
     
-    local userCorner = Instance.new("UICorner")
-    userCorner.CornerRadius = UDim.new(0, 20)
-    userCorner.Parent = userImage
-    
-    -- SPWARE Title
     local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(0, 150, 0, 30)
-    title.Position = UDim2.new(0, 65, 0, 15)
+    title.Size = UDim2.new(1, -20, 1, 0)
+    title.Position = UDim2.new(0, 20, 0, 0)
     title.BackgroundTransparency = 1
-    title.Text = "SPWARE"
-    title.TextColor3 = COLORS.ACCENT
-    title.TextSize = 20
+    title.Text = "🔥 SPWARE V2"
+    title.TextColor3 = COLORS.TEXT
+    title.TextSize = 18
     title.Font = Enum.Font.GothamBold
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = header
     
-    -- User Name
-    local userName = Instance.new("TextLabel")
-    userName.Size = UDim2.new(0, 150, 0, 15)
-    userName.Position = UDim2.new(0, 220, 0, 20)
-    userName.BackgroundTransparency = 1
-    userName.Text = "👋 " .. player.Name
-    userName.TextColor3 = COLORS.TEXT_SECONDARY
-    userName.TextSize = 12
-    userName.Font = Enum.Font.Gotham
-    userName.TextXAlignment = Enum.TextXAlignment.Left
-    userName.Parent = header
+    -- Tabs
+    local tabsFrame = Instance.new("Frame")
+    tabsFrame.Name = "TabsFrame"
+    tabsFrame.Size = UDim2.new(0, 150, 1, -50)
+    tabsFrame.Position = UDim2.new(0, 0, 0, 50)
+    tabsFrame.BackgroundColor3 = COLORS.SURFACE
+    tabsFrame.BorderSizePixel = 0
+    tabsFrame.Parent = mainFrame
     
-    -- Removed close button as requested
+    local tabsCorner = Instance.new("UICorner")
+    tabsCorner.CornerRadius = UDim.new(0, 8)
+    tabsCorner.Parent = tabsFrame
     
-    -- Sidebar with enhanced styling
-    local sidebar = createFrame(mainFrame, UDim2.new(0, 220, 1, -80), UDim2.new(0, 10, 0, 75), COLORS.CARD, 12)
+    -- Content
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Name = "ContentFrame"
+    contentFrame.Size = UDim2.new(1, -160, 1, -60)
+    contentFrame.Position = UDim2.new(0, 160, 0, 60)
+    contentFrame.BackgroundColor3 = COLORS.SURFACE
+    contentFrame.BorderSizePixel = 0
+    contentFrame.Parent = mainFrame
     
-    -- Sidebar border accent
-    local sidebarBorder = Instance.new("Frame")
-    sidebarBorder.Size = UDim2.new(0, 2, 1, 0)
-    sidebarBorder.Position = UDim2.new(1, -2, 0, 0)
-    sidebarBorder.BackgroundColor3 = COLORS.PRIMARY
-    sidebarBorder.BorderSizePixel = 0
-    sidebarBorder.Parent = sidebar
+    local contentCorner = Instance.new("UICorner")
+    contentCorner.CornerRadius = UDim.new(0, 8)
+    contentCorner.Parent = contentFrame
     
+    -- Scroll Frame
+    local scrollFrame = Instance.new("ScrollingFrame")
+    scrollFrame.Size = UDim2.new(1, -20, 1, -20)
+    scrollFrame.Position = UDim2.new(0, 10, 0, 10)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.BorderSizePixel = 0
+    scrollFrame.ScrollBarThickness = 6
+    scrollFrame.ScrollBarImageColor3 = COLORS.PRIMARY
+    scrollFrame.Parent = contentFrame
+    
+    -- Tab Buttons
+    local tabs = {"Combat", "Movement", "Visual", "Player", "Misc"}
     local tabButtons = {}
     
-    for i, tab in pairs(TABS) do
-        local tabBtn = createFrame(sidebar, UDim2.new(1, -15, 0, 55), UDim2.new(0, 8, 0, 8 + (i-1) * 60), COLORS.SURFACE, 8)
+    for i, tabName in ipairs(tabs) do
+        local tabButton = Instance.new("TextButton")
+        tabButton.Size = UDim2.new(1, -10, 0, 40)
+        tabButton.Position = UDim2.new(0, 5, 0, (i-1) * 45 + 10)
+        tabButton.BackgroundColor3 = currentTab == tabName and COLORS.PRIMARY or COLORS.BORDER
+        tabButton.Text = tabName
+        tabButton.TextColor3 = COLORS.TEXT
+        tabButton.TextSize = 14
+        tabButton.Font = Enum.Font.GothamBold
+        tabButton.BorderSizePixel = 0
+        tabButton.Parent = tabsFrame
         
-        -- Tab hover effect
-        local tabHover = Instance.new("TextButton")
-        tabHover.Size = UDim2.new(1, 0, 1, 0)
-        tabHover.BackgroundTransparency = 1
-        tabHover.Text = ""
-        tabHover.Parent = tabBtn
+        local tabCorner = Instance.new("UICorner")
+        tabCorner.CornerRadius = UDim.new(0, 6)
+        tabCorner.Parent = tabButton
         
-        tabHover.MouseEnter:Connect(function()
-            if currentTab ~= tab.name then
-                TweenService:Create(tabBtn, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.BORDER}):Play()
+        tabButton.MouseButton1Click:Connect(function()
+            currentTab = tabName
+            for j, btn in ipairs(tabButtons) do
+                btn.BackgroundColor3 = j == i and COLORS.PRIMARY or COLORS.BORDER
             end
+            updateContent()
         end)
         
-        tabHover.MouseLeave:Connect(function()
-            if currentTab ~= tab.name then
-                TweenService:Create(tabBtn, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.SURFACE}):Play()
-            end
-        end)
-        
-        -- Custom icon only
-        local tabIcon = Instance.new("ImageLabel")
-        tabIcon.Size = UDim2.new(0, 28, 0, 28)
-        tabIcon.Position = UDim2.new(0, 11, 0.5, -14)
-        tabIcon.BackgroundTransparency = 1
-        tabIcon.Image = tab.icon
-        tabIcon.ImageColor3 = currentTab == tab.name and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
-        tabIcon.Parent = tabBtn
-        
-        local tabLabel = Instance.new("TextLabel")
-        tabLabel.Size = UDim2.new(1, -55, 1, 0)
-        tabLabel.Position = UDim2.new(0, 45, 0, 0)
-        tabLabel.BackgroundTransparency = 1
-        tabLabel.Text = tab.name
-        tabLabel.TextColor3 = currentTab == tab.name and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
-        tabLabel.TextSize = 15
-        tabLabel.Font = Enum.Font.GothamBold
-        tabLabel.TextXAlignment = Enum.TextXAlignment.Left
-        tabLabel.Parent = tabBtn
-        
-        local tabClickBtn = Instance.new("TextButton")
-        tabClickBtn.Size = UDim2.new(1, 0, 1, 0)
-        tabClickBtn.BackgroundTransparency = 1
-        tabClickBtn.Text = ""
-        tabClickBtn.Parent = tabBtn
-        
-        tabClickBtn.MouseButton1Click:Connect(function()
-            if currentTab ~= tab.name then
-                currentTab = tab.name
-                currentSubTab = nil -- Reset sub-tab when switching main tabs
-                updateTabContent()
-                
-                -- Update tab colors immediately
-                for j, otherTabBtn in pairs(tabButtons) do
-                    local otherIcon = otherTabBtn:FindFirstChild("ImageLabel")
-                    local otherLabel = otherTabBtn:FindFirstChild("TextLabel")
-                    
-                    if otherIcon then
-                        otherIcon.ImageColor3 = (j == i) and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
-                    end
-                    if otherLabel then
-                        otherLabel.TextColor3 = (j == i) and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
-                    end
-                    
-                    -- Update background color
-                    otherTabBtn.BackgroundColor3 = (j == i) and COLORS.BORDER or COLORS.SURFACE
-                end
-            end
-        end)
-        
-        tabButtons[i] = tabBtn
+        tabButtons[i] = tabButton
     end
     
-    -- Sub-tab system
-    local function createSubTabs(parent, tabs, callback)
-        local subTabFrame = Instance.new("Frame")
-        subTabFrame.Size = UDim2.new(1, 0, 0, 50)
-        subTabFrame.BackgroundColor3 = COLORS.SURFACE
-        subTabFrame.BorderSizePixel = 0
-        subTabFrame.Parent = parent
+    -- Toggle Function
+    local function createToggle(parent, position, text, callback)
+        local toggleFrame = Instance.new("Frame")
+        toggleFrame.Size = UDim2.new(1, -20, 0, 40)
+        toggleFrame.Position = position
+        toggleFrame.BackgroundColor3 = COLORS.BORDER
+        toggleFrame.BorderSizePixel = 0
+        toggleFrame.Parent = parent
         
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 8)
-        corner.Parent = subTabFrame
+        local toggleCorner = Instance.new("UICorner")
+        toggleCorner.CornerRadius = UDim.new(0, 6)
+        toggleCorner.Parent = toggleFrame
         
-        local buttonWidth = 1 / #tabs
-        for i, tabName in ipairs(tabs) do
-            local button = Instance.new("TextButton")
-            button.Size = UDim2.new(buttonWidth, -5, 0, 30)
-            button.Position = UDim2.new((i-1) * buttonWidth, 2.5, 0, 10)
-            button.BackgroundColor3 = currentSubTab == tabName and COLORS.ACCENT or COLORS.CARD
-            button.Text = tabName
-            button.TextColor3 = COLORS.TEXT
-            button.TextSize = 12
-            button.Font = Enum.Font.Gotham
-            button.BorderSizePixel = 0
-            button.Parent = subTabFrame
-            
-            local btnCorner = Instance.new("UICorner")
-            btnCorner.CornerRadius = UDim.new(0, 6)
-            btnCorner.Parent = button
-            
-            button.MouseButton1Click:Connect(function()
-                currentSubTab = tabName
-                callback()
-                
-                -- Update sub-tab colors
-                for _, child in pairs(subTabFrame:GetChildren()) do
-                    if child:IsA("TextButton") then
-                        child.BackgroundColor3 = (child.Text == tabName) and COLORS.ACCENT or COLORS.CARD
-                    end
-                end
-            end)
-            
-            -- Hover effect
-            button.MouseEnter:Connect(function()
-                if currentSubTab ~= tabName then
-                    TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.HOVER}):Play()
-                end
-            end)
-            
-            button.MouseLeave:Connect(function()
-                if currentSubTab ~= tabName then
-                    TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = COLORS.CARD}):Play()
-                end
-            end)
-        end
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -60, 1, 0)
+        label.Position = UDim2.new(0, 10, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text
+        label.TextColor3 = COLORS.TEXT
+        label.TextSize = 14
+        label.Font = Enum.Font.Gotham
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = toggleFrame
         
-        return subTabFrame
+        local toggleButton = Instance.new("TextButton")
+        toggleButton.Size = UDim2.new(0, 40, 0, 20)
+        toggleButton.Position = UDim2.new(1, -50, 0.5, -10)
+        toggleButton.BackgroundColor3 = COLORS.ERROR
+        toggleButton.Text = "OFF"
+        toggleButton.TextColor3 = COLORS.TEXT
+        toggleButton.TextSize = 10
+        toggleButton.Font = Enum.Font.GothamBold
+        toggleButton.BorderSizePixel = 0
+        toggleButton.Parent = toggleFrame
+        
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 10)
+        buttonCorner.Parent = toggleButton
+        
+        local isToggled = false
+        toggleButton.MouseButton1Click:Connect(function()
+            isToggled = not isToggled
+            toggleButton.BackgroundColor3 = isToggled and COLORS.SUCCESS or COLORS.ERROR
+            toggleButton.Text = isToggled and "ON" or "OFF"
+            callback(isToggled)
+        end)
+        
+        return toggleFrame
     end
-
-    -- Content Area with enhanced styling
-    local contentFrame = createFrame(mainFrame, UDim2.new(1, -250, 1, -90), UDim2.new(0, 240, 0, 80), COLORS.CARD, 12)
     
-    -- Update Function
-    local function updateTabContent()
-        -- Clear existing content
-        for _, child in pairs(contentFrame:GetChildren()) do
-            if child:IsA("ScrollingFrame") or child:IsA("Frame") then
+    -- Slider Function
+    local function createSlider(parent, position, text, min, max, default, callback)
+        local sliderFrame = Instance.new("Frame")
+        sliderFrame.Size = UDim2.new(1, -20, 0, 50)
+        sliderFrame.Position = position
+        sliderFrame.BackgroundColor3 = COLORS.BORDER
+        sliderFrame.BorderSizePixel = 0
+        sliderFrame.Parent = parent
+        
+        local sliderCorner = Instance.new("UICorner")
+        sliderCorner.CornerRadius = UDim.new(0, 6)
+        sliderCorner.Parent = sliderFrame
+        
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -20, 0, 25)
+        label.Position = UDim2.new(0, 10, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = text .. ": " .. default
+        label.TextColor3 = COLORS.TEXT
+        label.TextSize = 14
+        label.Font = Enum.Font.Gotham
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = sliderFrame
+        
+        local sliderBar = Instance.new("Frame")
+        sliderBar.Size = UDim2.new(1, -20, 0, 4)
+        sliderBar.Position = UDim2.new(0, 10, 0, 30)
+        sliderBar.BackgroundColor3 = COLORS.BACKGROUND
+        sliderBar.BorderSizePixel = 0
+        sliderBar.Parent = sliderFrame
+        
+        local barCorner = Instance.new("UICorner")
+        barCorner.CornerRadius = UDim.new(0, 2)
+        barCorner.Parent = sliderBar
+        
+        local sliderFill = Instance.new("Frame")
+        sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+        sliderFill.BackgroundColor3 = COLORS.PRIMARY
+        sliderFill.BorderSizePixel = 0
+        sliderFill.Parent = sliderBar
+        
+        local fillCorner = Instance.new("UICorner")
+        fillCorner.CornerRadius = UDim.new(0, 2)
+        fillCorner.Parent = sliderFill
+        
+        local sliderButton = Instance.new("TextButton")
+        sliderButton.Size = UDim2.new(0, 16, 0, 16)
+        sliderButton.Position = UDim2.new((default - min) / (max - min), -8, 0.5, -8)
+        sliderButton.BackgroundColor3 = COLORS.TEXT
+        sliderButton.Text = ""
+        sliderButton.BorderSizePixel = 0
+        sliderButton.Parent = sliderBar
+        
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 8)
+        buttonCorner.Parent = sliderButton
+        
+        local dragging = false
+        sliderButton.MouseButton1Down:Connect(function()
+            dragging = true
+        end)
+        
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local relativePos = math.clamp((mouse.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
+                local value = math.floor(min + (max - min) * relativePos)
+                
+                sliderFill.Size = UDim2.new(relativePos, 0, 1, 0)
+                sliderButton.Position = UDim2.new(relativePos, -8, 0.5, -8)
+                label.Text = text .. ": " .. value
+                
+                callback(value)
+            end
+        end)
+        
+        return sliderFrame
+    end
+    
+    -- Update Content Function
+    function updateContent()
+        for _, child in pairs(scrollFrame:GetChildren()) do
+            if child:IsA("Frame") then
                 child:Destroy()
             end
         end
         
-        local yOffset = 0
-        local subTabFrame = nil
-        
-        -- Create sub-tabs based on current tab
-        if currentTab == "Combat" then
-            if not currentSubTab then currentSubTab = "Aimbot" end
-            subTabFrame = createSubTabs(contentFrame, {"Aimbot", "Weapons", "Misc"}, updateTabContent)
-            yOffset = 60
-        elseif currentTab == "Movement" then
-            if not currentSubTab then currentSubTab = "Speed" end
-            subTabFrame = createSubTabs(contentFrame, {"Speed", "Flight", "Teleport"}, updateTabContent)
-            yOffset = 60
-        elseif currentTab == "Visuals" then
-            if not currentSubTab then currentSubTab = "ESP" end
-            subTabFrame = createSubTabs(contentFrame, {"ESP", "Chams", "World"}, updateTabContent)
-            yOffset = 60
-        elseif currentTab == "Car List" then
-            if not currentSubTab then currentSubTab = "Spawn" end
-            subTabFrame = createSubTabs(contentFrame, {"Spawn", "Actions", "Settings"}, updateTabContent)
-            yOffset = 60
-        elseif currentTab == "Roleplay" then
-            if not currentSubTab then currentSubTab = "Spawn" end
-            subTabFrame = createSubTabs(contentFrame, {"Spawn", "Character", "Utilities"}, updateTabContent)
-            yOffset = 60
-        elseif currentTab == "Blox Fruits" then
-            if not currentSubTab then currentSubTab = "Farm" end
-            subTabFrame = createSubTabs(contentFrame, {"Farm", "Combat", "Teleport"}, updateTabContent)
-            yOffset = 60
-        end
-        
-        local scrollFrame = Instance.new("ScrollingFrame")
-        scrollFrame.Size = UDim2.new(1, -20, 1, -20 - yOffset)
-        scrollFrame.Position = UDim2.new(0, 10, 0, 10 + yOffset)
-        scrollFrame.BackgroundTransparency = 1
-        scrollFrame.BorderSizePixel = 0
-        scrollFrame.ScrollBarThickness = 8
-        scrollFrame.ScrollBarImageColor3 = COLORS.ACCENT
-        scrollFrame.Parent = contentFrame
-        
-        local yPos = 10
+        local yPos = 0
         
         if currentTab == "Combat" then
-            if currentSubTab == "Aimbot" then
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Aimbot", function(state)
-                    cheatStates.aimbot = state
-                    createNotification("Aimbot", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "FOV Circle", function(state)
-                    cheatStates.aimbotFOV = state
-                    createNotification("FOV", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Smooth Aim", function(state)
-                    cheatStates.aimbotSmooth = state
-                    createNotification("Smooth Aim", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Silent Aim", function(state)
-                    cheatStates.silentAim = state
-                    if state then
-                        -- Silent aim logic
-                        spawn(function()
-                            while cheatStates.silentAim do
-                                wait(0.1)
-                                -- Add silent aim functionality here
-                            end
-                        end)
-                    end
-                    createNotification("Silent Aim", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Ragebot", function(state)
-                    cheatStates.ragebot = state
-                    if state then
-                        -- Ragebot logic
-                        spawn(function()
-                            while cheatStates.ragebot do
-                                wait(0.05)
-                                -- Add ragebot functionality here
-                            end
-                        end)
-                    end
-                    createNotification("Ragebot", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-            elseif currentSubTab == "Weapons" then
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "TriggerBot", function(state)
-                    cheatStates.triggerBot = state
-                    createNotification("TriggerBot", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "No Recoil", function(state)
-                    cheatStates.noRecoil = state
-                    createNotification("No Recoil", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "No Spread", function(state)
-                    createNotification("No Spread", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Infinite Ammo", function(state)
-                    cheatStates.infiniteAmmo = state
-                    createNotification("Infinite Ammo", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-            elseif currentSubTab == "Misc" then
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Hitbox Expander", function(state)
-                    cheatStates.hitboxExpander = state
-                    createNotification("Hitbox Expander", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "One Shot Kill", function(state)
-                    cheatStates.oneShot = state
-                    createNotification("One Shot Kill", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-            end
+            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Aimbot", function(state)
+                cheats.aimbot = state
+                notify("Aimbot", state and "Enabled" or "Disabled")
+            end)
+            yPos = yPos + 50
             
         elseif currentTab == "Movement" then
-            if currentSubTab == "Speed" then
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Speed Hack", function(state)
-                    cheatStates.speedHack = state
-                    toggleSpeed()
-                    createNotification("Speed Hack", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Bunny Hop", function(state)
-                    cheatStates.bunnyHop = state
-                    createNotification("Bunny Hop", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Strafe Hack", function(state)
-                    cheatStates.strafeHack = state
-                    createNotification("Strafe Hack", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-            elseif currentSubTab == "Flight" then
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Fly", function(state)
-                    cheatStates.fly = state
-                    if state then toggleFly() end
-                    createNotification("Fly", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Noclip", function(state)
-                    cheatStates.noclip = state
-                    if state then toggleNoclip() end
-                    createNotification("Noclip", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-            elseif currentSubTab == "Teleport" then
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Teleport Kill", function(state)
-                    cheatStates.teleportKill = state
-                    createNotification("Teleport Kill", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Teleport to Spawn", function()
-                    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                        player.Character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0)
-                        createNotification("Teleport", "Teleported to spawn!")
-                    end
-                end)
-                yPos = yPos + 40
-            end
-            
-        elseif currentTab == "Visuals" then
-            if currentSubTab == "ESP" then
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Players", function(state)
-                    cheatStates.espPlayers = state
-                    createNotification("ESP Players", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Box", function(state)
-                    cheatStates.espBox = state
-                    createNotification("ESP Box", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Skeleton", function(state)
-                    cheatStates.espSkeleton = state
-                    createNotification("ESP Skeleton", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Name", function(state)
-                    cheatStates.espName = state
-                    createNotification("ESP Name", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Distance", function(state)
-                    cheatStates.espDistance = state
-                    createNotification("ESP Distance", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Health", function(state)
-                    cheatStates.espHealth = state
-                    createNotification("ESP Health", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Armor", function(state)
-                    cheatStates.espArmor = state
-                    createNotification("ESP Armor", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Admin", function(state)
-                    cheatStates.espAdmin = state
-                    if state then
-                        checkForAdmins()
-                        for targetPlayer, _ in pairs(adminPlayers) do
-                            createAdminESP(targetPlayer)
-                        end
-                    else
-                        for targetPlayer, _ in pairs(adminESP) do
-                            removeAdminESP(targetPlayer)
-                        end
-                    end
-                    createNotification("ESP Admin", state and "RGB ESP Ativado!" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-            elseif currentSubTab == "World" then
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Fullbright", function(state)
-                    cheatStates.fullbright = state
-                    toggleFullbright()
-                    createNotification("Fullbright", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Custom Crosshair", function(state)
-                    cheatStates.crosshair = state
-                    createNotification("Crosshair", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-            end
-            
-        elseif currentTab == "Car List" then
-            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Show Car List", function(state)
-                if state then
-                    createCarListWindow()
-                else
-                    if carListWindow then
-                        carListWindow:Destroy()
-                        carListWindow = nil
-                    end
-                end
-                createNotification("Car List", state and "Janela aberta!" or "Janela fechada!")
+            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Fly", function(state)
+                cheats.fly = state
+                toggleFly()
+                notify("Fly", state and "Enabled" or "Disabled")
             end)
-            yPos = yPos + 45
+            yPos = yPos + 50
             
-        elseif currentTab == "Player List" then
-            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Show Player List", function(state)
-                isPlayerListVisible = state
-                if state then
-                    createPlayerListWindow()
-                else
-                    if playerListWindow then
-                        playerListWindow:Destroy()
-                        playerListWindow = nil
-                    end
-                end
-                createNotification("Player List", state and "Janela aberta!" or "Janela fechada!")
+            createSlider(scrollFrame, UDim2.new(0, 0, 0, yPos), "Fly Speed", 10, 100, 50, function(value)
+                cheats.flySpeed = value
             end)
-            yPos = yPos + 45
+            yPos = yPos + 60
             
+            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Noclip", function(state)
+                cheats.noclip = state
+                toggleNoclip()
+                notify("Noclip", state and "Enabled" or "Disabled")
+            end)
+            yPos = yPos + 50
+            
+            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Speed", function(state)
+                cheats.speed = state
+                updateWalkSpeed()
+                notify("Speed", state and "Enabled" or "Disabled")
+            end)
+            yPos = yPos + 50
+            
+            createSlider(scrollFrame, UDim2.new(0, 0, 0, yPos), "Walk Speed", 16, 100, 16, function(value)
+                cheats.walkSpeed = value
+                updateWalkSpeed()
+            end)
+            yPos = yPos + 60
+            
+            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Infinite Jump", function(state)
+                cheats.infiniteJump = state
+                updateJumpPower()
+                notify("Infinite Jump", state and "Enabled" or "Disabled")
+            end)
+            yPos = yPos + 50
+            
+            createSlider(scrollFrame, UDim2.new(0, 0, 0, yPos), "Jump Power", 50, 200, 50, function(value)
+                cheats.jumpPower = value
+                updateJumpPower()
+            end)
+            yPos = yPos + 60
+            
+        elseif currentTab == "Visual" then
+            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP", function(state)
+                cheats.esp = state
+                toggleESP()
+                notify("ESP", state and "Enabled" or "Disabled")
+            end)
+            yPos = yPos + 50
+            
+            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Fullbright", function(state)
+                cheats.fullbright = state
+                toggleFullbright()
+                notify("Fullbright", state and "Enabled" or "Disabled")
+            end)
+            yPos = yPos + 50
+            
+        elseif currentTab == "Player" then
+            local playerLabel = Instance.new("TextLabel")
+            playerLabel.Size = UDim2.new(1, -20, 0, 30)
+            playerLabel.Position = UDim2.new(0, 0, 0, yPos)
+            playerLabel.BackgroundTransparency = 1
+            playerLabel.Text = "Player: " .. player.Name
+            playerLabel.TextColor3 = COLORS.TEXT
+            playerLabel.TextSize = 16
+            playerLabel.Font = Enum.Font.GothamBold
+            playerLabel.TextXAlignment = Enum.TextXAlignment.Left
+            playerLabel.Parent = scrollFrame
+            yPos = yPos + 40
+            
+        elseif currentTab == "Misc" then
+            local miscLabel = Instance.new("TextLabel")
+            miscLabel.Size = UDim2.new(1, -20, 0, 30)
+            miscLabel.Position = UDim2.new(0, 0, 0, yPos)
+            miscLabel.BackgroundTransparency = 1
+            miscLabel.Text = "Miscellaneous Features"
+            miscLabel.TextColor3 = COLORS.TEXT
+            miscLabel.TextSize = 16
+            miscLabel.Font = Enum.Font.GothamBold
+            miscLabel.TextXAlignment = Enum.TextXAlignment.Left
+            miscLabel.Parent = scrollFrame
+            yPos = yPos + 40
         end
         
         scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
     end
     
-    -- Car List Window Function
-    local function createCarListWindow()
-        if carListWindow then
-            carListWindow:Destroy()
-        end
-        
-        carListWindow = Instance.new("ScreenGui")
-        carListWindow.Name = "CarListWindow"
-        carListWindow.Parent = playerGui
-        
-        local listFrame = createFrame(carListWindow, UDim2.new(0, 400, 0, 500), UDim2.new(0.5, -200, 0.5, -250), COLORS.BACKGROUND, 12)
-        
-        -- Header
-        local header = createFrame(listFrame, UDim2.new(1, 0, 0, 50), UDim2.new(0, 0, 0, 0), COLORS.PRIMARY, 12)
-        
-        local title = Instance.new("TextLabel")
-        title.Size = UDim2.new(1, -20, 1, 0)
-        title.Position = UDim2.new(0, 10, 0, 0)
-        title.BackgroundTransparency = 1
-        title.Text = "🚗 Car List"
-        title.TextColor3 = COLORS.TEXT
-        title.TextSize = 18
-        title.Font = Enum.Font.GothamBold
-        title.TextXAlignment = Enum.TextXAlignment.Left
-        title.Parent = header
-        
-        -- Car List Scroll
-        local carScroll = Instance.new("ScrollingFrame")
-        carScroll.Size = UDim2.new(1, -20, 1, -120)
-        carScroll.Position = UDim2.new(0, 10, 0, 60)
-        carScroll.BackgroundTransparency = 1
-        carScroll.BorderSizePixel = 0
-        carScroll.ScrollBarThickness = 6
-        carScroll.ScrollBarImageColor3 = COLORS.ACCENT
-        carScroll.Parent = listFrame
-        
-        -- Car Actions
-        local actionsFrame = createFrame(listFrame, UDim2.new(1, -20, 0, 50), UDim2.new(0, 10, 1, -60), COLORS.SURFACE, 8)
-        
-        local actions = {"Spawn Sports", "Spawn Truck", "Teleport", "Explode"}
-        for i, action in ipairs(actions) do
-            createButton(actionsFrame, UDim2.new(0.25, -5, 0, 35), UDim2.new((i-1) * 0.25, 2.5, 0, 7.5), action, function()
-                createNotification("Car " .. action, action .. " executed!")
-            end)
-        end
-        
-        -- Update car list
-        local function updateCarList()
-            for _, child in pairs(carScroll:GetChildren()) do
-                if child:IsA("Frame") then
-                    child:Destroy()
-                end
-            end
-            
-            local yPos = 0
-            local cars = {"Sports Car", "Truck", "Motorcycle", "Helicopter", "Police Car", "Ambulance", "Fire Truck", "Bus"}
-            
-            for _, carName in pairs(cars) do
-                local carFrame = createFrame(carScroll, UDim2.new(1, -10, 0, 40), UDim2.new(0, 0, 0, yPos), COLORS.CARD, 6)
-                
-                local nameLabel = Instance.new("TextLabel")
-                nameLabel.Size = UDim2.new(1, -80, 1, 0)
-                nameLabel.Position = UDim2.new(0, 10, 0, 0)
-                nameLabel.BackgroundTransparency = 1
-                nameLabel.Text = "🚗 " .. carName
-                nameLabel.TextColor3 = COLORS.TEXT
-                nameLabel.TextSize = 14
-                nameLabel.Font = Enum.Font.Gotham
-                nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-                nameLabel.Parent = carFrame
-                
-                local spawnBtn = Instance.new("TextButton")
-                spawnBtn.Size = UDim2.new(0, 60, 0, 25)
-                spawnBtn.Position = UDim2.new(1, -65, 0, 7.5)
-                spawnBtn.BackgroundColor3 = COLORS.SUCCESS
-                spawnBtn.Text = "Spawn"
-                spawnBtn.TextColor3 = COLORS.TEXT
-                spawnBtn.TextSize = 10
-                spawnBtn.Font = Enum.Font.Gotham
-                spawnBtn.BorderSizePixel = 0
-                spawnBtn.Parent = carFrame
-                
-                local spawnCorner = Instance.new("UICorner")
-                spawnCorner.CornerRadius = UDim.new(0, 4)
-                spawnCorner.Parent = spawnBtn
-                
-                spawnBtn.MouseButton1Click:Connect(function()
-                    createNotification("Car Spawned", carName .. " spawned!")
-                end)
-                
-                yPos = yPos + 45
-            end
-            
-            carScroll.CanvasSize = UDim2.new(0, 0, 0, yPos)
-        end
-        
-        updateCarList()
-        
-        -- Make draggable
-        local dragging = false
-        local dragStart = nil
-        local startPos = nil
-        
-        header.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                dragStart = input.Position
-                startPos = listFrame.Position
-            end
-        end)
-        
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local delta = input.Position - dragStart
-                listFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            end
-        end)
-        
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-    end
-
-    -- Player List Window Function
-    local function createPlayerListWindow()
-        if playerListWindow then
-            playerListWindow:Destroy()
-        end
-        
-        playerListWindow = Instance.new("ScreenGui")
-        playerListWindow.Name = "PlayerListWindow"
-        playerListWindow.Parent = playerGui
-        
-        local listFrame = createFrame(playerListWindow, UDim2.new(0, 350, 0, 500), UDim2.new(0.5, -175, 0.5, -250), COLORS.BACKGROUND, 12)
-        
-        -- Header
-        local header = createFrame(listFrame, UDim2.new(1, 0, 0, 50), UDim2.new(0, 0, 0, 0), COLORS.PRIMARY, 12)
-        
-        local title = Instance.new("TextLabel")
-        title.Size = UDim2.new(1, -50, 1, 0)
-        title.Position = UDim2.new(0, 10, 0, 0)
-        title.BackgroundTransparency = 1
-        title.Text = "PLAYER LIST"
-        title.TextColor3 = COLORS.TEXT
-        title.TextSize = 18
-        title.Font = Enum.Font.GothamBold
-        title.TextXAlignment = Enum.TextXAlignment.Left
-        title.Parent = header
-        
-        local closeBtn = Instance.new("TextButton")
-        closeBtn.Size = UDim2.new(0, 40, 0, 40)
-        closeBtn.Position = UDim2.new(1, -45, 0, 5)
-        closeBtn.BackgroundColor3 = COLORS.ERROR
-        closeBtn.Text = "X"
-        closeBtn.TextColor3 = COLORS.TEXT
-        closeBtn.TextSize = 16
-        closeBtn.Font = Enum.Font.GothamBold
-        closeBtn.BorderSizePixel = 0
-        closeBtn.Parent = header
-        
-        local closeBtnCorner = Instance.new("UICorner")
-        closeBtnCorner.CornerRadius = UDim.new(0, 8)
-        closeBtnCorner.Parent = closeBtn
-        
-        closeBtn.MouseButton1Click:Connect(function()
-            isPlayerListVisible = false
-            playerListWindow:Destroy()
-            playerListWindow = nil
-        end)
-        
-        -- Player List
-        local playerScroll = Instance.new("ScrollingFrame")
-        playerScroll.Size = UDim2.new(1, -20, 1, -120)
-        playerScroll.Position = UDim2.new(0, 10, 0, 60)
-        playerScroll.BackgroundTransparency = 1
-        playerScroll.BorderSizePixel = 0
-        playerScroll.ScrollBarThickness = 8
-        playerScroll.ScrollBarImageColor3 = COLORS.ACCENT
-        playerScroll.Parent = listFrame
-        
-        -- Troll Actions Frame
-        local trollFrame = createFrame(listFrame, UDim2.new(1, -20, 0, 50), UDim2.new(0, 10, 1, -60), COLORS.SURFACE, 8)
-        
-        local trollLabel = Instance.new("TextLabel")
-        trollLabel.Size = UDim2.new(0.3, 0, 1, 0)
-        trollLabel.BackgroundTransparency = 1
-        trollLabel.Text = "Selected: None"
-        trollLabel.TextColor3 = COLORS.TEXT_SECONDARY
-        trollLabel.TextSize = 12
-        trollLabel.Font = Enum.Font.Gotham
-        trollLabel.TextXAlignment = Enum.TextXAlignment.Left
-        trollLabel.Parent = trollFrame
-        
-        local trollButtons = {"Freeze", "Fling", "Kill", "Clone"}
-        for i, action in ipairs(trollButtons) do
-            local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(0.15, -5, 0, 30)
-            btn.Position = UDim2.new(0.3 + (i-1) * 0.17, 5, 0, 10)
-            btn.BackgroundColor3 = COLORS.ACCENT
-            btn.Text = action
-            btn.TextColor3 = COLORS.TEXT
-            btn.TextSize = 10
-            btn.Font = Enum.Font.Gotham
-            btn.BorderSizePixel = 0
-            btn.Parent = trollFrame
-            
-            local btnCorner = Instance.new("UICorner")
-            btnCorner.CornerRadius = UDim.new(0, 4)
-            btnCorner.Parent = btn
-            
-            btn.MouseButton1Click:Connect(function()
-                if selectedPlayer then
-                    createNotification(action, selectedPlayer.Name .. " " .. action:lower() .. "ed!")
-                else
-                    createNotification("Error", "Selecione um player primeiro!")
-                end
-            end)
-        end
-        
-        -- Update player list
-        local function updatePlayerList()
-            for _, child in pairs(playerScroll:GetChildren()) do
-                if child:IsA("Frame") then
-                    child:Destroy()
-                end
-            end
-            
-            local yPos = 0
-            for _, targetPlayer in pairs(Players:GetPlayers()) do
-                if targetPlayer ~= player then
-                    local playerFrame = createFrame(playerScroll, UDim2.new(1, -10, 0, 40), UDim2.new(0, 0, 0, yPos), COLORS.CARD, 6)
-                    
-                    local avatar = Instance.new("ImageLabel")
-                    avatar.Size = UDim2.new(0, 30, 0, 30)
-                    avatar.Position = UDim2.new(0, 5, 0, 5)
-                    avatar.BackgroundTransparency = 1
-                    avatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. targetPlayer.UserId .. "&width=420&height=420&format=png"
-                    avatar.Parent = playerFrame
-                    
-                    local avatarCorner = Instance.new("UICorner")
-                    avatarCorner.CornerRadius = UDim.new(0, 15)
-                    avatarCorner.Parent = avatar
-                    
-                    local nameLabel = Instance.new("TextLabel")
-                    nameLabel.Size = UDim2.new(1, -80, 1, 0)
-                    nameLabel.Position = UDim2.new(0, 40, 0, 0)
-                    nameLabel.BackgroundTransparency = 1
-                    nameLabel.Text = targetPlayer.Name
-                    nameLabel.TextColor3 = COLORS.TEXT
-                    nameLabel.TextSize = 14
-                    nameLabel.Font = Enum.Font.Gotham
-                    nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-                    nameLabel.Parent = playerFrame
-                    
-                    local selectBtn = Instance.new("TextButton")
-                    selectBtn.Size = UDim2.new(0, 60, 0, 25)
-                    selectBtn.Position = UDim2.new(1, -65, 0, 7.5)
-                    selectBtn.BackgroundColor3 = selectedPlayer == targetPlayer and COLORS.SUCCESS or COLORS.PRIMARY
-                    selectBtn.Text = selectedPlayer == targetPlayer and "Selected" or "Select"
-                    selectBtn.TextColor3 = COLORS.TEXT
-                    selectBtn.TextSize = 10
-                    selectBtn.Font = Enum.Font.Gotham
-                    selectBtn.BorderSizePixel = 0
-                    selectBtn.Parent = playerFrame
-                    
-                    local selectCorner = Instance.new("UICorner")
-                    selectCorner.CornerRadius = UDim.new(0, 4)
-                    selectCorner.Parent = selectBtn
-                    
-                    selectBtn.MouseButton1Click:Connect(function()
-                        selectedPlayer = targetPlayer
-                        trollLabel.Text = "Selected: " .. targetPlayer.Name
-                        updatePlayerList()
-                    end)
-                    
-                    yPos = yPos + 45
-                end
-            end
-            
-            playerScroll.CanvasSize = UDim2.new(0, 0, 0, yPos)
-        end
-        
-        updatePlayerList()
-        
-        -- Auto-update every 5 seconds
-        spawn(function()
-            while playerListWindow and playerListWindow.Parent do
-                wait(5)
-                if playerListWindow and playerListWindow.Parent then
-                    updatePlayerList()
-                end
-            end
-        end)
-        
-        -- Make draggable
-        local dragging = false
-        local dragStart = nil
-        local startPos = nil
-        
-        header.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true
-                dragStart = input.Position
-                startPos = listFrame.Position
-            end
-        end)
-        
-        UserInputService.InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local delta = input.Position - dragStart
-                listFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            end
-        end)
-        
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-    end
+    -- Make draggable
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
     
-    -- Initialize first tab
-    updateTabContent()
-    
-    -- Admin ESP monitoring
-    spawn(function()
-        while true do
-            wait(10) -- Check every 10 seconds
-            if cheatStates.espAdmin then
-                checkForAdmins()
-            end
+    header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
         end
     end)
     
-    -- Player connection events
-    Players.PlayerRemoving:Connect(function(leavingPlayer)
-        if adminESP[leavingPlayer] then
-            removeAdminESP(leavingPlayer)
-        end
-        adminPlayers[leavingPlayer] = nil
-        if selectedPlayer == leavingPlayer then
-            selectedPlayer = nil
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    updateContent()
 end
 
--- Toggle UI Function
-local function toggleUI()
-    if mainFrame then
-        isUIVisible = not isUIVisible
-        mainFrame.Visible = isUIVisible
+-- Toggle UI
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Insert then
+        if mainFrame then
+            isVisible = not isVisible
+            mainFrame.Visible = isVisible
+        end
     end
-end
+end)
 
--- Keybind Handler
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.Insert then
-        toggleUI()
+-- Player events
+Players.PlayerAdded:Connect(function(newPlayer)
+    if cheats.esp then
+        wait(1)
+        createESP(newPlayer)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(leavingPlayer)
+    if espObjects[leavingPlayer] then
+        removeESP(leavingPlayer)
     end
 end)
 
 -- Initialize
-createNotification("🔥 SPWARE Loaded", "Press INSERT to open menu!")
-createMainUI()
+createUI()
+notify("SPWARE V2", "Loaded! Press INSERT to toggle")
