@@ -653,27 +653,28 @@ local function createUI()
         
         buttonFrame.MouseButton1Click:Connect(function()
             if callback then callback() end
+            child:Destroy()
         end)
-        
-        return 35
     end
     
-    -- Premium Tab Content Updates
+    -- Update tab content based on current selection
     local function updateTabContent(contentArea)
         -- Clear existing content
         for _, child in pairs(contentArea:GetChildren()) do
-            child:Destroy()
+            if child:IsA("ScrollingFrame") then
+                child:Destroy()
+            end
         end
         
-        -- Content Scroll Frame
+        -- Create scrolling content area
         local scrollFrame = Instance.new("ScrollingFrame")
+        scrollFrame.Name = "ContentScroll"
         scrollFrame.Size = UDim2.new(1, -20, 1, -20)
         scrollFrame.Position = UDim2.new(0, 10, 0, 10)
         scrollFrame.BackgroundTransparency = 1
         scrollFrame.BorderSizePixel = 0
-        scrollFrame.ScrollBarThickness = 4
-        scrollFrame.ScrollBarImageColor3 = COLORS.ACCENT
-        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        scrollFrame.ScrollBarThickness = 6
+        scrollFrame.ScrollBarImageColor3 = COLORS.PRIMARY
         scrollFrame.Parent = contentArea
         
         local layout = Instance.new("UIListLayout")
@@ -681,7 +682,7 @@ local function createUI()
         layout.Padding = UDim.new(0, 15)
         layout.Parent = scrollFrame
         
-        local yPos = 0
+        local yOffset = 0
         
         if currentTab == "Combat" then
             -- Combat Features
@@ -788,8 +789,6 @@ local function createUI()
             scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
             
         elseif currentTab == "Movement" then
-            local yOffset = 0
-            
             yOffset = yOffset + createSection(scrollFrame, "🏃 Movement Hacks")
             yOffset = yOffset + createToggle(scrollFrame, "Bunny Hop", "Auto bunny hopping", function(enabled)
                 showNotification("SPWARE: Bunny Hop " .. (enabled and "ON" or "OFF"))
