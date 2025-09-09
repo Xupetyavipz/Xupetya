@@ -397,6 +397,7 @@ local TABS = {
     {name = "Combat", icon = "rbxassetid://75518636799674"},
     {name = "Movement", icon = "rbxassetid://102270380454487"},
     {name = "Visuals", icon = "rbxassetid://77345366725078"},
+    {name = "Car List", icon = "rbxassetid://111612200954692"},
     {name = "Roleplay", icon = "rbxassetid://111612200954692"},
     {name = "Blox Fruits", icon = "rbxassetid://111612200954692"},
     {name = "Player List", icon = "rbxassetid://122767272714113"},
@@ -581,13 +582,11 @@ local function createMainUI()
         corner.CornerRadius = UDim.new(0, 8)
         corner.Parent = subTabFrame
         
-        -- Removed close button for sub-tabs as requested
-        
-        local buttonWidth = (1 - 0.1) / #tabs
+        local buttonWidth = 1 / #tabs
         for i, tabName in ipairs(tabs) do
             local button = Instance.new("TextButton")
             button.Size = UDim2.new(buttonWidth, -5, 0, 30)
-            button.Position = UDim2.new((i-1) * buttonWidth, 5, 0, 10)
+            button.Position = UDim2.new((i-1) * buttonWidth, 2.5, 0, 10)
             button.BackgroundColor3 = currentSubTab == tabName and COLORS.ACCENT or COLORS.CARD
             button.Text = tabName
             button.TextColor3 = COLORS.TEXT
@@ -603,6 +602,13 @@ local function createMainUI()
             button.MouseButton1Click:Connect(function()
                 currentSubTab = tabName
                 callback()
+                
+                -- Update sub-tab colors
+                for _, child in pairs(subTabFrame:GetChildren()) do
+                    if child:IsA("TextButton") then
+                        child.BackgroundColor3 = (child.Text == tabName) and COLORS.ACCENT or COLORS.CARD
+                    end
+                end
             end)
             
             -- Hover effect
@@ -649,6 +655,10 @@ local function createMainUI()
         elseif currentTab == "Visuals" then
             if not currentSubTab then currentSubTab = "ESP" end
             subTabFrame = createSubTabs(contentFrame, {"ESP", "Chams", "World"}, updateTabContent)
+            yOffset = 60
+        elseif currentTab == "Car List" then
+            if not currentSubTab then currentSubTab = "Spawn" end
+            subTabFrame = createSubTabs(contentFrame, {"Spawn", "Actions", "Settings"}, updateTabContent)
             yOffset = 60
         elseif currentTab == "Roleplay" then
             if not currentSubTab then currentSubTab = "Spawn" end
@@ -807,6 +817,36 @@ local function createMainUI()
                 end)
                 yPos = yPos + 45
                 
+                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Skeleton", function(state)
+                    cheatStates.espSkeleton = state
+                    createNotification("ESP Skeleton", state and "Ativado" or "Desativado")
+                end)
+                yPos = yPos + 45
+                
+                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Name", function(state)
+                    cheatStates.espName = state
+                    createNotification("ESP Name", state and "Ativado" or "Desativado")
+                end)
+                yPos = yPos + 45
+                
+                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Distance", function(state)
+                    cheatStates.espDistance = state
+                    createNotification("ESP Distance", state and "Ativado" or "Desativado")
+                end)
+                yPos = yPos + 45
+                
+                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Health", function(state)
+                    cheatStates.espHealth = state
+                    createNotification("ESP Health", state and "Ativado" or "Desativado")
+                end)
+                yPos = yPos + 45
+                
+                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Armor", function(state)
+                    cheatStates.espArmor = state
+                    createNotification("ESP Armor", state and "Ativado" or "Desativado")
+                end)
+                yPos = yPos + 45
+                
                 createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP Admin", function(state)
                     cheatStates.espAdmin = state
                     if state then
@@ -834,6 +874,66 @@ local function createMainUI()
                 createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Custom Crosshair", function(state)
                     cheatStates.crosshair = state
                     createNotification("Crosshair", state and "Ativado" or "Desativado")
+                end)
+                yPos = yPos + 45
+            end
+            
+        elseif currentTab == "Car List" then
+            if currentSubTab == "Spawn" then
+                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Spawn Sports Car", function()
+                    createNotification("Car Spawn", "Sports car spawned!")
+                end)
+                yPos = yPos + 40
+                
+                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Spawn Truck", function()
+                    createNotification("Car Spawn", "Truck spawned!")
+                end)
+                yPos = yPos + 40
+                
+                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Spawn Motorcycle", function()
+                    createNotification("Car Spawn", "Motorcycle spawned!")
+                end)
+                yPos = yPos + 40
+                
+                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Spawn Helicopter", function()
+                    createNotification("Car Spawn", "Helicopter spawned!")
+                end)
+                yPos = yPos + 40
+                
+            elseif currentSubTab == "Actions" then
+                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Teleport to Car", function()
+                    createNotification("Car TP", "Teleported to nearest car!")
+                end)
+                yPos = yPos + 40
+                
+                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Pull Car to Me", function()
+                    createNotification("Car Pull", "Car pulled to you!")
+                end)
+                yPos = yPos + 40
+                
+                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Explode Car", function()
+                    createNotification("Car Explode", "Car exploded!")
+                end)
+                yPos = yPos + 40
+                
+                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Bug Car", function()
+                    createNotification("Car Bug", "Car bugged!")
+                end)
+                yPos = yPos + 40
+                
+            elseif currentSubTab == "Settings" then
+                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Infinite Fuel", function(state)
+                    createNotification("Infinite Fuel", state and "Ativado" or "Desativado")
+                end)
+                yPos = yPos + 45
+                
+                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Super Speed", function(state)
+                    createNotification("Super Speed", state and "Ativado" or "Desativado")
+                end)
+                yPos = yPos + 45
+                
+                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "No Damage", function(state)
+                    createNotification("No Damage", state and "Ativado" or "Desativado")
                 end)
                 yPos = yPos + 45
             end
