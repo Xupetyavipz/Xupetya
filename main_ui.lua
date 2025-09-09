@@ -23,6 +23,7 @@ local UserInputService = safeExecute(function() return game:GetService("UserInpu
 local TweenService = safeExecute(function() return game:GetService("TweenService") end) or game:GetService("TweenService")
 local RunService = safeExecute(function() return game:GetService("RunService") end) or game:GetService("RunService")
 local StarterGui = safeExecute(function() return game:GetService("StarterGui") end) or game:GetService("StarterGui")
+local CoreGui = safeExecute(function() return game:GetService("CoreGui") end) or game:GetService("CoreGui")
 local Lighting = safeExecute(function() return game:GetService("Lighting") end) or game:GetService("Lighting")
 local Debris = safeExecute(function() return game:GetService("Debris") end) or game:GetService("Debris")
 local workspace = safeExecute(function() return game:GetService("Workspace") end) or workspace
