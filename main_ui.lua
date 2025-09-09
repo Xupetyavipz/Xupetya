@@ -662,37 +662,41 @@ local function CreateButton(parent, text, callback)
     return Button
 end
 
--- Input handling
+-- Input handling with safety checks
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
     if input.KeyCode == Enum.KeyCode.Insert then
-        MainFrame.Visible = not MainFrame.Visible
-        GlowFrame.Visible = MainFrame.Visible
-        
-        if MainFrame.Visible then
-            TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
-                Size = UDim2.new(0, 1000, 0, 700)
-            }):Play()
+        if MainFrame and GlowFrame then
+            MainFrame.Visible = not MainFrame.Visible
+            GlowFrame.Visible = MainFrame.Visible
+            
+            if MainFrame.Visible then
+                TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+                    Size = UDim2.new(0, 1000, 0, 700)
+                }):Play()
+            end
         end
     end
 end)
 
--- Button connections
+-- Button connections with safety checks
 CloseButton.MouseButton1Click:Connect(function()
-    MainFrame.Visible = false
-    GlowFrame.Visible = false
+    if MainFrame then MainFrame.Visible = false end
+    if GlowFrame then GlowFrame.Visible = false end
 end)
 
 MinimizeButton.MouseButton1Click:Connect(function()
-    if MainFrame.Size == UDim2.new(0, 1000, 0, 700) then
-        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-            Size = UDim2.new(0, 1000, 0, 60)
-        }):Play()
-    else
-        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-            Size = UDim2.new(0, 1000, 0, 700)
-        }):Play()
+    if MainFrame then 
+        if MainFrame.Size == UDim2.new(0, 1000, 0, 700) then
+            TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+                Size = UDim2.new(0, 1000, 0, 60)
+            }):Play()
+        else
+            TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+                Size = UDim2.new(0, 1000, 0, 700)
+            }):Play()
+        end
     end
 end)
 
@@ -2240,9 +2244,11 @@ local PlayerListFrame = TabFrames[6]
 
 local PlayerListSection = CreateSection(PlayerListFrame, "👥 Player Management", Color3.fromRGB(138, 43, 226))
 CreateToggle(PlayerListSection, "Show Player List", "ShowPlayerList", function(state)
-    PlayerListWindow.Visible = state
-    if state then
-        RefreshPlayerList()
+    if PlayerListWindow then
+        PlayerListWindow.Visible = state
+        if state then
+            RefreshPlayerList()
+        end
     end
 end)
 
@@ -2590,9 +2596,11 @@ local CarListFrame = TabFrames[8]
 
 local CarManagementSection = CreateSection(CarListFrame, "🚗 Car Management", Color3.fromRGB(120, 40, 200))
 local CarListToggle = CreateToggle(CarManagementSection, "Show Car List", "ShowCarList", function(state)
-    CarListWindow.Visible = state
-    if state then
-        RefreshCarList()
+    if CarListWindow then
+        CarListWindow.Visible = state
+        if state then
+            RefreshCarList()
+        end
     end
 end)
 
@@ -2661,27 +2669,23 @@ end)
 
 -- Window Close Connections
 PlayerListClose.MouseButton1Click:Connect(function()
-    PlayerListWindow.Visible = false
-    Settings.ShowPlayerList = false
+    if PlayerListWindow then
+        PlayerListWindow.Visible = false
+        Settings.ShowPlayerList = false
+    end
 end)
 
 CarListClose.MouseButton1Click:Connect(function()
-    CarListWindow.Visible = false
-    Settings.ShowCarList = false
-    -- Update the toggle state without triggering the callback
-    local toggleSwitch = CarListToggle:FindFirstChild("ToggleSwitch")
-    if toggleSwitch then
-        TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {
-            Position = UDim2.new(0, 2, 0.5, -8)
-        }):Play()
-        TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {
-            BackgroundColor3 = Color3.fromRGB(60, 60, 70)
-        }):Play()
-    end
-    local statusText = CarListToggle:FindFirstChild("StatusText")
-    if statusText then
-        statusText.Text = "OFF"
-        statusText.TextColor3 = Color3.fromRGB(180, 160, 200)
+    if CarListWindow then
+        CarListWindow.Visible = false
+        Settings.ShowCarList = false
+        -- Update the toggle state without triggering the callback
+        if CarListToggle then
+            local toggleSwitch = CarListToggle:FindFirstChild("ToggleSwitch")
+            if toggleSwitch then
+                TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0.5, -10)}):Play()
+            end
+        end
     end
 end)
 
@@ -3161,9 +3165,13 @@ spawn(function()
     end
 end)
 
--- Show UI and debug
-MainFrame.Visible = true
-GlowFrame.Visible = true
+-- Show UI and debug with safety checks
+if MainFrame then
+    MainFrame.Visible = true
+end
+if GlowFrame then
+    GlowFrame.Visible = true
+end
 
 print("=== SPWARE V5 PREMIUM LOADED ===")
 print("UI Elements Created Successfully!")
