@@ -481,11 +481,7 @@ local function createMainUI()
     userName.TextXAlignment = Enum.TextXAlignment.Left
     userName.Parent = header
     
-    -- Close Button
-    local closeBtn = createButton(header, UDim2.new(0, 40, 0, 40), UDim2.new(1, -50, 0.5, -20), "✕", function()
-        toggleUI()
-    end)
-    closeBtn.BackgroundColor3 = COLORS.ERROR
+    -- Removed close button as requested
     
     -- Sidebar with enhanced styling
     local sidebar = createFrame(mainFrame, UDim2.new(0, 220, 1, -80), UDim2.new(0, 10, 0, 75), COLORS.CARD, 12)
@@ -550,19 +546,23 @@ local function createMainUI()
         
         tabClickBtn.MouseButton1Click:Connect(function()
             currentTab = tab.name
+            currentSubTab = nil -- Reset sub-tab when switching main tabs
             updateTabContent()
             
             -- Update tab colors
-            for j, button in pairs(tabButtons) do
-                local icon = button:FindFirstChild("TextLabel")
-                local label = button:GetChildren()[2]
+            for j, otherTabBtn in pairs(tabButtons) do
+                local otherIcon = otherTabBtn:FindFirstChild("ImageLabel")
+                local otherLabel = otherTabBtn:FindFirstChild("TextLabel")
                 
-                if icon and icon:IsA("TextLabel") then
-                    icon.TextColor3 = j == i and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
+                if otherIcon then
+                    otherIcon.ImageColor3 = (j == i) and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
                 end
-                if label and label:IsA("TextLabel") and label ~= icon then
-                    label.TextColor3 = j == i and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
+                if otherLabel then
+                    otherLabel.TextColor3 = (j == i) and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
                 end
+                
+                -- Update background color
+                otherTabBtn.BackgroundColor3 = (j == i) and COLORS.BORDER or COLORS.SURFACE
             end
         end)
         
@@ -581,25 +581,7 @@ local function createMainUI()
         corner.CornerRadius = UDim.new(0, 8)
         corner.Parent = subTabFrame
         
-        local closeButton = Instance.new("TextButton")
-        closeButton.Size = UDim2.new(0, 30, 0, 30)
-        closeButton.Position = UDim2.new(1, -35, 0, 10)
-        closeButton.BackgroundColor3 = COLORS.ERROR
-        closeButton.Text = "X"
-        closeButton.TextColor3 = COLORS.TEXT
-        closeButton.TextSize = 16
-        closeButton.Font = Enum.Font.GothamBold
-        closeButton.BorderSizePixel = 0
-        closeButton.Parent = subTabFrame
-        
-        local closeCorner = Instance.new("UICorner")
-        closeCorner.CornerRadius = UDim.new(0, 6)
-        closeCorner.Parent = closeButton
-        
-        closeButton.MouseButton1Click:Connect(function()
-            currentSubTab = tabs[1]
-            callback()
-        end)
+        -- Removed close button for sub-tabs as requested
         
         local buttonWidth = (1 - 0.1) / #tabs
         for i, tabName in ipairs(tabs) do
@@ -657,18 +639,23 @@ local function createMainUI()
         
         -- Create sub-tabs based on current tab
         if currentTab == "Combat" then
+            if not currentSubTab then currentSubTab = "Aimbot" end
             subTabFrame = createSubTabs(contentFrame, {"Aimbot", "Weapons", "Misc"}, updateTabContent)
             yOffset = 60
         elseif currentTab == "Movement" then
+            if not currentSubTab then currentSubTab = "Speed" end
             subTabFrame = createSubTabs(contentFrame, {"Speed", "Flight", "Teleport"}, updateTabContent)
             yOffset = 60
         elseif currentTab == "Visuals" then
+            if not currentSubTab then currentSubTab = "ESP" end
             subTabFrame = createSubTabs(contentFrame, {"ESP", "Chams", "World"}, updateTabContent)
             yOffset = 60
         elseif currentTab == "Roleplay" then
+            if not currentSubTab then currentSubTab = "Spawn" end
             subTabFrame = createSubTabs(contentFrame, {"Spawn", "Character", "Utilities"}, updateTabContent)
             yOffset = 60
         elseif currentTab == "Blox Fruits" then
+            if not currentSubTab then currentSubTab = "Farm" end
             subTabFrame = createSubTabs(contentFrame, {"Farm", "Combat", "Teleport"}, updateTabContent)
             yOffset = 60
         end
