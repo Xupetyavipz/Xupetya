@@ -922,6 +922,11 @@ function GetClosestPlayer()
     
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            -- Team check
+            if Settings.TeamCheck and player.Team == LocalPlayer.Team then
+                continue
+            end
+            
             local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
             if distance < shortestDistance then
                 shortestDistance = distance
@@ -1016,8 +1021,9 @@ CombatSubTabsPadding.Parent = CombatSubTabs
 -- Combat sub-tab data
 local CombatSubTabsData = {
     {name = "Aimbot", color = Color3.fromRGB(239, 68, 68)},
-    {name = "Combat", color = Color3.fromRGB(220, 38, 127)},
-    {name = "Weapons", color = Color3.fromRGB(168, 85, 247)}
+    {name = "Silent", color = Color3.fromRGB(220, 38, 127)},
+    {name = "Combat", color = Color3.fromRGB(168, 85, 247)},
+    {name = "Weapons", color = Color3.fromRGB(99, 102, 241)}
 }
 
 local CombatSubTabButtons = {}
@@ -1105,33 +1111,25 @@ end
 local AimbotSection = CreateSection(CombatSubTabFrames[1], "🎯 Aimbot", Color3.fromRGB(239, 68, 68))
 CreateToggle(AimbotSection, "Aimbot", "Aimbot", function(state)
     Settings.AimbotEnabled = state
-    if state then
-        -- Start aimbot loop
-        spawn(function()
-            while Settings.AimbotEnabled do
-                local target = GetClosestPlayer()
-                if target and target.Character and target.Character:FindFirstChild("Head") then
-                    local camera = workspace.CurrentCamera
-                    if camera then
-                        camera.CFrame = CFrame.lookAt(camera.CFrame.Position, target.Character.Head.Position)
-                    end
-                end
-                wait(0.1)
-            end
-        end)
-    end
 end)
+CreateToggle(AimbotSection, "Team Check", "TeamCheck")
 CreateSlider(AimbotSection, "FOV Size", "AimbotFOV", 10, 500)
 CreateSlider(AimbotSection, "Smoothness", "AimbotSmooth", 1, 10)
-CreateToggle(AimbotSection, "Silent Aim", "SilentAim", function(state)
-    Settings.SilentAimEnabled = state
-end)
 CreateToggle(AimbotSection, "Ragebot", "Ragebot", function(state)
     Settings.RagebotEnabled = state
 end)
 
+-- Silent Aim Sub-tab Content
+local SilentSection = CreateSection(CombatSubTabFrames[2], "🎯 Silent Aim", Color3.fromRGB(220, 38, 127))
+CreateToggle(SilentSection, "Silent Aim", "SilentAim", function(state)
+    Settings.SilentAimEnabled = state
+end)
+CreateToggle(SilentSection, "Silent Team Check", "SilentTeamCheck")
+CreateSlider(SilentSection, "Silent FOV", "SilentFOV", 10, 360)
+CreateToggle(SilentSection, "Show FOV Circle", "ShowFOVCircle")
+
 -- Combat Sub-tab Content
-local CombatSection = CreateSection(CombatSubTabFrames[2], "⚔️ Combat", Color3.fromRGB(220, 38, 127))
+local CombatSection = CreateSection(CombatSubTabFrames[3], "⚔️ Combat", Color3.fromRGB(168, 85, 247))
 CreateToggle(CombatSection, "TriggerBot", "TriggerBot")
 CreateToggle(CombatSection, "Hitbox Expander", "HitboxExpander")
 CreateToggle(CombatSection, "One Shot Kill", "OneShotKill")
@@ -1140,7 +1138,7 @@ CreateToggle(CombatSection, "No Spread", "NoSpread")
 CreateToggle(CombatSection, "Infinite Ammo", "InfiniteAmmo")
 
 -- Weapons Sub-tab Content
-local WeaponsSection = CreateSection(CombatSubTabFrames[3], "🔫 Weapons", Color3.fromRGB(168, 85, 247))
+local WeaponsSection = CreateSection(CombatSubTabFrames[4], "🔫 Weapons", Color3.fromRGB(99, 102, 241))
 CreateButton(WeaponsSection, "Spawn AK-47", function()
     StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "AK-47 spawned!", Duration = 2})
 end)
@@ -1153,36 +1151,280 @@ end)
 CreateToggle(WeaponsSection, "Rapid Fire", "RapidFire")
 CreateToggle(WeaponsSection, "Auto Reload", "AutoReload")
 
--- Movement Tab
+-- Movement Tab with Sub-tabs
 local MovementFrame = TabFrames[2]
 
-local MovementSection = CreateSection(MovementFrame, "🏃 Movement Hacks", Color3.fromRGB(34, 197, 94))
-CreateToggle(MovementSection, "Bunny Hop", "BunnyHop")
-CreateToggle(MovementSection, "Strafe Hack", "StrafeHack")
-CreateToggle(MovementSection, "Speed Hack", "SpeedHack", function(state)
+-- Create sub-tab navigation for Movement
+local MovementSubTabs = Instance.new("Frame")
+MovementSubTabs.Name = "SubTabs"
+MovementSubTabs.Parent = MovementFrame
+MovementSubTabs.BackgroundColor3 = Color3.fromRGB(12, 8, 18)
+MovementSubTabs.BorderSizePixel = 0
+MovementSubTabs.Position = UDim2.new(0, 0, 0, 0)
+MovementSubTabs.Size = UDim2.new(1, 0, 0, 50)
+
+local MovementSubTabsCorner = Instance.new("UICorner")
+MovementSubTabsCorner.CornerRadius = UDim.new(0, 8)
+MovementSubTabsCorner.Parent = MovementSubTabs
+
+local MovementSubTabsLayout = Instance.new("UIListLayout")
+MovementSubTabsLayout.Parent = MovementSubTabs
+MovementSubTabsLayout.FillDirection = Enum.FillDirection.Horizontal
+MovementSubTabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+MovementSubTabsLayout.Padding = UDim.new(0, 5)
+
+local MovementSubTabsPadding = Instance.new("UIPadding")
+MovementSubTabsPadding.PaddingLeft = UDim.new(0, 10)
+MovementSubTabsPadding.PaddingTop = UDim.new(0, 10)
+MovementSubTabsPadding.Parent = MovementSubTabs
+
+-- Movement sub-tab data
+local MovementSubTabsData = {
+    {name = "Speed", color = Color3.fromRGB(34, 197, 94)},
+    {name = "Flight", color = Color3.fromRGB(16, 185, 129)},
+    {name = "Teleport", color = Color3.fromRGB(5, 150, 105)}
+}
+
+local MovementSubTabButtons = {}
+local MovementSubTabFrames = {}
+local CurrentMovementSubTab = 1
+
+-- Create sub-tab buttons and frames
+for i, tabData in pairs(MovementSubTabsData) do
+    -- Sub-tab button
+    local SubTabButton = Instance.new("TextButton")
+    SubTabButton.Name = tabData.name .. "SubTab"
+    SubTabButton.Parent = MovementSubTabs
+    SubTabButton.BackgroundColor3 = i == 1 and tabData.color or Color3.fromRGB(18, 12, 25)
+    SubTabButton.BorderSizePixel = 0
+    SubTabButton.Size = UDim2.new(0, 80, 1, -20)
+    SubTabButton.Font = Enum.Font.GothamBold
+    SubTabButton.Text = tabData.name
+    SubTabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SubTabButton.TextSize = 11
+    SubTabButton.AutoButtonColor = false
+    
+    local SubTabCorner = Instance.new("UICorner")
+    SubTabCorner.CornerRadius = UDim.new(0, 6)
+    SubTabCorner.Parent = SubTabButton
+    
+    MovementSubTabButtons[i] = SubTabButton
+    
+    -- Sub-tab frame
+    local SubTabFrame = Instance.new("ScrollingFrame")
+    SubTabFrame.Name = tabData.name .. "SubFrame"
+    SubTabFrame.Parent = MovementFrame
+    SubTabFrame.BackgroundTransparency = 1
+    SubTabFrame.Position = UDim2.new(0, 0, 0, 60)
+    SubTabFrame.Size = UDim2.new(1, 0, 1, -60)
+    SubTabFrame.CanvasSize = UDim2.new(0, 0, 2, 0)
+    SubTabFrame.ScrollBarThickness = 6
+    SubTabFrame.ScrollBarImageColor3 = Color3.fromRGB(147, 51, 234)
+    SubTabFrame.Visible = (i == 1)
+    
+    local SubTabLayout = Instance.new("UIListLayout")
+    SubTabLayout.Parent = SubTabFrame
+    SubTabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SubTabLayout.Padding = UDim.new(0, 10)
+    
+    local SubTabPadding = Instance.new("UIPadding")
+    SubTabPadding.PaddingLeft = UDim.new(0, 15)
+    SubTabPadding.PaddingRight = UDim.new(0, 15)
+    SubTabPadding.PaddingTop = UDim.new(0, 10)
+    SubTabPadding.Parent = SubTabFrame
+    
+    MovementSubTabFrames[i] = SubTabFrame
+    
+    -- Sub-tab button click
+    SubTabButton.MouseButton1Click:Connect(function()
+        SwitchMovementSubTab(i)
+    end)
+end
+
+-- Sub-tab switching function
+function SwitchMovementSubTab(tabIndex)
+    if CurrentMovementSubTab == tabIndex then return end
+    
+    -- Hide current sub-tab frame
+    for i, frame in pairs(MovementSubTabFrames) do
+        frame.Visible = (i == tabIndex)
+    end
+    
+    -- Update sub-tab buttons
+    for i, button in pairs(MovementSubTabButtons) do
+        if i == tabIndex then
+            TweenService:Create(button, TweenInfo.new(0.2), {
+                BackgroundColor3 = MovementSubTabsData[i].color
+            }):Play()
+        else
+            TweenService:Create(button, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(18, 12, 25)
+            }):Play()
+        end
+    end
+    
+    CurrentMovementSubTab = tabIndex
+end
+
+-- Speed Sub-tab Content
+local SpeedSection = CreateSection(MovementSubTabFrames[1], "🏃 Speed Hacks", Color3.fromRGB(34, 197, 94))
+CreateToggle(SpeedSection, "Speed Hack", "SpeedHack", function(state)
     if state and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = Settings.SpeedValue
     elseif LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = 16
     end
 end)
-CreateSlider(MovementSection, "Speed Value", "SpeedValue", 16, 500, function(value)
+CreateSlider(SpeedSection, "Speed Value", "SpeedValue", 16, 500, function(value)
     if Settings.SpeedHack and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = value
     end
 end)
+CreateToggle(SpeedSection, "Bunny Hop", "BunnyHop")
+CreateToggle(SpeedSection, "Strafe Hack", "StrafeHack")
 
-local FlightSection = CreateSection(MovementFrame, "✈️ Flight & Teleport", Color3.fromRGB(34, 197, 94))
+-- Flight Sub-tab Content
+local FlightSection = CreateSection(MovementSubTabFrames[2], "✈️ Flight & Teleport", Color3.fromRGB(16, 185, 129))
 CreateToggle(FlightSection, "Fly", "Fly")
 CreateToggle(FlightSection, "Jetpack", "Jetpack")
 CreateSlider(FlightSection, "Fly Speed", "FlySpeed", 10, 200)
 CreateToggle(FlightSection, "Noclip", "Noclip")
-CreateToggle(FlightSection, "Teleport Kill", "TeleportKill")
 
--- Visual Tab
+-- Teleport Sub-tab Content
+local TeleportSection = CreateSection(MovementSubTabFrames[3], "🌀 Teleport", Color3.fromRGB(5, 150, 105))
+CreateToggle(TeleportSection, "Teleport Kill", "TeleportKill")
+CreateButton(TeleportSection, "Teleport to Spawn", function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0)
+    end
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Teleported to spawn!", Duration = 2})
+end)
+CreateButton(TeleportSection, "Teleport to Random Player", function()
+    local players = Players:GetPlayers()
+    local randomPlayer = players[math.random(1, #players)]
+    if randomPlayer ~= LocalPlayer and randomPlayer.Character and randomPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = randomPlayer.Character.HumanoidRootPart.CFrame
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Teleported to " .. randomPlayer.Name .. "!", Duration = 2})
+    end
+end)
+
+-- Visual Tab with Sub-tabs
 local VisualFrame = TabFrames[3]
 
-local ESPSection = CreateSection(VisualFrame, "👁️ ESP System", Color3.fromRGB(59, 130, 246))
+-- Create sub-tab navigation for Visual
+local VisualSubTabs = Instance.new("Frame")
+VisualSubTabs.Name = "SubTabs"
+VisualSubTabs.Parent = VisualFrame
+VisualSubTabs.BackgroundColor3 = Color3.fromRGB(12, 8, 18)
+VisualSubTabs.BorderSizePixel = 0
+VisualSubTabs.Position = UDim2.new(0, 0, 0, 0)
+VisualSubTabs.Size = UDim2.new(1, 0, 0, 50)
+
+local VisualSubTabsCorner = Instance.new("UICorner")
+VisualSubTabsCorner.CornerRadius = UDim.new(0, 8)
+VisualSubTabsCorner.Parent = VisualSubTabs
+
+local VisualSubTabsLayout = Instance.new("UIListLayout")
+VisualSubTabsLayout.Parent = VisualSubTabs
+VisualSubTabsLayout.FillDirection = Enum.FillDirection.Horizontal
+VisualSubTabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+VisualSubTabsLayout.Padding = UDim.new(0, 5)
+
+local VisualSubTabsPadding = Instance.new("UIPadding")
+VisualSubTabsPadding.PaddingLeft = UDim.new(0, 10)
+VisualSubTabsPadding.PaddingTop = UDim.new(0, 10)
+VisualSubTabsPadding.Parent = VisualSubTabs
+
+-- Visual sub-tab data
+local VisualSubTabsData = {
+    {name = "ESP", color = Color3.fromRGB(59, 130, 246)},
+    {name = "Effects", color = Color3.fromRGB(99, 102, 241)},
+    {name = "Lighting", color = Color3.fromRGB(139, 92, 246)}
+}
+
+local VisualSubTabButtons = {}
+local VisualSubTabFrames = {}
+local CurrentVisualSubTab = 1
+
+-- Create sub-tab buttons and frames
+for i, tabData in pairs(VisualSubTabsData) do
+    -- Sub-tab button
+    local SubTabButton = Instance.new("TextButton")
+    SubTabButton.Name = tabData.name .. "SubTab"
+    SubTabButton.Parent = VisualSubTabs
+    SubTabButton.BackgroundColor3 = i == 1 and tabData.color or Color3.fromRGB(18, 12, 25)
+    SubTabButton.BorderSizePixel = 0
+    SubTabButton.Size = UDim2.new(0, 80, 1, -20)
+    SubTabButton.Font = Enum.Font.GothamBold
+    SubTabButton.Text = tabData.name
+    SubTabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SubTabButton.TextSize = 11
+    SubTabButton.AutoButtonColor = false
+    
+    local SubTabCorner = Instance.new("UICorner")
+    SubTabCorner.CornerRadius = UDim.new(0, 6)
+    SubTabCorner.Parent = SubTabButton
+    
+    VisualSubTabButtons[i] = SubTabButton
+    
+    -- Sub-tab frame
+    local SubTabFrame = Instance.new("ScrollingFrame")
+    SubTabFrame.Name = tabData.name .. "SubFrame"
+    SubTabFrame.Parent = VisualFrame
+    SubTabFrame.BackgroundTransparency = 1
+    SubTabFrame.Position = UDim2.new(0, 0, 0, 60)
+    SubTabFrame.Size = UDim2.new(1, 0, 1, -60)
+    SubTabFrame.CanvasSize = UDim2.new(0, 0, 2, 0)
+    SubTabFrame.ScrollBarThickness = 6
+    SubTabFrame.ScrollBarImageColor3 = Color3.fromRGB(147, 51, 234)
+    SubTabFrame.Visible = (i == 1)
+    
+    local SubTabLayout = Instance.new("UIListLayout")
+    SubTabLayout.Parent = SubTabFrame
+    SubTabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SubTabLayout.Padding = UDim.new(0, 10)
+    
+    local SubTabPadding = Instance.new("UIPadding")
+    SubTabPadding.PaddingLeft = UDim.new(0, 15)
+    SubTabPadding.PaddingRight = UDim.new(0, 15)
+    SubTabPadding.PaddingTop = UDim.new(0, 10)
+    SubTabPadding.Parent = SubTabFrame
+    
+    VisualSubTabFrames[i] = SubTabFrame
+    
+    -- Sub-tab button click
+    SubTabButton.MouseButton1Click:Connect(function()
+        SwitchVisualSubTab(i)
+    end)
+end
+
+-- Sub-tab switching function
+function SwitchVisualSubTab(tabIndex)
+    if CurrentVisualSubTab == tabIndex then return end
+    
+    -- Hide current sub-tab frame
+    for i, frame in pairs(VisualSubTabFrames) do
+        frame.Visible = (i == tabIndex)
+    end
+    
+    -- Update sub-tab buttons
+    for i, button in pairs(VisualSubTabButtons) do
+        if i == tabIndex then
+            TweenService:Create(button, TweenInfo.new(0.2), {
+                BackgroundColor3 = VisualSubTabsData[i].color
+            }):Play()
+        else
+            TweenService:Create(button, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(18, 12, 25)
+            }):Play()
+        end
+    end
+    
+    CurrentVisualSubTab = tabIndex
+end
+
+-- ESP Sub-tab Content
+local ESPSection = CreateSection(VisualSubTabFrames[1], "👁️ ESP System", Color3.fromRGB(59, 130, 246))
 CreateToggle(ESPSection, "ESP Players", "ESPPlayers", function(state)
     Settings.ESPEnabled = state
     if state then
@@ -1214,20 +1456,30 @@ CreateToggle(ESPSection, "ESP Head Dot", "ESPHeadDot")
 CreateToggle(ESPSection, "ESP Weapons", "ESPWeapons")
 CreateToggle(ESPSection, "ESP Items", "ESPItems")
 
-local VisualSection = CreateSection(VisualFrame, "🌟 Visual Effects", Color3.fromRGB(59, 130, 246))
-CreateToggle(VisualSection, "Chams", "Chams")
-CreateToggle(VisualSection, "Glow", "Glow")
-CreateToggle(VisualSection, "Radar Hack", "RadarHack")
-CreateToggle(VisualSection, "Custom Crosshair", "CustomCrosshair")
-CreateToggle(VisualSection, "Night Vision", "NightVision")
-CreateToggle(VisualSection, "Full Bright", "FullBright", function(state)
+-- Effects Sub-tab Content
+local EffectsSection = CreateSection(VisualSubTabFrames[2], "🌟 Visual Effects", Color3.fromRGB(99, 102, 241))
+CreateToggle(EffectsSection, "Chams", "Chams")
+CreateToggle(EffectsSection, "Glow", "Glow")
+CreateToggle(EffectsSection, "Radar Hack", "RadarHack")
+CreateToggle(EffectsSection, "Custom Crosshair", "CustomCrosshair")
+
+-- Lighting Sub-tab Content
+local LightingSection = CreateSection(VisualSubTabFrames[3], "💡 Lighting", Color3.fromRGB(139, 92, 246))
+CreateToggle(LightingSection, "Night Vision", "NightVision")
+CreateToggle(LightingSection, "Full Bright", "FullBright", function(state)
     if state then
         Lighting.Ambient = Color3.fromRGB(255, 255, 255)
-        Lighting.Brightness = 5
+        Lighting.Brightness = 2
+        Lighting.FogEnd = 100000
     else
         Lighting.Ambient = Color3.fromRGB(70, 70, 70)
         Lighting.Brightness = 1
+        Lighting.FogEnd = 100000
     end
+end)
+CreateButton(LightingSection, "Remove Fog", function()
+    Lighting.FogEnd = 100000
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Fog removed!", Duration = 2})
 end)
 
 -- Roleplay Tab
@@ -1426,6 +1678,43 @@ CreateButton(CarActionsSection, "Delete Car", function()
 end)
 CreateButton(CarActionsSection, "Send Car to Sky", function()
     StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car sent to sky!", Duration = 2})
+end)
+
+-- Aimbot Mouse2 Control
+local UserInputService = game:GetService("UserInputService")
+local mouse2Pressed = false
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        mouse2Pressed = true
+        if Settings.AimbotEnabled then
+            -- Start aimbot when mouse2 is held
+            spawn(function()
+                while mouse2Pressed and Settings.AimbotEnabled do
+                    local target = GetClosestPlayer()
+                    if target and target.Character and target.Character:FindFirstChild("Head") then
+                        local camera = workspace.CurrentCamera
+                        if camera then
+                            local targetPosition = target.Character.Head.Position
+                            local currentCFrame = camera.CFrame
+                            local targetCFrame = CFrame.lookAt(currentCFrame.Position, targetPosition)
+                            
+                            -- Smooth aiming based on smoothness setting
+                            local smoothness = Settings.AimbotSmooth or 5
+                            camera.CFrame = currentCFrame:Lerp(targetCFrame, 1/smoothness)
+                        end
+                    end
+                    wait(0.01)
+                end
+            end)
+        end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        mouse2Pressed = false
+    end
 end)
 
 -- Initial notification
