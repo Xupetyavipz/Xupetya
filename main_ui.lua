@@ -916,23 +916,151 @@ CarListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 CarListLayout.Padding = UDim.new(0, 5)
 
 -- Tab Content Creation
--- Combat Tab
+-- Combat Tab with Sub-tabs
 local CombatFrame = TabFrames[1]
 
-local AimbotSection = CreateSection(CombatFrame, "🎯 Aimbot System", Color3.fromRGB(239, 68, 68))
-CreateToggle(AimbotSection, "Aimbot", "AimbotEnabled")
-CreateSlider(AimbotSection, "FOV", "AimbotFOV", 10, 500)
-CreateSlider(AimbotSection, "Smoothness", "AimbotSmooth", 1, 20)
+-- Create sub-tab navigation for Combat
+local CombatSubTabs = Instance.new("Frame")
+CombatSubTabs.Name = "SubTabs"
+CombatSubTabs.Parent = CombatFrame
+CombatSubTabs.BackgroundColor3 = Color3.fromRGB(12, 8, 18)
+CombatSubTabs.BorderSizePixel = 0
+CombatSubTabs.Position = UDim2.new(0, 0, 0, 0)
+CombatSubTabs.Size = UDim2.new(1, 0, 0, 50)
+
+local CombatSubTabsCorner = Instance.new("UICorner")
+CombatSubTabsCorner.CornerRadius = UDim.new(0, 8)
+CombatSubTabsCorner.Parent = CombatSubTabs
+
+local CombatSubTabsLayout = Instance.new("UIListLayout")
+CombatSubTabsLayout.Parent = CombatSubTabs
+CombatSubTabsLayout.FillDirection = Enum.FillDirection.Horizontal
+CombatSubTabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+CombatSubTabsLayout.Padding = UDim.new(0, 5)
+
+local CombatSubTabsPadding = Instance.new("UIPadding")
+CombatSubTabsPadding.PaddingLeft = UDim.new(0, 10)
+CombatSubTabsPadding.PaddingTop = UDim.new(0, 10)
+CombatSubTabsPadding.Parent = CombatSubTabs
+
+-- Combat sub-tab data
+local CombatSubTabsData = {
+    {name = "Aimbot", color = Color3.fromRGB(239, 68, 68)},
+    {name = "Combat", color = Color3.fromRGB(220, 38, 127)},
+    {name = "Weapons", color = Color3.fromRGB(168, 85, 247)}
+}
+
+local CombatSubTabButtons = {}
+local CombatSubTabFrames = {}
+local CurrentCombatSubTab = 1
+
+-- Create sub-tab buttons and frames
+for i, tabData in pairs(CombatSubTabsData) do
+    -- Sub-tab button
+    local SubTabButton = Instance.new("TextButton")
+    SubTabButton.Name = tabData.name .. "SubTab"
+    SubTabButton.Parent = CombatSubTabs
+    SubTabButton.BackgroundColor3 = i == 1 and tabData.color or Color3.fromRGB(18, 12, 25)
+    SubTabButton.BorderSizePixel = 0
+    SubTabButton.Size = UDim2.new(0, 80, 1, -20)
+    SubTabButton.Font = Enum.Font.GothamBold
+    SubTabButton.Text = tabData.name
+    SubTabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SubTabButton.TextSize = 11
+    SubTabButton.AutoButtonColor = false
+    
+    local SubTabCorner = Instance.new("UICorner")
+    SubTabCorner.CornerRadius = UDim.new(0, 6)
+    SubTabCorner.Parent = SubTabButton
+    
+    CombatSubTabButtons[i] = SubTabButton
+    
+    -- Sub-tab frame
+    local SubTabFrame = Instance.new("ScrollingFrame")
+    SubTabFrame.Name = tabData.name .. "SubFrame"
+    SubTabFrame.Parent = CombatFrame
+    SubTabFrame.BackgroundTransparency = 1
+    SubTabFrame.Position = UDim2.new(0, 0, 0, 60)
+    SubTabFrame.Size = UDim2.new(1, 0, 1, -60)
+    SubTabFrame.CanvasSize = UDim2.new(0, 0, 2, 0)
+    SubTabFrame.ScrollBarThickness = 6
+    SubTabFrame.ScrollBarImageColor3 = Color3.fromRGB(147, 51, 234)
+    SubTabFrame.Visible = (i == 1)
+    
+    local SubTabLayout = Instance.new("UIListLayout")
+    SubTabLayout.Parent = SubTabFrame
+    SubTabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SubTabLayout.Padding = UDim.new(0, 10)
+    
+    local SubTabPadding = Instance.new("UIPadding")
+    SubTabPadding.PaddingLeft = UDim.new(0, 15)
+    SubTabPadding.PaddingRight = UDim.new(0, 15)
+    SubTabPadding.PaddingTop = UDim.new(0, 10)
+    SubTabPadding.Parent = SubTabFrame
+    
+    CombatSubTabFrames[i] = SubTabFrame
+    
+    -- Sub-tab button click
+    SubTabButton.MouseButton1Click:Connect(function()
+        SwitchCombatSubTab(i)
+    end)
+end
+
+-- Sub-tab switching function
+function SwitchCombatSubTab(tabIndex)
+    if CurrentCombatSubTab == tabIndex then return end
+    
+    -- Hide current sub-tab frame
+    for i, frame in pairs(CombatSubTabFrames) do
+        frame.Visible = (i == tabIndex)
+    end
+    
+    -- Update sub-tab buttons
+    for i, button in pairs(CombatSubTabButtons) do
+        if i == tabIndex then
+            TweenService:Create(button, TweenInfo.new(0.2), {
+                BackgroundColor3 = CombatSubTabsData[i].color
+            }):Play()
+        else
+            TweenService:Create(button, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(18, 12, 25)
+            }):Play()
+        end
+    end
+    
+    CurrentCombatSubTab = tabIndex
+end
+
+-- Aimbot Sub-tab Content
+local AimbotSection = CreateSection(CombatSubTabFrames[1], "🎯 Aimbot", Color3.fromRGB(239, 68, 68))
+CreateToggle(AimbotSection, "Aimbot", "Aimbot")
+CreateSlider(AimbotSection, "FOV Size", "AimbotFOV", 10, 500)
+CreateSlider(AimbotSection, "Smoothness", "AimbotSmooth", 1, 10)
 CreateToggle(AimbotSection, "Silent Aim", "SilentAim")
 CreateToggle(AimbotSection, "Ragebot", "Ragebot")
 
-local CombatSection = CreateSection(CombatFrame, "⚔️ Combat Features", Color3.fromRGB(239, 68, 68))
+-- Combat Sub-tab Content
+local CombatSection = CreateSection(CombatSubTabFrames[2], "⚔️ Combat", Color3.fromRGB(220, 38, 127))
 CreateToggle(CombatSection, "TriggerBot", "TriggerBot")
 CreateToggle(CombatSection, "Hitbox Expander", "HitboxExpander")
 CreateToggle(CombatSection, "One Shot Kill", "OneShotKill")
 CreateToggle(CombatSection, "No Recoil", "NoRecoil")
 CreateToggle(CombatSection, "No Spread", "NoSpread")
 CreateToggle(CombatSection, "Infinite Ammo", "InfiniteAmmo")
+
+-- Weapons Sub-tab Content
+local WeaponsSection = CreateSection(CombatSubTabFrames[3], "🔫 Weapons", Color3.fromRGB(168, 85, 247))
+CreateButton(WeaponsSection, "Spawn AK-47", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "AK-47 spawned!", Duration = 2})
+end)
+CreateButton(WeaponsSection, "Spawn M4A1", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "M4A1 spawned!", Duration = 2})
+end)
+CreateButton(WeaponsSection, "Spawn Sniper", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Sniper spawned!", Duration = 2})
+end)
+CreateToggle(WeaponsSection, "Rapid Fire", "RapidFire")
+CreateToggle(WeaponsSection, "Auto Reload", "AutoReload")
 
 -- Movement Tab
 local MovementFrame = TabFrames[2]
