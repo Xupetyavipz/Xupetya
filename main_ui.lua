@@ -948,125 +948,220 @@ local function CreateSlider(parent, text, setting, min, max, callback)
     
     return Slider
 end
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 45, 55)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 55, 65))
-            }
-        end
+
+-- Tab Content Creation
+
+-- Combat Tab Content
+local CombatFrame = TabFrames[1]
+local AimbotSection = CreateSection(CombatFrame, "🎯 Aimbot System", Color3.fromRGB(239, 68, 68))
+CreateToggle(AimbotSection, "Aimbot", "AimbotEnabled")
+CreateToggle(AimbotSection, "Silent Aim", "SilentAim")
+CreateToggle(AimbotSection, "Ragebot", "Ragebot")
+CreateSlider(AimbotSection, "FOV Size", "AimbotFOV", 10, 500)
+CreateSlider(AimbotSection, "Smoothness", "AimbotSmooth", 1, 20)
+
+local CombatSection = CreateSection(CombatFrame, "⚔️ Combat Features", Color3.fromRGB(239, 68, 68))
+CreateToggle(CombatSection, "TriggerBot", "TriggerBot")
+CreateToggle(CombatSection, "Hitbox Expander", "HitboxExpander")
+CreateToggle(CombatSection, "One Shot Kill", "OneShotKill")
+CreateToggle(CombatSection, "No Recoil", "NoRecoil")
+CreateToggle(CombatSection, "Infinite Ammo", "InfiniteAmmo")
+
+-- Movement Tab Content
+local MovementFrame = TabFrames[2]
+local MovementSection = CreateSection(MovementFrame, "🏃 Movement Hacks", Color3.fromRGB(245, 158, 11))
+CreateToggle(MovementSection, "Speed Hack", "SpeedHack", function()
+    if Settings.SpeedHack and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.SpeedValue
+    elseif LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = 16
+    end
+end)
+CreateSlider(MovementSection, "Speed Value", "SpeedValue", 16, 500)
+CreateToggle(MovementSection, "Fly", "Fly")
+CreateToggle(MovementSection, "Noclip", "Noclip")
+CreateToggle(MovementSection, "Bunny Hop", "BunnyHop")
+CreateToggle(MovementSection, "Strafe Hack", "StrafeHack")
+
+-- Visual Tab Content  
+local VisualFrame = TabFrames[3]
+local ESPSection = CreateSection(VisualFrame, "👁️ ESP System", Color3.fromRGB(59, 130, 246))
+CreateToggle(ESPSection, "Player ESP", "ESPPlayers")
+CreateToggle(ESPSection, "Weapon ESP", "ESPWeapons")
+CreateToggle(ESPSection, "Chams", "Chams")
+CreateToggle(ESPSection, "Glow Effect", "Glow")
+
+local VisualSection = CreateSection(VisualFrame, "🎨 Visual Features", Color3.fromRGB(59, 130, 246))
+CreateToggle(VisualSection, "Full Bright", "FullBright", function()
+    if Settings.FullBright then
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 14
+        Lighting.FogEnd = 100000
+    else
+        Lighting.Brightness = 1
+        Lighting.ClockTime = 12
+        Lighting.FogEnd = 100000
+    end
+end)
+CreateToggle(VisualSection, "Night Vision", "NightVision")
+CreateToggle(VisualSection, "Radar Hack", "RadarHack")
+CreateToggle(VisualSection, "Custom Crosshair", "CustomCrosshair")
+
+-- Roleplay Tab Content
+local RoleplayFrame = TabFrames[4]
+local VehicleSection = CreateSection(RoleplayFrame, "🚗 Vehicle System", Color3.fromRGB(168, 85, 247))
+CreateButton(VehicleSection, "Spawn Car", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car spawned!", Duration = 2})
+end)
+CreateButton(VehicleSection, "Spawn Helicopter", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Helicopter spawned!", Duration = 2})
+end)
+CreateToggle(VehicleSection, "Super Speed Car", "SuperSpeedCar")
+CreateToggle(VehicleSection, "Fly Car", "FlyCar")
+
+local PlayerSection = CreateSection(RoleplayFrame, "👤 Player Mods", Color3.fromRGB(168, 85, 247))
+CreateToggle(PlayerSection, "Godmode", "Godmode")
+CreateToggle(PlayerSection, "Invisible", "Invisible")
+CreateToggle(PlayerSection, "Super Jump", "SuperJump")
+CreateSlider(PlayerSection, "Size Changer", "SizeChanger", 0.1, 5)
+
+-- Blox Fruits Tab Content
+local BloxFruitsFrame = TabFrames[5]
+local AutoFarmSection = CreateSection(BloxFruitsFrame, "🍎 Auto Farm", Color3.fromRGB(34, 197, 94))
+CreateToggle(AutoFarmSection, "Auto Farm Level", "AutoFarmLevel")
+CreateToggle(AutoFarmSection, "Auto Farm Boss", "AutoFarmBoss")
+CreateToggle(AutoFarmSection, "Auto Farm Quest", "AutoFarmQuest")
+CreateToggle(AutoFarmSection, "Auto Farm Fruits", "AutoFarmFruits")
+
+local BloxSection = CreateSection(BloxFruitsFrame, "⚡ Blox Features", Color3.fromRGB(34, 197, 94))
+CreateToggle(BloxSection, "Kill Aura", "KillAura")
+CreateToggle(BloxSection, "No Skill Cooldown", "NoSkillCooldown")
+CreateToggle(BloxSection, "Walk on Water", "WalkOnWater")
+CreateToggle(BloxSection, "ESP Fruits", "ESPFruits")
+
+-- Update canvas sizes for all tabs
+for i, frame in ipairs(TabFrames) do
+    frame.ChildAdded:Connect(function()
+        wait(0.1)
+        frame.CanvasSize = UDim2.new(0, 0, 0, frame.UIListLayout.AbsoluteContentSize.Y + 50)
+    end)
+    frame.ChildRemoved:Connect(function()
+        wait(0.1)
+        frame.CanvasSize = UDim2.new(0, 0, 0, frame.UIListLayout.AbsoluteContentSize.Y + 50)
+    end)
+end
+
+-- Initial canvas size update
+for i, frame in ipairs(TabFrames) do
+    spawn(function()
+        wait(1)
+        frame.CanvasSize = UDim2.new(0, 0, 0, frame.UIListLayout.AbsoluteContentSize.Y + 50)
+    end)
+end
+
+-- Button Events with Premium Effects
+CloseButton.MouseButton1Click:Connect(function()
+    -- Fade out animation
+    TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0)
+    }):Play()
+    
+    TweenService:Create(GlowFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0)
+    }):Play()
+    
+    wait(0.3)
+    ScreenGui:Destroy()
+end)
+
+MinimizeButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    GlowFrame.Visible = false
+end)
+
+-- Button hover effects
+CloseButton.MouseEnter:Connect(function()
+    TweenService:Create(CloseButton, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    }):Play()
+end)
+
+CloseButton.MouseLeave:Connect(function()
+    TweenService:Create(CloseButton, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(239, 68, 68)
+    }):Play()
+end)
+
+MinimizeButton.MouseEnter:Connect(function()
+    TweenService:Create(MinimizeButton, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(255, 200, 50)
+    }):Play()
+end)
+
+MinimizeButton.MouseLeave:Connect(function()
+    TweenService:Create(MinimizeButton, TweenInfo.new(0.2), {
+        BackgroundColor3 = Color3.fromRGB(245, 158, 11)
+    }):Play()
+end)
+
+-- Toggle UI with INSERT key
+UserInputService.InputBegan:Connect(function(key, gameProcessed)
+    if gameProcessed then return end
+    if key.KeyCode == Enum.KeyCode.Insert then
+        MainFrame.Visible = not MainFrame.Visible
+        GlowFrame.Visible = MainFrame.Visible
         
-        if callback then
-            callback(Settings[setting])
+        if MainFrame.Visible then
+            -- Fade in animation
+            MainFrame.Size = UDim2.new(0, 0, 0, 0)
+            MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+            
+            TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back), {
+                Size = UDim2.new(0, 900, 0, 650),
+                Position = UDim2.new(0.5, -450, 0.5, -325)
+            }):Play()
         end
-        
+    end
+end)
+
+-- Status indicator animation
+spawn(function()
+    while true do
+        TweenService:Create(StatusFrame, TweenInfo.new(1, Enum.EasingStyle.Sine), {
+            BackgroundColor3 = Color3.fromRGB(34, 197, 94)
+        }):Play()
+        wait(1)
+        TweenService:Create(StatusFrame, TweenInfo.new(1, Enum.EasingStyle.Sine), {
+            BackgroundColor3 = Color3.fromRGB(16, 185, 129)
+        }):Play()
+        wait(1)
+    end
+end)
+
+-- Initial notification with better error handling
+spawn(function()
+    wait(2) -- Wait for UI to fully load
+    pcall(function()
         StarterGui:SetCore("SendNotification", {
-            Title = "SPWARE V5",
-            Text = text .. (Settings[setting] and " ENABLED" or " DISABLED"),
-            Duration = 2
+            Title = "SPWARE V5 Premium",
+            Text = "Loaded! Press INSERT to toggle",
+            Duration = 3
         })
     end)
-    
-    -- Hover effects
-    ToggleButton.MouseEnter:Connect(function()
-        TweenService:Create(ToggleStroke, TweenInfo.new(0.2), {Transparency = 0.5}):Play()
-    end)
-    
-    ToggleButton.MouseLeave:Connect(function()
-        TweenService:Create(ToggleStroke, TweenInfo.new(0.2), {Transparency = 0.8}):Play()
-    end)
-    
-    return Toggle
-end
+end)
 
-local function CreateSlider(parent, text, setting, min, max, callback)
-    local Slider = Instance.new("Frame")
-    Slider.Name = text .. "Slider"
-    Slider.Parent = parent
-    Slider.BackgroundTransparency = 1
-    Slider.Size = UDim2.new(1, 0, 0, 50)
-    
-    local SliderLabel = Instance.new("TextLabel")
-    SliderLabel.Name = "Label"
-    SliderLabel.Parent = Slider
-    SliderLabel.BackgroundTransparency = 1
-    SliderLabel.Size = UDim2.new(1, 0, 0, 20)
-    SliderLabel.Font = Enum.Font.Gotham
-    SliderLabel.Text = text .. ": " .. Settings[setting]
-    SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    SliderLabel.TextSize = 14
-    SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
-    
-    local SliderFrame = Instance.new("Frame")
-    SliderFrame.Name = "SliderFrame"
-    SliderFrame.Parent = Slider
-    SliderFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    SliderFrame.BorderSizePixel = 0
-    SliderFrame.Position = UDim2.new(0, 0, 0, 25)
-    SliderFrame.Size = UDim2.new(1, 0, 0, 20)
-    
-    local SliderCorner = Instance.new("UICorner")
-    SliderCorner.CornerRadius = UDim.new(0, 10)
-    SliderCorner.Parent = SliderFrame
-    
-    local SliderFill = Instance.new("Frame")
-    SliderFill.Name = "Fill"
-    SliderFill.Parent = SliderFrame
-    SliderFill.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
-    SliderFill.BorderSizePixel = 0
-    SliderFill.Size = UDim2.new((Settings[setting] - min) / (max - min), 0, 1, 0)
-    
-    local FillCorner = Instance.new("UICorner")
-    FillCorner.CornerRadius = UDim.new(0, 10)
-    FillCorner.Parent = SliderFill
-    
-    local SliderButton = Instance.new("TextButton")
-    SliderButton.Name = "Button"
-    SliderButton.Parent = SliderFrame
-    SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    SliderButton.BorderSizePixel = 0
-    SliderButton.Position = UDim2.new((Settings[setting] - min) / (max - min), -10, 0, -5)
-    SliderButton.Size = UDim2.new(0, 20, 0, 30)
-    SliderButton.Text = ""
-    
-    local ButtonCorner = Instance.new("UICorner")
-    ButtonCorner.CornerRadius = UDim.new(0, 10)
-    ButtonCorner.Parent = SliderButton
-    
-    local dragging = false
-    
-    SliderButton.MouseButton1Down:Connect(function()
-        dragging = true
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local mousePos = UserInputService:GetMouseLocation()
-            local framePos = SliderFrame.AbsolutePosition
-            local frameSize = SliderFrame.AbsoluteSize
-            
-            local relativePos = math.clamp((mousePos.X - framePos.X) / frameSize.X, 0, 1)
-            local value = math.floor(min + (max - min) * relativePos)
-            
-            Settings[setting] = value
-            SliderLabel.Text = text .. ": " .. value
-            
-            SliderFill.Size = UDim2.new(relativePos, 0, 1, 0)
-            SliderButton.Position = UDim2.new(relativePos, -10, 0, -5)
-            
-            if callback then
-                callback(value)
-            end
-        end
-    end)
-    
-    return Slider
-end
+-- Show UI immediately and add debug info
+MainFrame.Visible = true
+GlowFrame.Visible = true
 
-local function CreateButton(parent, text, callback)
+-- Debug prints
+print("=== SPWARE V5 PREMIUM LOADED ===")
+print("UI Elements Created Successfully!")
+print("Press INSERT key to toggle menu")
+print("Navigation between tabs is now working!")
+print("================================")
     local Button = Instance.new("TextButton")
     Button.Name = text .. "Button"
     Button.Parent = parent
