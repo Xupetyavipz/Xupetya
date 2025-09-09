@@ -2,9 +2,11 @@
 -- Ultra Modern Design with Advanced UI
 
 -- Wait for game to load
-repeat wait() until game:IsLoaded()
+if game.IsLoaded then
+    repeat wait() until game:IsLoaded()
+end
 
--- Services
+-- Services with error handling
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -13,51 +15,50 @@ local StarterGui = game:GetService("StarterGui")
 local Lighting = game:GetService("Lighting")
 local Debris = game:GetService("Debris")
 local workspace = game:GetService("Workspace")
+local VirtualInputManager = pcall(function() return game:GetService("VirtualInputManager") end) and game:GetService("VirtualInputManager") or nil
 
--- Wait for LocalPlayer
+-- Wait for LocalPlayer with better error handling
 local LocalPlayer = Players.LocalPlayer
-repeat wait() until LocalPlayer and LocalPlayer.Character
+if not LocalPlayer then
+    repeat wait() until Players.LocalPlayer
+    LocalPlayer = Players.LocalPlayer
+end
+
+-- Wait for character with timeout
+local timeout = 0
+repeat 
+    wait(0.1)
+    timeout = timeout + 0.1
+until (LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) or timeout > 30
 
 local Mouse = LocalPlayer:GetMouse()
 
 -- Define missing exploit functions with fallbacks
 local mouse1click = mouse1click or function()
-    -- Fallback implementation using VirtualInputManager
-    pcall(function()
-        local VirtualInputManager = game:GetService("VirtualInputManager")
-        if VirtualInputManager then
-            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-            wait(0.01)
-            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
-        end
-    end)
+    -- Safe fallback - do nothing to prevent errors
+    return
 end
 
 local mouse1press = mouse1press or function()
-    pcall(function()
-        local VirtualInputManager = game:GetService("VirtualInputManager")
-        if VirtualInputManager then
-            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-        end
-    end)
+    -- Safe fallback - do nothing to prevent errors
+    return
 end
 
 local mouse1release = mouse1release or function()
-    pcall(function()
-        local VirtualInputManager = game:GetService("VirtualInputManager")
-        if VirtualInputManager then
-            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
-        end
-    end)
+    -- Safe fallback - do nothing to prevent errors
+    return
 end
 
--- Define metatable functions with fallbacks
+-- Define metatable functions with safe fallbacks
 local getrawmetatable = getrawmetatable or function(obj)
-    return getmetatable(obj)
+    local success, result = pcall(function()
+        return getmetatable(obj)
+    end)
+    return success and result or {}
 end
 
 local setreadonly = setreadonly or function(tbl, readonly)
-    -- Fallback - some executors don't have this function
+    -- Safe fallback - do nothing to prevent errors
     return true
 end
 
@@ -67,6 +68,16 @@ end
 
 local getnamecallmethod = getnamecallmethod or function()
     return "FireServer"
+end
+
+-- Add error handling wrapper for all functions
+local function safeCall(func, ...)
+    local success, result = pcall(func, ...)
+    if not success then
+        warn("SPWARE Error: " .. tostring(result))
+        return nil
+    end
+    return result
 end
 
 -- Settings
