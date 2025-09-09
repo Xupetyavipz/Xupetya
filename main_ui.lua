@@ -19,6 +19,7 @@ local currentSubTab = "Aimbot"
 local playerListWindow = nil
 local isPlayerListVisible = false
 local selectedPlayer = nil
+local carListWindow = nil
 
 -- Cheat States
 local cheatStates = {
@@ -546,24 +547,26 @@ local function createMainUI()
         tabClickBtn.Parent = tabBtn
         
         tabClickBtn.MouseButton1Click:Connect(function()
-            currentTab = tab.name
-            currentSubTab = nil -- Reset sub-tab when switching main tabs
-            updateTabContent()
-            
-            -- Update tab colors
-            for j, otherTabBtn in pairs(tabButtons) do
-                local otherIcon = otherTabBtn:FindFirstChild("ImageLabel")
-                local otherLabel = otherTabBtn:FindFirstChild("TextLabel")
+            if currentTab ~= tab.name then
+                currentTab = tab.name
+                currentSubTab = nil -- Reset sub-tab when switching main tabs
+                updateTabContent()
                 
-                if otherIcon then
-                    otherIcon.ImageColor3 = (j == i) and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
+                -- Update tab colors immediately
+                for j, otherTabBtn in pairs(tabButtons) do
+                    local otherIcon = otherTabBtn:FindFirstChild("ImageLabel")
+                    local otherLabel = otherTabBtn:FindFirstChild("TextLabel")
+                    
+                    if otherIcon then
+                        otherIcon.ImageColor3 = (j == i) and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
+                    end
+                    if otherLabel then
+                        otherLabel.TextColor3 = (j == i) and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
+                    end
+                    
+                    -- Update background color
+                    otherTabBtn.BackgroundColor3 = (j == i) and COLORS.BORDER or COLORS.SURFACE
                 end
-                if otherLabel then
-                    otherLabel.TextColor3 = (j == i) and COLORS.PRIMARY or COLORS.TEXT_SECONDARY
-                end
-                
-                -- Update background color
-                otherTabBtn.BackgroundColor3 = (j == i) and COLORS.BORDER or COLORS.SURFACE
             end
         end)
         
@@ -703,12 +706,30 @@ local function createMainUI()
                 
                 createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Silent Aim", function(state)
                     cheatStates.silentAim = state
+                    if state then
+                        -- Silent aim logic
+                        spawn(function()
+                            while cheatStates.silentAim do
+                                wait(0.1)
+                                -- Add silent aim functionality here
+                            end
+                        end)
+                    end
                     createNotification("Silent Aim", state and "Ativado" or "Desativado")
                 end)
                 yPos = yPos + 45
                 
                 createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Ragebot", function(state)
                     cheatStates.ragebot = state
+                    if state then
+                        -- Ragebot logic
+                        spawn(function()
+                            while cheatStates.ragebot do
+                                wait(0.05)
+                                -- Add ragebot functionality here
+                            end
+                        end)
+                    end
                     createNotification("Ragebot", state and "Ativado" or "Desativado")
                 end)
                 yPos = yPos + 45
@@ -879,64 +900,18 @@ local function createMainUI()
             end
             
         elseif currentTab == "Car List" then
-            if currentSubTab == "Spawn" then
-                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Spawn Sports Car", function()
-                    createNotification("Car Spawn", "Sports car spawned!")
-                end)
-                yPos = yPos + 40
-                
-                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Spawn Truck", function()
-                    createNotification("Car Spawn", "Truck spawned!")
-                end)
-                yPos = yPos + 40
-                
-                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Spawn Motorcycle", function()
-                    createNotification("Car Spawn", "Motorcycle spawned!")
-                end)
-                yPos = yPos + 40
-                
-                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Spawn Helicopter", function()
-                    createNotification("Car Spawn", "Helicopter spawned!")
-                end)
-                yPos = yPos + 40
-                
-            elseif currentSubTab == "Actions" then
-                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Teleport to Car", function()
-                    createNotification("Car TP", "Teleported to nearest car!")
-                end)
-                yPos = yPos + 40
-                
-                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Pull Car to Me", function()
-                    createNotification("Car Pull", "Car pulled to you!")
-                end)
-                yPos = yPos + 40
-                
-                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Explode Car", function()
-                    createNotification("Car Explode", "Car exploded!")
-                end)
-                yPos = yPos + 40
-                
-                createButton(scrollFrame, UDim2.new(1, -20, 0, 35), UDim2.new(0, 0, 0, yPos), "Bug Car", function()
-                    createNotification("Car Bug", "Car bugged!")
-                end)
-                yPos = yPos + 40
-                
-            elseif currentSubTab == "Settings" then
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Infinite Fuel", function(state)
-                    createNotification("Infinite Fuel", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Super Speed", function(state)
-                    createNotification("Super Speed", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-                
-                createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "No Damage", function(state)
-                    createNotification("No Damage", state and "Ativado" or "Desativado")
-                end)
-                yPos = yPos + 45
-            end
+            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Show Car List", function(state)
+                if state then
+                    createCarListWindow()
+                else
+                    if carListWindow then
+                        carListWindow:Destroy()
+                        carListWindow = nil
+                    end
+                end
+                createNotification("Car List", state and "Janela aberta!" or "Janela fechada!")
+            end)
+            yPos = yPos + 45
             
         elseif currentTab == "Player List" then
             createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Show Player List", function(state)
@@ -958,6 +933,131 @@ local function createMainUI()
         scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
     end
     
+    -- Car List Window Function
+    local function createCarListWindow()
+        if carListWindow then
+            carListWindow:Destroy()
+        end
+        
+        carListWindow = Instance.new("ScreenGui")
+        carListWindow.Name = "CarListWindow"
+        carListWindow.Parent = playerGui
+        
+        local listFrame = createFrame(carListWindow, UDim2.new(0, 400, 0, 500), UDim2.new(0.5, -200, 0.5, -250), COLORS.BACKGROUND, 12)
+        
+        -- Header
+        local header = createFrame(listFrame, UDim2.new(1, 0, 0, 50), UDim2.new(0, 0, 0, 0), COLORS.PRIMARY, 12)
+        
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, -20, 1, 0)
+        title.Position = UDim2.new(0, 10, 0, 0)
+        title.BackgroundTransparency = 1
+        title.Text = "🚗 Car List"
+        title.TextColor3 = COLORS.TEXT
+        title.TextSize = 18
+        title.Font = Enum.Font.GothamBold
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.Parent = header
+        
+        -- Car List Scroll
+        local carScroll = Instance.new("ScrollingFrame")
+        carScroll.Size = UDim2.new(1, -20, 1, -120)
+        carScroll.Position = UDim2.new(0, 10, 0, 60)
+        carScroll.BackgroundTransparency = 1
+        carScroll.BorderSizePixel = 0
+        carScroll.ScrollBarThickness = 6
+        carScroll.ScrollBarImageColor3 = COLORS.ACCENT
+        carScroll.Parent = listFrame
+        
+        -- Car Actions
+        local actionsFrame = createFrame(listFrame, UDim2.new(1, -20, 0, 50), UDim2.new(0, 10, 1, -60), COLORS.SURFACE, 8)
+        
+        local actions = {"Spawn Sports", "Spawn Truck", "Teleport", "Explode"}
+        for i, action in ipairs(actions) do
+            createButton(actionsFrame, UDim2.new(0.25, -5, 0, 35), UDim2.new((i-1) * 0.25, 2.5, 0, 7.5), action, function()
+                createNotification("Car " .. action, action .. " executed!")
+            end)
+        end
+        
+        -- Update car list
+        local function updateCarList()
+            for _, child in pairs(carScroll:GetChildren()) do
+                if child:IsA("Frame") then
+                    child:Destroy()
+                end
+            end
+            
+            local yPos = 0
+            local cars = {"Sports Car", "Truck", "Motorcycle", "Helicopter", "Police Car", "Ambulance", "Fire Truck", "Bus"}
+            
+            for _, carName in pairs(cars) do
+                local carFrame = createFrame(carScroll, UDim2.new(1, -10, 0, 40), UDim2.new(0, 0, 0, yPos), COLORS.CARD, 6)
+                
+                local nameLabel = Instance.new("TextLabel")
+                nameLabel.Size = UDim2.new(1, -80, 1, 0)
+                nameLabel.Position = UDim2.new(0, 10, 0, 0)
+                nameLabel.BackgroundTransparency = 1
+                nameLabel.Text = "🚗 " .. carName
+                nameLabel.TextColor3 = COLORS.TEXT
+                nameLabel.TextSize = 14
+                nameLabel.Font = Enum.Font.Gotham
+                nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+                nameLabel.Parent = carFrame
+                
+                local spawnBtn = Instance.new("TextButton")
+                spawnBtn.Size = UDim2.new(0, 60, 0, 25)
+                spawnBtn.Position = UDim2.new(1, -65, 0, 7.5)
+                spawnBtn.BackgroundColor3 = COLORS.SUCCESS
+                spawnBtn.Text = "Spawn"
+                spawnBtn.TextColor3 = COLORS.TEXT
+                spawnBtn.TextSize = 10
+                spawnBtn.Font = Enum.Font.Gotham
+                spawnBtn.BorderSizePixel = 0
+                spawnBtn.Parent = carFrame
+                
+                local spawnCorner = Instance.new("UICorner")
+                spawnCorner.CornerRadius = UDim.new(0, 4)
+                spawnCorner.Parent = spawnBtn
+                
+                spawnBtn.MouseButton1Click:Connect(function()
+                    createNotification("Car Spawned", carName .. " spawned!")
+                end)
+                
+                yPos = yPos + 45
+            end
+            
+            carScroll.CanvasSize = UDim2.new(0, 0, 0, yPos)
+        end
+        
+        updateCarList()
+        
+        -- Make draggable
+        local dragging = false
+        local dragStart = nil
+        local startPos = nil
+        
+        header.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                dragStart = input.Position
+                startPos = listFrame.Position
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - dragStart
+                listFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end)
+        
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+    end
+
     -- Player List Window Function
     local function createPlayerListWindow()
         if playerListWindow then
@@ -1170,13 +1270,6 @@ local function createMainUI()
     end)
     
     -- Player connection events
-    Players.PlayerAdded:Connect(function(newPlayer)
-        wait(2) -- Wait for player to load
-        if cheatStates.espAdmin then
-            checkForAdmins()
-        end
-    end)
-    
     Players.PlayerRemoving:Connect(function(leavingPlayer)
         if adminESP[leavingPlayer] then
             removeAdminESP(leavingPlayer)
