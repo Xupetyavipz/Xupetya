@@ -915,6 +915,76 @@ CarListLayout.Parent = CarListScroll
 CarListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 CarListLayout.Padding = UDim.new(0, 5)
 
+-- Helper Functions
+function GetClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            if distance < shortestDistance then
+                shortestDistance = distance
+                closestPlayer = player
+            end
+        end
+    end
+    
+    return closestPlayer
+end
+
+-- ESP Functions
+function CreateESP(player)
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESP_" .. player.Name
+    billboardGui.Parent = player.Character.HumanoidRootPart
+    billboardGui.Size = UDim2.new(0, 200, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+    billboardGui.AlwaysOnTop = true
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Parent = billboardGui
+    nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = player.Name
+    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLabel.TextScaled = true
+    nameLabel.Font = Enum.Font.GothamBold
+    
+    local distanceLabel = Instance.new("TextLabel")
+    distanceLabel.Parent = billboardGui
+    distanceLabel.Size = UDim2.new(1, 0, 0.5, 0)
+    distanceLabel.Position = UDim2.new(0, 0, 0.5, 0)
+    distanceLabel.BackgroundTransparency = 1
+    distanceLabel.Text = "0 studs"
+    distanceLabel.TextColor3 = Color3.fromRGB(147, 51, 234)
+    distanceLabel.TextScaled = true
+    distanceLabel.Font = Enum.Font.Gotham
+    
+    -- Update distance
+    spawn(function()
+        while billboardGui.Parent and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                distanceLabel.Text = math.floor(distance) .. " studs"
+            end
+            wait(0.5)
+        end
+    end)
+end
+
+function RemoveESP(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local esp = player.Character.HumanoidRootPart:FindFirstChild("ESP_" .. player.Name)
+        if esp then
+            esp:Destroy()
+        end
+    end
+end
+
 -- Tab Content Creation
 -- Combat Tab with Sub-tabs
 local CombatFrame = TabFrames[1]
@@ -1033,11 +1103,32 @@ end
 
 -- Aimbot Sub-tab Content
 local AimbotSection = CreateSection(CombatSubTabFrames[1], "🎯 Aimbot", Color3.fromRGB(239, 68, 68))
-CreateToggle(AimbotSection, "Aimbot", "Aimbot")
+CreateToggle(AimbotSection, "Aimbot", "Aimbot", function(state)
+    Settings.AimbotEnabled = state
+    if state then
+        -- Start aimbot loop
+        spawn(function()
+            while Settings.AimbotEnabled do
+                local target = GetClosestPlayer()
+                if target and target.Character and target.Character:FindFirstChild("Head") then
+                    local camera = workspace.CurrentCamera
+                    if camera then
+                        camera.CFrame = CFrame.lookAt(camera.CFrame.Position, target.Character.Head.Position)
+                    end
+                end
+                wait(0.1)
+            end
+        end)
+    end
+end)
 CreateSlider(AimbotSection, "FOV Size", "AimbotFOV", 10, 500)
 CreateSlider(AimbotSection, "Smoothness", "AimbotSmooth", 1, 10)
-CreateToggle(AimbotSection, "Silent Aim", "SilentAim")
-CreateToggle(AimbotSection, "Ragebot", "Ragebot")
+CreateToggle(AimbotSection, "Silent Aim", "SilentAim", function(state)
+    Settings.SilentAimEnabled = state
+end)
+CreateToggle(AimbotSection, "Ragebot", "Ragebot", function(state)
+    Settings.RagebotEnabled = state
+end)
 
 -- Combat Sub-tab Content
 local CombatSection = CreateSection(CombatSubTabFrames[2], "⚔️ Combat", Color3.fromRGB(220, 38, 127))
@@ -1092,7 +1183,31 @@ CreateToggle(FlightSection, "Teleport Kill", "TeleportKill")
 local VisualFrame = TabFrames[3]
 
 local ESPSection = CreateSection(VisualFrame, "👁️ ESP System", Color3.fromRGB(59, 130, 246))
-CreateToggle(ESPSection, "ESP Players", "ESPPlayers")
+CreateToggle(ESPSection, "ESP Players", "ESPPlayers", function(state)
+    Settings.ESPEnabled = state
+    if state then
+        -- Enable ESP for all players
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                CreateESP(player)
+            end
+        end
+        -- Connect to new players joining
+        Players.PlayerAdded:Connect(function(player)
+            if Settings.ESPEnabled then
+                player.CharacterAdded:Connect(function()
+                    wait(1)
+                    CreateESP(player)
+                end)
+            end
+        end)
+    else
+        -- Remove all ESP
+        for _, player in pairs(Players:GetPlayers()) do
+            RemoveESP(player)
+        end
+    end
+end)
 CreateToggle(ESPSection, "ESP Box", "ESPBox")
 CreateToggle(ESPSection, "ESP Skeleton", "ESPSkeleton")
 CreateToggle(ESPSection, "ESP Head Dot", "ESPHeadDot")
@@ -1485,7 +1600,7 @@ function CreateTrollSubmenu(player, button)
     TrollSubmenu.BackgroundColor3 = Color3.fromRGB(15, 10, 20)
     TrollSubmenu.BorderSizePixel = 0
     TrollSubmenu.Position = UDim2.new(0, button.AbsolutePosition.X + 90, 0, button.AbsolutePosition.Y)
-    TrollSubmenu.Size = UDim2.new(0, 200, 0, 250)
+    TrollSubmenu.Size = UDim2.new(0, 200, 0, 330)
     TrollSubmenu.ZIndex = 10
     
     local SubmenuCorner = Instance.new("UICorner")
@@ -1563,7 +1678,58 @@ function CreateTrollSubmenu(player, button)
         StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = player.Name .. " unfrozen!", Duration = 2})
     end)
     
-    CreateTrollButton("Close Menu", 210, function()
+    CreateTrollButton("Crash Player", 170, function()
+        if player.Character then
+            -- Create massive lag to crash player
+            for i = 1, 1000 do
+                local part = Instance.new("Part")
+                part.Size = Vector3.new(50, 50, 50)
+                part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
+                part.Parent = workspace
+                game:GetService("Debris"):AddItem(part, 0.1)
+            end
+        end
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = player.Name .. " crashed!", Duration = 2})
+    end)
+    
+    CreateTrollButton("Attach Object", 210, function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local part = Instance.new("Part")
+            part.Size = Vector3.new(10, 10, 10)
+            part.Material = Enum.Material.Neon
+            part.BrickColor = BrickColor.new("Really red")
+            part.Shape = Enum.PartType.Ball
+            part.Parent = workspace
+            
+            local weld = Instance.new("WeldConstraint")
+            weld.Part0 = part
+            weld.Part1 = player.Character.HumanoidRootPart
+            weld.Parent = part
+            
+            part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
+        end
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Object attached to " .. player.Name .. "!", Duration = 2})
+    end)
+    
+    CreateTrollButton("Black Screen", 250, function()
+        if player.Character and player.Character:FindFirstChild("Head") then
+            local screenGui = Instance.new("ScreenGui")
+            screenGui.Name = "BlackScreen"
+            screenGui.Parent = player.PlayerGui
+            
+            local blackFrame = Instance.new("Frame")
+            blackFrame.Size = UDim2.new(1, 0, 1, 0)
+            blackFrame.Position = UDim2.new(0, 0, 0, 0)
+            blackFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+            blackFrame.BorderSizePixel = 0
+            blackFrame.Parent = screenGui
+            
+            game:GetService("Debris"):AddItem(screenGui, 10)
+        end
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = player.Name .. " screen blacked!", Duration = 2})
+    end)
+    
+    CreateTrollButton("Close Menu", 290, function()
         -- Just closes the menu
     end)
     
