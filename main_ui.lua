@@ -1,5 +1,5 @@
--- SPWARE V2 - Advanced Roblox Cheat Menu
--- Modern Design with Full Functionality
+-- SPWARE V3 - Premium Cheat Menu (Fatality/Gamesense Style)
+-- Professional Interface Design
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -15,8 +15,10 @@ local mouse = player:GetMouse()
 
 -- Clean up existing UI
 pcall(function()
-    if playerGui:FindFirstChild("SPWARE_V2") then
-        playerGui:FindFirstChild("SPWARE_V2"):Destroy()
+    for _, gui in pairs(playerGui:GetChildren()) do
+        if gui.Name:find("SPWARE") then
+            gui:Destroy()
+        end
     end
 end)
 
@@ -24,18 +26,23 @@ end)
 local mainFrame = nil
 local currentTab = "Combat"
 local isVisible = true
+local animating = false
 
--- Colors
+-- Premium Color Scheme (Fatality/Gamesense Style)
 local COLORS = {
-    BACKGROUND = Color3.fromRGB(15, 15, 20),
-    SURFACE = Color3.fromRGB(25, 25, 35),
-    PRIMARY = Color3.fromRGB(138, 43, 226),
-    ACCENT = Color3.fromRGB(186, 85, 211),
-    SUCCESS = Color3.fromRGB(46, 204, 113),
-    ERROR = Color3.fromRGB(231, 76, 60),
+    BACKGROUND = Color3.fromRGB(17, 17, 17),
+    SURFACE = Color3.fromRGB(24, 24, 24),
+    SIDEBAR = Color3.fromRGB(20, 20, 20),
+    ACCENT = Color3.fromRGB(144, 238, 144),
+    ACCENT_HOVER = Color3.fromRGB(124, 218, 124),
+    PRIMARY = Color3.fromRGB(60, 60, 60),
+    BORDER = Color3.fromRGB(40, 40, 40),
     TEXT = Color3.fromRGB(255, 255, 255),
-    TEXT_DIM = Color3.fromRGB(170, 170, 170),
-    BORDER = Color3.fromRGB(45, 45, 55)
+    TEXT_DIM = Color3.fromRGB(180, 180, 180),
+    TEXT_DARK = Color3.fromRGB(120, 120, 120),
+    SUCCESS = Color3.fromRGB(144, 238, 144),
+    ERROR = Color3.fromRGB(255, 99, 99),
+    WARNING = Color3.fromRGB(255, 193, 99)
 }
 
 -- Cheat States
@@ -245,81 +252,116 @@ local function toggleFullbright()
     end
 end
 
--- UI Creation
+-- Premium UI Creation (Fatality/Gamesense Style)
 local function createUI()
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "SPWARE_V2"
+    screenGui.Name = "SPWARE_V3_PREMIUM"
     screenGui.ResetOnSpawn = false
     screenGui.Parent = playerGui
     
-    -- Main Frame
+    -- Main Container
     mainFrame = Instance.new("Frame")
-    mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 600, 0, 400)
-    mainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    mainFrame.Name = "MainContainer"
+    mainFrame.Size = UDim2.new(0, 750, 0, 500)
+    mainFrame.Position = UDim2.new(0.5, -375, 0.5, -250)
     mainFrame.BackgroundColor3 = COLORS.BACKGROUND
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = screenGui
     
-    local mainCorner = Instance.new("UICorner")
-    mainCorner.CornerRadius = UDim.new(0, 12)
-    mainCorner.Parent = mainFrame
+    -- Drop Shadow Effect
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "DropShadow"
+    shadow.Size = UDim2.new(1, 20, 1, 20)
+    shadow.Position = UDim2.new(0, -10, 0, -10)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxasset://textures/ui/InspectMenu/Shadow.png"
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.5
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    shadow.ZIndex = -1
+    shadow.Parent = mainFrame
     
-    -- Header
-    local header = Instance.new("Frame")
-    header.Name = "Header"
-    header.Size = UDim2.new(1, 0, 0, 50)
-    header.BackgroundColor3 = COLORS.PRIMARY
-    header.BorderSizePixel = 0
-    header.Parent = mainFrame
+    -- Main Border
+    local mainBorder = Instance.new("UIStroke")
+    mainBorder.Color = COLORS.BORDER
+    mainBorder.Thickness = 1
+    mainBorder.Parent = mainFrame
     
-    local headerCorner = Instance.new("UICorner")
-    headerCorner.CornerRadius = UDim.new(0, 12)
-    headerCorner.Parent = header
+    -- Title Bar
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 35)
+    titleBar.BackgroundColor3 = COLORS.SURFACE
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = mainFrame
     
-    local headerBottom = Instance.new("Frame")
-    headerBottom.Size = UDim2.new(1, 0, 0, 12)
-    headerBottom.Position = UDim2.new(0, 0, 1, -12)
-    headerBottom.BackgroundColor3 = COLORS.PRIMARY
-    headerBottom.BorderSizePixel = 0
-    headerBottom.Parent = header
+    local titleBorder = Instance.new("Frame")
+    titleBorder.Size = UDim2.new(1, 0, 0, 1)
+    titleBorder.Position = UDim2.new(0, 0, 1, 0)
+    titleBorder.BackgroundColor3 = COLORS.BORDER
+    titleBorder.BorderSizePixel = 0
+    titleBorder.Parent = titleBar
     
-    local title = Instance.new("TextLabel")
-    title.Size = UDim2.new(1, -20, 1, 0)
-    title.Position = UDim2.new(0, 20, 0, 0)
-    title.BackgroundTransparency = 1
-    title.Text = "🔥 SPWARE V2"
-    title.TextColor3 = COLORS.TEXT
-    title.TextSize = 18
-    title.Font = Enum.Font.GothamBold
-    title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = header
+    -- Logo and Title
+    local logo = Instance.new("TextLabel")
+    logo.Size = UDim2.new(0, 200, 1, 0)
+    logo.Position = UDim2.new(0, 15, 0, 0)
+    logo.BackgroundTransparency = 1
+    logo.Text = "SPWARE"
+    logo.TextColor3 = COLORS.ACCENT
+    logo.TextSize = 16
+    logo.Font = Enum.Font.GothamBold
+    logo.TextXAlignment = Enum.TextXAlignment.Left
+    logo.Parent = titleBar
     
-    -- Tabs
-    local tabsFrame = Instance.new("Frame")
-    tabsFrame.Name = "TabsFrame"
-    tabsFrame.Size = UDim2.new(0, 150, 1, -50)
-    tabsFrame.Position = UDim2.new(0, 0, 0, 50)
-    tabsFrame.BackgroundColor3 = COLORS.SURFACE
-    tabsFrame.BorderSizePixel = 0
-    tabsFrame.Parent = mainFrame
+    local version = Instance.new("TextLabel")
+    version.Size = UDim2.new(0, 100, 1, 0)
+    version.Position = UDim2.new(0, 85, 0, 0)
+    version.BackgroundTransparency = 1
+    version.Text = "v3.0"
+    version.TextColor3 = COLORS.TEXT_DARK
+    version.TextSize = 12
+    version.Font = Enum.Font.Gotham
+    version.TextXAlignment = Enum.TextXAlignment.Left
+    version.Parent = titleBar
     
-    local tabsCorner = Instance.new("UICorner")
-    tabsCorner.CornerRadius = UDim.new(0, 8)
-    tabsCorner.Parent = tabsFrame
+    -- User Info
+    local userInfo = Instance.new("TextLabel")
+    userInfo.Size = UDim2.new(0, 200, 1, 0)
+    userInfo.Position = UDim2.new(1, -215, 0, 0)
+    userInfo.BackgroundTransparency = 1
+    userInfo.Text = "Welcome, " .. player.Name
+    userInfo.TextColor3 = COLORS.TEXT_DIM
+    userInfo.TextSize = 12
+    userInfo.Font = Enum.Font.Gotham
+    userInfo.TextXAlignment = Enum.TextXAlignment.Right
+    userInfo.Parent = titleBar
     
-    -- Content
-    local contentFrame = Instance.new("Frame")
-    contentFrame.Name = "ContentFrame"
-    contentFrame.Size = UDim2.new(1, -160, 1, -60)
-    contentFrame.Position = UDim2.new(0, 160, 0, 60)
-    contentFrame.BackgroundColor3 = COLORS.SURFACE
-    contentFrame.BorderSizePixel = 0
-    contentFrame.Parent = mainFrame
+    -- Sidebar
+    local sidebar = Instance.new("Frame")
+    sidebar.Name = "Sidebar"
+    sidebar.Size = UDim2.new(0, 180, 1, -35)
+    sidebar.Position = UDim2.new(0, 0, 0, 35)
+    sidebar.BackgroundColor3 = COLORS.SIDEBAR
+    sidebar.BorderSizePixel = 0
+    sidebar.Parent = mainFrame
     
-    local contentCorner = Instance.new("UICorner")
-    contentCorner.CornerRadius = UDim.new(0, 8)
-    contentCorner.Parent = contentFrame
+    local sidebarBorder = Instance.new("Frame")
+    sidebarBorder.Size = UDim2.new(0, 1, 1, 0)
+    sidebarBorder.Position = UDim2.new(1, 0, 0, 0)
+    sidebarBorder.BackgroundColor3 = COLORS.BORDER
+    sidebarBorder.BorderSizePixel = 0
+    sidebarBorder.Parent = sidebar
+    
+    -- Content Area
+    local contentArea = Instance.new("Frame")
+    contentArea.Name = "ContentArea"
+    contentArea.Size = UDim2.new(1, -181, 1, -35)
+    contentArea.Position = UDim2.new(0, 181, 0, 35)
+    contentArea.BackgroundColor3 = COLORS.SURFACE
+    contentArea.BorderSizePixel = 0
+    contentArea.Parent = mainFrame
     
     -- Scroll Frame
     local scrollFrame = Instance.new("ScrollingFrame")
@@ -329,37 +371,114 @@ local function createUI()
     scrollFrame.BorderSizePixel = 0
     scrollFrame.ScrollBarThickness = 6
     scrollFrame.ScrollBarImageColor3 = COLORS.PRIMARY
-    scrollFrame.Parent = contentFrame
+    scrollFrame.Parent = contentArea
     
-    -- Tab Buttons
-    local tabs = {"Combat", "Movement", "Visual", "Player", "Misc"}
-    local tabButtons = {}
+    -- Create Premium Sidebar Tabs
+    local tabs = {
+        {name = "Combat", icon = "rbxassetid://75518636799674"},
+        {name = "Movement", icon = "rbxassetid://102270380454487"},
+        {name = "Visual", icon = "rbxassetid://77345366725078"},
+        {name = "Roleplay", icon = "rbxassetid://122767272714113"},
+        {name = "Blox Fruits", icon = "🥭"},
+        {name = "Player List", icon = "📋"},
+        {name = "Chat", icon = "💬"}
+    }
     
-    for i, tabName in ipairs(tabs) do
+    for i, tab in ipairs(tabs) do
         local tabButton = Instance.new("TextButton")
-        tabButton.Size = UDim2.new(1, -10, 0, 40)
-        tabButton.Position = UDim2.new(0, 5, 0, (i-1) * 45 + 10)
-        tabButton.BackgroundColor3 = currentTab == tabName and COLORS.PRIMARY or COLORS.BORDER
-        tabButton.Text = tabName
-        tabButton.TextColor3 = COLORS.TEXT
-        tabButton.TextSize = 14
-        tabButton.Font = Enum.Font.GothamBold
+        tabButton.Name = tab.name .. "Tab"
+        tabButton.Size = UDim2.new(1, -10, 0, 45)
+        tabButton.Position = UDim2.new(0, 5, 0, (i-1) * 50 + 15)
+        tabButton.BackgroundColor3 = tab.name == currentTab and COLORS.ACCENT or Color3.fromRGB(0, 0, 0, 0)
+        tabButton.BackgroundTransparency = tab.name == currentTab and 0 or 1
         tabButton.BorderSizePixel = 0
-        tabButton.Parent = tabsFrame
+        tabButton.Text = ""
+        tabButton.Parent = sidebar
         
-        local tabCorner = Instance.new("UICorner")
-        tabCorner.CornerRadius = UDim.new(0, 6)
-        tabCorner.Parent = tabButton
+        -- Tab Selection Indicator
+        local indicator = Instance.new("Frame")
+        indicator.Name = "Indicator"
+        indicator.Size = UDim2.new(0, 3, 0, 25)
+        indicator.Position = UDim2.new(0, 0, 0.5, -12.5)
+        indicator.BackgroundColor3 = COLORS.ACCENT
+        indicator.BorderSizePixel = 0
+        indicator.Visible = tab.name == currentTab
+        indicator.Parent = tabButton
         
-        tabButton.MouseButton1Click:Connect(function()
-            currentTab = tabName
-            for j, btn in ipairs(tabButtons) do
-                btn.BackgroundColor3 = j == i and COLORS.PRIMARY or COLORS.BORDER
+        -- Tab Icon
+        local icon = Instance.new("TextLabel")
+        icon.Size = UDim2.new(0, 25, 0, 25)
+        icon.Position = UDim2.new(0, 15, 0.5, -12.5)
+        icon.BackgroundTransparency = 1
+        icon.Text = tab.icon
+        icon.TextColor3 = tab.name == currentTab and COLORS.TEXT or COLORS.TEXT_DARK
+        icon.TextSize = 16
+        icon.Font = Enum.Font.Gotham
+        icon.Parent = tabButton
+        
+        -- Tab Label
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -50, 1, 0)
+        label.Position = UDim2.new(0, 45, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Text = tab.name
+        label.TextColor3 = tab.name == currentTab and COLORS.TEXT or COLORS.TEXT_DARK
+        label.TextSize = 13
+        label.Font = Enum.Font.Gotham
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Parent = tabButton
+        
+        -- Hover Effects
+        tabButton.MouseEnter:Connect(function()
+            if tab.name ~= currentTab then
+                TweenService:Create(tabButton, TweenInfo.new(0.2), {BackgroundTransparency = 0.9}):Play()
+                TweenService:Create(icon, TweenInfo.new(0.2), {TextColor3 = COLORS.TEXT_DIM}):Play()
+                TweenService:Create(label, TweenInfo.new(0.2), {TextColor3 = COLORS.TEXT_DIM}):Play()
             end
-            updateContent()
         end)
         
-        tabButtons[i] = tabButton
+        tabButton.MouseLeave:Connect(function()
+            if tab.name ~= currentTab then
+                TweenService:Create(tabButton, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+                TweenService:Create(icon, TweenInfo.new(0.2), {TextColor3 = COLORS.TEXT_DARK}):Play()
+                TweenService:Create(label, TweenInfo.new(0.2), {TextColor3 = COLORS.TEXT_DARK}):Play()
+            end
+        end)
+        
+        tabButton.MouseButton1Click:Connect(function()
+            if currentTab ~= tab.name and not animating then
+                animating = true
+                local oldTab = currentTab
+                currentTab = tab.name
+                
+                -- Update all tabs
+                for _, otherTab in pairs(sidebar:GetChildren()) do
+                    if otherTab:IsA("TextButton") and otherTab.Name:find("Tab") then
+                        local otherIndicator = otherTab:FindFirstChild("Indicator")
+                        local otherIcon = otherTab:FindFirstChild("TextLabel")
+                        local otherLabel = otherTab:FindFirstChild("TextLabel") and otherTab:FindFirstChild("TextLabel").Parent:FindFirstChild("TextLabel")
+                        
+                        if otherTab.Name == tab.name .. "Tab" then
+                            -- Selected tab
+                            TweenService:Create(otherTab, TweenInfo.new(0.3), {BackgroundTransparency = 0, BackgroundColor3 = COLORS.ACCENT}):Play()
+                            if otherIndicator then otherIndicator.Visible = true end
+                            if otherIcon then TweenService:Create(otherIcon, TweenInfo.new(0.3), {TextColor3 = COLORS.TEXT}):Play() end
+                            if otherLabel then TweenService:Create(otherLabel, TweenInfo.new(0.3), {TextColor3 = COLORS.TEXT}):Play() end
+                        else
+                            -- Unselected tabs
+                            TweenService:Create(otherTab, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+                            if otherIndicator then otherIndicator.Visible = false end
+                            if otherIcon then TweenService:Create(otherIcon, TweenInfo.new(0.3), {TextColor3 = COLORS.TEXT_DARK}):Play() end
+                            if otherLabel then TweenService:Create(otherLabel, TweenInfo.new(0.3), {TextColor3 = COLORS.TEXT_DARK}):Play() end
+                        end
+                    end
+                end
+                
+                updateTabContent(contentArea)
+                wait(0.3)
+                animating = false
+            end
+        end)
     end
     
     -- Toggle Function
@@ -496,65 +615,173 @@ local function createUI()
         return sliderFrame
     end
     
-    -- Update Content Function
-    function updateContent()
-        for _, child in pairs(scrollFrame:GetChildren()) do
-            if child:IsA("Frame") then
-                child:Destroy()
-            end
+    -- Premium Tab Content Updates
+    local function updateTabContent(contentArea)
+        -- Clear existing content
+        for _, child in pairs(contentArea:GetChildren()) do
+            child:Destroy()
         end
+        
+        -- Content Scroll Frame
+        local scrollFrame = Instance.new("ScrollingFrame")
+        scrollFrame.Size = UDim2.new(1, -20, 1, -20)
+        scrollFrame.Position = UDim2.new(0, 10, 0, 10)
+        scrollFrame.BackgroundTransparency = 1
+        scrollFrame.BorderSizePixel = 0
+        scrollFrame.ScrollBarThickness = 4
+        scrollFrame.ScrollBarImageColor3 = COLORS.ACCENT
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        scrollFrame.Parent = contentArea
+        
+        local layout = Instance.new("UIListLayout")
+        layout.SortOrder = Enum.SortOrder.LayoutOrder
+        layout.Padding = UDim.new(0, 15)
+        layout.Parent = scrollFrame
         
         local yPos = 0
         
         if currentTab == "Combat" then
-            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Aimbot", function(state)
-                cheats.aimbot = state
-                notify("Aimbot", state and "Enabled" or "Disabled")
+            -- Combat Features
+            local yOffset = 0
+            
+            -- Aimbot Section
+            yOffset = yOffset + createSection(scrollFrame, "⚔️ Aimbot")
+            yOffset = yOffset + createToggle(scrollFrame, "Aimbot", "Enable automatic aiming", function(enabled)
+                cheats.aimbot = enabled
+                showNotification("SPWARE: " .. (enabled and "Aimbot ON" or "Aimbot OFF"))
             end)
-            yPos = yPos + 50
+            yOffset = yOffset + createSlider(scrollFrame, "FOV Size", 50, 500, 120)
+            yOffset = yOffset + createSlider(scrollFrame, "Smoothness", 1, 20, 5)
+            yOffset = yOffset + createToggle(scrollFrame, "Silent Aim", "Invisible aim assistance", function(enabled)
+                showNotification("SPWARE: Silent Aim " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Ragebot", "Aggressive targeting", function(enabled)
+                showNotification("SPWARE: Ragebot " .. (enabled and "ON" or "OFF"))
+            end)
+            
+            -- TriggerBot Section
+            yOffset = yOffset + createSection(scrollFrame, "🎯 TriggerBot")
+            yOffset = yOffset + createToggle(scrollFrame, "TriggerBot", "Auto shoot when on target", function(enabled)
+                showNotification("SPWARE: TriggerBot " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createSlider(scrollFrame, "Trigger Delay", 0, 500, 50)
+            
+            -- Combat Enhancements
+            yOffset = yOffset + createSection(scrollFrame, "💥 Combat Enhancements")
+            yOffset = yOffset + createToggle(scrollFrame, "Hitbox Expander", "Increase hitbox size", function(enabled)
+                showNotification("SPWARE: Hitbox Expander " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "One Shot Kill", "Instant elimination", function(enabled)
+                showNotification("SPWARE: One Shot Kill " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "No Recoil", "Remove weapon recoil", function(enabled)
+                showNotification("SPWARE: No Recoil " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "No Spread", "Remove bullet spread", function(enabled)
+                showNotification("SPWARE: No Spread " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Infinite Ammo", "Unlimited ammunition", function(enabled)
+                showNotification("SPWARE: Infinite Ammo " .. (enabled and "ON" or "OFF"))
+            end)
+            
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
             
         elseif currentTab == "Movement" then
-            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Fly", function(state)
-                cheats.fly = state
+            local yOffset = 0
+            
+            yOffset = yOffset + createSection(scrollFrame, "🏃 Movement Hacks")
+            yOffset = yOffset + createToggle(scrollFrame, "Bunny Hop", "Auto bunny hopping", function(enabled)
+                showNotification("SPWARE: Bunny Hop " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Strafe Hack", "Enhanced strafing", function(enabled)
+                showNotification("SPWARE: Strafe Hack " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Speed Hack", "Increased movement speed", function(enabled)
+                cheats.speed = enabled
+                showNotification("SPWARE: Speed Hack " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createSlider(scrollFrame, "Speed Multiplier", 1, 10, 3)
+            
+            yOffset = yOffset + createSection(scrollFrame, "✈️ Flight & Teleport")
+            yOffset = yOffset + createToggle(scrollFrame, "Fly", "Enable flight mode", function(enabled)
+                cheats.fly = enabled
                 toggleFly()
-                notify("Fly", state and "Enabled" or "Disabled")
+                showNotification("SPWARE: Fly " .. (enabled and "ON" or "OFF"))
             end)
-            yPos = yPos + 50
-            
-            createSlider(scrollFrame, UDim2.new(0, 0, 0, yPos), "Fly Speed", 10, 100, 50, function(value)
-                cheats.flySpeed = value
+            yOffset = yOffset + createToggle(scrollFrame, "Jetpack", "Jetpack mode", function(enabled)
+                showNotification("SPWARE: Jetpack " .. (enabled and "ON" or "OFF"))
             end)
-            yPos = yPos + 60
-            
-            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Noclip", function(state)
-                cheats.noclip = state
+            yOffset = yOffset + createToggle(scrollFrame, "Noclip", "Walk through walls", function(enabled)
+                cheats.noclip = enabled
                 toggleNoclip()
-                notify("Noclip", state and "Enabled" or "Disabled")
+                showNotification("SPWARE: Noclip " .. (enabled and "ON" or "OFF"))
             end)
-            yPos = yPos + 50
-            
-            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Speed", function(state)
-                cheats.speed = state
-                updateWalkSpeed()
-                notify("Speed", state and "Enabled" or "Disabled")
+            yOffset = yOffset + createToggle(scrollFrame, "Teleport Kill", "Instant teleport kills", function(enabled)
+                showNotification("SPWARE: Teleport Kill " .. (enabled and "ON" or "OFF"))
             end)
-            yPos = yPos + 50
             
-            createSlider(scrollFrame, UDim2.new(0, 0, 0, yPos), "Walk Speed", 16, 100, 16, function(value)
-                cheats.walkSpeed = value
-                updateWalkSpeed()
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
+            
+        elseif currentTab == "Visual" then
+            local yOffset = 0
+            
+            yOffset = yOffset + createSection(scrollFrame, "👁️ ESP Players")
+            yOffset = yOffset + createToggle(scrollFrame, "ESP Box", "Show player boxes", function(enabled)
+                showNotification("SPWARE: ESP Box " .. (enabled and "ON" or "OFF"))
             end)
-            yPos = yPos + 60
-            
-            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Infinite Jump", function(state)
-                cheats.infiniteJump = state
-                updateJumpPower()
-                notify("Infinite Jump", state and "Enabled" or "Disabled")
+            yOffset = yOffset + createToggle(scrollFrame, "ESP Skeleton", "Show player skeletons", function(enabled)
+                showNotification("SPWARE: ESP Skeleton " .. (enabled and "ON" or "OFF"))
             end)
-            yPos = yPos + 50
+            yOffset = yOffset + createToggle(scrollFrame, "ESP Head Dot", "Show head indicators", function(enabled)
+                showNotification("SPWARE: ESP Head Dot " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "ESP Weapons", "Show weapon ESP", function(enabled)
+                showNotification("SPWARE: ESP Weapons " .. (enabled and "ON" or "OFF"))
+            end)
             
-            createSlider(scrollFrame, UDim2.new(0, 0, 0, yPos), "Jump Power", 50, 200, 50, function(value)
-                cheats.jumpPower = value
+            yOffset = yOffset + createSection(scrollFrame, "🌟 Visual Effects")
+            yOffset = yOffset + createToggle(scrollFrame, "Chams", "See players through walls", function(enabled)
+                showNotification("SPWARE: Chams " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Glow Effect", "Player glow effect", function(enabled)
+                showNotification("SPWARE: Glow Effect " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Radar Hack", "Mini radar display", function(enabled)
+                showNotification("SPWARE: Radar Hack " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Custom Crosshair", "Enhanced crosshair", function(enabled)
+                showNotification("SPWARE: Custom Crosshair " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Night Vision", "Enhanced visibility", function(enabled)
+                showNotification("SPWARE: Night Vision " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Full Bright", "Maximum brightness", function(enabled)
+                cheats.fullbright = enabled
+                toggleFullbright()
+                showNotification("SPWARE: Full Bright " .. (enabled and "ON" or "OFF"))
+            end)
+            
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
+            
+        elseif currentTab == "Player List" then
+            -- Create Player List Window
+            createPlayerListWindow()
+            
+        elseif currentTab == "Chat" then
+            local yOffset = 0
+            
+            yOffset = yOffset + createSection(scrollFrame, "💬 Quick Messages")
+            yOffset = yOffset + createButton(scrollFrame, "Spam Chat", "Flood chat with messages", function()
+                showNotification("SPWARE: Chat Spam Started")
+            end)
+            yOffset = yOffset + createButton(scrollFrame, "Auto GG", "Auto good game messages", function()
+                showNotification("SPWARE: Auto GG Enabled")
+            end)
+            yOffset = yOffset + createButton(scrollFrame, "Fake Admin", "Send fake admin messages", function()
+                showNotification("SPWARE: Fake Admin Messages")
+            end)
+            
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
                 updateJumpPower()
             end)
             yPos = yPos + 60
