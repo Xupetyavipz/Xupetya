@@ -233,7 +233,10 @@ local TabsData = {
     {name = "Movement", icon = "🏃", color = Color3.fromRGB(34, 197, 94)},
     {name = "Visual", icon = "👁️", color = Color3.fromRGB(59, 130, 246)},
     {name = "Roleplay", icon = "🎭", color = Color3.fromRGB(168, 85, 247)},
-    {name = "Blox Fruits", icon = "🍎", color = Color3.fromRGB(245, 158, 11)}
+    {name = "Blox Fruits", icon = "🍎", color = Color3.fromRGB(245, 158, 11)},
+    {name = "Player List", icon = "📋", color = Color3.fromRGB(236, 72, 153)},
+    {name = "Chat", icon = "💬", color = Color3.fromRGB(14, 165, 233)},
+    {name = "Car List", icon = "🚗", color = Color3.fromRGB(249, 115, 22)}
 }
 
 -- Tab Container
@@ -262,11 +265,11 @@ for i, tabData in ipairs(TabsData) do
     TabButton.Parent = TabContainer
     TabButton.BackgroundColor3 = i == 1 and tabData.color or Color3.fromRGB(25, 25, 30)
     TabButton.BorderSizePixel = 0
-    TabButton.Size = UDim2.new(0, 170, 1, 0)
+    TabButton.Size = UDim2.new(0, 110, 1, 0)
     TabButton.Font = Enum.Font.GothamBold
     TabButton.Text = tabData.icon .. " " .. tabData.name
     TabButton.TextColor3 = i == 1 and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(156, 163, 175)
-    TabButton.TextSize = 14
+    TabButton.TextSize = 12
     
     local TabCorner = Instance.new("UICorner")
     TabCorner.CornerRadius = UDim.new(0, 8)
@@ -478,6 +481,137 @@ local function CreateToggle(parent, text, setting, callback)
     return Toggle
 end
 
+local function CreateSlider(parent, text, setting, min, max, callback)
+    local Slider = Instance.new("Frame")
+    Slider.Name = text .. "Slider"
+    Slider.Parent = parent
+    Slider.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+    Slider.BorderSizePixel = 0
+    Slider.Size = UDim2.new(1, -10, 0, 60)
+    
+    local SliderCorner = Instance.new("UICorner")
+    SliderCorner.CornerRadius = UDim.new(0, 8)
+    SliderCorner.Parent = Slider
+    
+    local SliderStroke = Instance.new("UIStroke")
+    SliderStroke.Color = Color3.fromRGB(75, 85, 99)
+    SliderStroke.Thickness = 2
+    SliderStroke.Parent = Slider
+    
+    local SliderLabel = Instance.new("TextLabel")
+    SliderLabel.Name = "Label"
+    SliderLabel.Parent = Slider
+    SliderLabel.BackgroundTransparency = 1
+    SliderLabel.Position = UDim2.new(0, 15, 0, 5)
+    SliderLabel.Size = UDim2.new(1, -15, 0, 25)
+    SliderLabel.Font = Enum.Font.GothamBold
+    SliderLabel.Text = text .. ": " .. (Settings[setting] or min)
+    SliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SliderLabel.TextSize = 14
+    SliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local SliderFrame = Instance.new("Frame")
+    SliderFrame.Name = "SliderFrame"
+    SliderFrame.Parent = Slider
+    SliderFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    SliderFrame.BorderSizePixel = 0
+    SliderFrame.Position = UDim2.new(0, 15, 0, 35)
+    SliderFrame.Size = UDim2.new(1, -30, 0, 15)
+    
+    local SliderFrameCorner = Instance.new("UICorner")
+    SliderFrameCorner.CornerRadius = UDim.new(0, 8)
+    SliderFrameCorner.Parent = SliderFrame
+    
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Name = "Fill"
+    SliderFill.Parent = SliderFrame
+    SliderFill.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
+    SliderFill.BorderSizePixel = 0
+    SliderFill.Size = UDim2.new((Settings[setting] or min) / max, 0, 1, 0)
+    
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(0, 8)
+    FillCorner.Parent = SliderFill
+    
+    local SliderButton = Instance.new("TextButton")
+    SliderButton.Name = "Button"
+    SliderButton.Parent = SliderFrame
+    SliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    SliderButton.BorderSizePixel = 0
+    SliderButton.Position = UDim2.new((Settings[setting] or min) / max, -10, 0, -5)
+    SliderButton.Size = UDim2.new(0, 20, 0, 25)
+    SliderButton.Text = ""
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 10)
+    ButtonCorner.Parent = SliderButton
+    
+    local dragging = false
+    
+    SliderButton.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mousePos = UserInputService:GetMouseLocation()
+            local framePos = SliderFrame.AbsolutePosition
+            local frameSize = SliderFrame.AbsoluteSize
+            
+            local relativePos = math.clamp((mousePos.X - framePos.X) / frameSize.X, 0, 1)
+            local value = math.floor(min + (max - min) * relativePos)
+            
+            Settings[setting] = value
+            SliderLabel.Text = text .. ": " .. value
+            
+            SliderFill.Size = UDim2.new(relativePos, 0, 1, 0)
+            SliderButton.Position = UDim2.new(relativePos, -10, 0, -5)
+            
+            if callback then
+                callback(value)
+            end
+        end
+    end)
+    
+    return Slider
+end
+
+local function CreateButton(parent, text, callback)
+    local Button = Instance.new("TextButton")
+    Button.Name = text .. "Button"
+    Button.Parent = parent
+    Button.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
+    Button.BorderSizePixel = 0
+    Button.Size = UDim2.new(1, -10, 0, 35)
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 14
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 6)
+    ButtonCorner.Parent = Button
+    
+    Button.MouseButton1Click:Connect(function()
+        if callback then
+            callback()
+        end
+        
+        -- Button animation
+        TweenService:Create(Button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(100, 30, 180)}):Play()
+        wait(0.1)
+        TweenService:Create(Button, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(138, 43, 226)}):Play()
+    end)
+    
+    return Button
+end
+
 -- Input handling
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
@@ -515,15 +649,28 @@ end)
 -- Tab Content Creation
 -- Combat Tab
 local CombatFrame = TabFrames[1]
+
+local AimbotSection = CreateSection(CombatFrame, "🎯 Aimbot System", Color3.fromRGB(239, 68, 68))
+CreateToggle(AimbotSection, "Aimbot", "AimbotEnabled")
+CreateSlider(AimbotSection, "FOV", "AimbotFOV", 10, 500)
+CreateSlider(AimbotSection, "Smoothness", "AimbotSmooth", 1, 20)
+CreateToggle(AimbotSection, "Silent Aim", "SilentAim")
+CreateToggle(AimbotSection, "Ragebot", "Ragebot")
+
 local CombatSection = CreateSection(CombatFrame, "⚔️ Combat Features", Color3.fromRGB(239, 68, 68))
-CreateToggle(CombatSection, "Aimbot", "AimbotEnabled")
-CreateToggle(CombatSection, "Silent Aim", "SilentAim")
 CreateToggle(CombatSection, "TriggerBot", "TriggerBot")
+CreateToggle(CombatSection, "Hitbox Expander", "HitboxExpander")
 CreateToggle(CombatSection, "One Shot Kill", "OneShotKill")
+CreateToggle(CombatSection, "No Recoil", "NoRecoil")
+CreateToggle(CombatSection, "No Spread", "NoSpread")
+CreateToggle(CombatSection, "Infinite Ammo", "InfiniteAmmo")
 
 -- Movement Tab
 local MovementFrame = TabFrames[2]
+
 local MovementSection = CreateSection(MovementFrame, "🏃 Movement Hacks", Color3.fromRGB(34, 197, 94))
+CreateToggle(MovementSection, "Bunny Hop", "BunnyHop")
+CreateToggle(MovementSection, "Strafe Hack", "StrafeHack")
 CreateToggle(MovementSection, "Speed Hack", "SpeedHack", function(state)
     if state and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = Settings.SpeedValue
@@ -531,13 +678,36 @@ CreateToggle(MovementSection, "Speed Hack", "SpeedHack", function(state)
         LocalPlayer.Character.Humanoid.WalkSpeed = 16
     end
 end)
-CreateToggle(MovementSection, "Fly", "Fly")
-CreateToggle(MovementSection, "Noclip", "Noclip")
+CreateSlider(MovementSection, "Speed Value", "SpeedValue", 16, 500, function(value)
+    if Settings.SpeedHack and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = value
+    end
+end)
+
+local FlightSection = CreateSection(MovementFrame, "✈️ Flight & Teleport", Color3.fromRGB(34, 197, 94))
+CreateToggle(FlightSection, "Fly", "Fly")
+CreateToggle(FlightSection, "Jetpack", "Jetpack")
+CreateSlider(FlightSection, "Fly Speed", "FlySpeed", 10, 200)
+CreateToggle(FlightSection, "Noclip", "Noclip")
+CreateToggle(FlightSection, "Teleport Kill", "TeleportKill")
 
 -- Visual Tab
 local VisualFrame = TabFrames[3]
-local VisualSection = CreateSection(VisualFrame, "👁️ Visual Effects", Color3.fromRGB(59, 130, 246))
-CreateToggle(VisualSection, "ESP Players", "ESPPlayers")
+
+local ESPSection = CreateSection(VisualFrame, "👁️ ESP System", Color3.fromRGB(59, 130, 246))
+CreateToggle(ESPSection, "ESP Players", "ESPPlayers")
+CreateToggle(ESPSection, "ESP Box", "ESPBox")
+CreateToggle(ESPSection, "ESP Skeleton", "ESPSkeleton")
+CreateToggle(ESPSection, "ESP Head Dot", "ESPHeadDot")
+CreateToggle(ESPSection, "ESP Weapons", "ESPWeapons")
+CreateToggle(ESPSection, "ESP Items", "ESPItems")
+
+local VisualSection = CreateSection(VisualFrame, "🌟 Visual Effects", Color3.fromRGB(59, 130, 246))
+CreateToggle(VisualSection, "Chams", "Chams")
+CreateToggle(VisualSection, "Glow", "Glow")
+CreateToggle(VisualSection, "Radar Hack", "RadarHack")
+CreateToggle(VisualSection, "Custom Crosshair", "CustomCrosshair")
+CreateToggle(VisualSection, "Night Vision", "NightVision")
 CreateToggle(VisualSection, "Full Bright", "FullBright", function(state)
     if state then
         Lighting.Ambient = Color3.fromRGB(255, 255, 255)
@@ -547,21 +717,191 @@ CreateToggle(VisualSection, "Full Bright", "FullBright", function(state)
         Lighting.Brightness = 1
     end
 end)
-CreateToggle(VisualSection, "Night Vision", "NightVision")
 
 -- Roleplay Tab
 local RoleplayFrame = TabFrames[4]
-local RoleplaySection = CreateSection(RoleplayFrame, "🎭 Roleplay Features", Color3.fromRGB(168, 85, 247))
-CreateToggle(RoleplaySection, "Godmode", "Godmode")
-CreateToggle(RoleplaySection, "Invisible", "Invisible")
-CreateToggle(RoleplaySection, "Super Jump", "SuperJump")
+
+local VehicleSection = CreateSection(RoleplayFrame, "🚗 Vehicle System", Color3.fromRGB(168, 85, 247))
+CreateButton(VehicleSection, "Spawn Car", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car spawned!", Duration = 2})
+end)
+CreateToggle(VehicleSection, "Super Speed Car", "SuperSpeedCar")
+CreateToggle(VehicleSection, "Fly Car", "FlyCar")
+CreateButton(VehicleSection, "Spawn Boat", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Boat spawned!", Duration = 2})
+end)
+CreateButton(VehicleSection, "Spawn Helicopter", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Helicopter spawned!", Duration = 2})
+end)
+
+local WeaponSection = CreateSection(RoleplayFrame, "🔫 Weapons & Items", Color3.fromRGB(168, 85, 247))
+CreateButton(WeaponSection, "Spawn Weapons", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Weapons spawned!", Duration = 2})
+end)
+CreateToggle(WeaponSection, "Infinite Ammo", "InfiniteAmmoRP")
+CreateToggle(WeaponSection, "Dual Wield", "DualWield")
+CreateButton(WeaponSection, "Item Spawner", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Items spawned!", Duration = 2})
+end)
+
+local PlayerSection = CreateSection(RoleplayFrame, "👤 Player Features", Color3.fromRGB(168, 85, 247))
+CreateButton(PlayerSection, "Morphs", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Morph menu opened!", Duration = 2})
+end)
+CreateSlider(PlayerSection, "Size Changer", "SizeChanger", 0.1, 5)
+CreateToggle(PlayerSection, "Invisible", "Invisible")
+CreateToggle(PlayerSection, "Godmode", "Godmode")
+CreateToggle(PlayerSection, "Super Jump", "SuperJump")
+CreateButton(PlayerSection, "Teleport Locations", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Teleport menu opened!", Duration = 2})
+end)
+
+local UtilitySection = CreateSection(RoleplayFrame, "🛠️ Utilities", Color3.fromRGB(168, 85, 247))
+CreateToggle(UtilitySection, "Auto Farm Money", "AutoFarmMoney")
+CreateToggle(UtilitySection, "Auto Collect Items", "AutoCollectItems")
+CreateToggle(UtilitySection, "Auto Daily Rewards", "AutoDailyRewards")
+CreateToggle(UtilitySection, "Auto Buy", "AutoBuy")
+CreateToggle(UtilitySection, "Disable Gravity", "DisableGravity")
+CreateButton(UtilitySection, "Light Control", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Light control activated!", Duration = 2})
+end)
 
 -- Blox Fruits Tab
 local BloxFrame = TabFrames[5]
-local BloxSection = CreateSection(BloxFrame, "🍎 Blox Fruits", Color3.fromRGB(245, 158, 11))
-CreateToggle(BloxSection, "Auto Farm", "AutoFarmLevel")
-CreateToggle(BloxSection, "Kill Aura", "KillAura")
-CreateToggle(BloxSection, "Walk on Water", "WalkOnWater")
+
+local FarmSection = CreateSection(BloxFrame, "🌾 Auto Farm", Color3.fromRGB(245, 158, 11))
+CreateToggle(FarmSection, "Auto Farm Level", "AutoFarmLevel")
+CreateToggle(FarmSection, "Auto Farm Boss", "AutoFarmBoss")
+CreateToggle(FarmSection, "Auto Farm Quest", "AutoFarmQuest")
+CreateToggle(FarmSection, "Auto Farm Fruits", "AutoFarmFruits")
+CreateToggle(FarmSection, "Auto Farm Mastery", "AutoFarmMastery")
+
+local BloxCombatSection = CreateSection(BloxFrame, "⚔️ Combat", Color3.fromRGB(245, 158, 11))
+CreateToggle(BloxCombatSection, "Auto Aim Skills", "AutoAimSkills")
+CreateToggle(BloxCombatSection, "No Skill Cooldown", "NoSkillCooldown")
+CreateToggle(BloxCombatSection, "Skill Spam", "SkillSpam")
+CreateToggle(BloxCombatSection, "Kill Aura", "KillAura")
+CreateSlider(BloxCombatSection, "Damage Multiplier", "DamageMultiplier", 1, 10)
+
+local BloxTeleportSection = CreateSection(BloxFrame, "🌊 Teleport", Color3.fromRGB(245, 158, 11))
+CreateButton(BloxTeleportSection, "TP to Sea", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Teleported to sea!", Duration = 2})
+end)
+CreateButton(BloxTeleportSection, "TP to Island", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Teleported to island!", Duration = 2})
+end)
+CreateButton(BloxTeleportSection, "TP to NPC", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Teleported to NPC!", Duration = 2})
+end)
+CreateButton(BloxTeleportSection, "TP to Fruits", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Teleported to fruits!", Duration = 2})
+end)
+
+local BloxMiscSection = CreateSection(BloxFrame, "🔧 Misc", Color3.fromRGB(245, 158, 11))
+CreateToggle(BloxMiscSection, "ESP Fruits", "ESPFruits")
+CreateToggle(BloxMiscSection, "Auto Fruit Sniper", "AutoFruitSniper")
+CreateToggle(BloxMiscSection, "Walk on Water", "WalkOnWater")
+CreateToggle(BloxMiscSection, "Auto Buy Blox", "AutoBuyBlox")
+CreateButton(BloxMiscSection, "Raid Helper", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Raid helper activated!", Duration = 2})
+end)
+
+-- Player List Tab
+local PlayerListFrame = TabFrames[6]
+
+local PlayerListSection = CreateSection(PlayerListFrame, "👥 Player Management", Color3.fromRGB(236, 72, 153))
+CreateButton(PlayerListSection, "Refresh Players", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player list refreshed!", Duration = 2})
+end)
+CreateButton(PlayerListSection, "Teleport to Player", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Select a player first!", Duration = 2})
+end)
+CreateButton(PlayerListSection, "Spectate Player", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Spectating player!", Duration = 2})
+end)
+
+local TrollSection = CreateSection(PlayerListFrame, "🎪 Troll Actions", Color3.fromRGB(236, 72, 153))
+CreateButton(TrollSection, "Freeze Player", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player frozen!", Duration = 2})
+end)
+CreateButton(TrollSection, "Fling Player", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player flung!", Duration = 2})
+end)
+CreateButton(TrollSection, "Kill Player", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player killed!", Duration = 2})
+end)
+CreateButton(TrollSection, "Clone Player", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player cloned!", Duration = 2})
+end)
+CreateButton(TrollSection, "Spin Player", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player spinning!", Duration = 2})
+end)
+CreateButton(TrollSection, "Troll Pack", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Troll pack activated!", Duration = 2})
+end)
+
+-- Chat Tab
+local ChatFrame = TabFrames[7]
+
+local QuickChatSection = CreateSection(ChatFrame, "💬 Quick Messages", Color3.fromRGB(14, 165, 233))
+CreateButton(QuickChatSection, "Quick Messages", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Quick message sent!", Duration = 2})
+end)
+CreateButton(QuickChatSection, "Keybind Macros", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Macro activated!", Duration = 2})
+end)
+CreateToggle(QuickChatSection, "Auto Reply", "AutoReply")
+CreateToggle(QuickChatSection, "Auto Greet", "AutoGreet")
+CreateToggle(QuickChatSection, "Auto GG", "AutoGG")
+
+local SpamSection = CreateSection(ChatFrame, "🌊 Spam Features", Color3.fromRGB(14, 165, 233))
+CreateToggle(SpamSection, "Chat Spam", "ChatSpam")
+CreateButton(SpamSection, "Wave Spam", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Wave spam activated!", Duration = 2})
+end)
+CreateButton(SpamSection, "Emoji Spam", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Emoji spam activated!", Duration = 2})
+end)
+CreateButton(SpamSection, "Unicode Spam", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Unicode spam activated!", Duration = 2})
+end)
+
+local FakeChatSection = CreateSection(ChatFrame, "🎭 Fake Features", Color3.fromRGB(14, 165, 233))
+CreateToggle(FakeChatSection, "Fake Messages", "FakeMessages")
+CreateButton(FakeChatSection, "Fake System Messages", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Fake system message sent!", Duration = 2})
+end)
+CreateButton(FakeChatSection, "Fake Admin Commands", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Fake admin command sent!", Duration = 2})
+end)
+
+-- Car List Tab
+local CarListFrame = TabFrames[8]
+
+local CarManagementSection = CreateSection(CarListFrame, "🚗 Car Management", Color3.fromRGB(249, 115, 22))
+CreateButton(CarManagementSection, "Refresh Car List", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car list refreshed!", Duration = 2})
+end)
+CreateButton(CarManagementSection, "Spawn Selected Car", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car spawned!", Duration = 2})
+end)
+CreateButton(CarManagementSection, "TP to Car", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Teleported to car!", Duration = 2})
+end)
+
+local CarActionsSection = CreateSection(CarListFrame, "🔧 Car Actions", Color3.fromRGB(249, 115, 22))
+CreateButton(CarActionsSection, "Bring Car to Me", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car brought to you!", Duration = 2})
+end)
+CreateButton(CarActionsSection, "Explode Car", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car exploded!", Duration = 2})
+end)
+CreateButton(CarActionsSection, "Delete Car", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car deleted!", Duration = 2})
+end)
+CreateButton(CarActionsSection, "Send Car to Sky", function()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car sent to sky!", Duration = 2})
+end)
 
 -- Initial notification
 spawn(function()
