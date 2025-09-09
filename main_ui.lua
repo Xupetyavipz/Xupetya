@@ -662,41 +662,37 @@ local function CreateButton(parent, text, callback)
     return Button
 end
 
--- Input handling with safety checks
+-- Input handling
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
     if input.KeyCode == Enum.KeyCode.Insert then
-        if MainFrame and GlowFrame then
-            MainFrame.Visible = not MainFrame.Visible
-            GlowFrame.Visible = MainFrame.Visible
-            
-            if MainFrame.Visible then
-                TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
-                    Size = UDim2.new(0, 1000, 0, 700)
-                }):Play()
-            end
+        MainFrame.Visible = not MainFrame.Visible
+        GlowFrame.Visible = MainFrame.Visible
+        
+        if MainFrame.Visible then
+            TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+                Size = UDim2.new(0, 1000, 0, 700)
+            }):Play()
         end
     end
 end)
 
--- Button connections with safety checks
+-- Button connections
 CloseButton.MouseButton1Click:Connect(function()
-    if MainFrame then MainFrame.Visible = false end
-    if GlowFrame then GlowFrame.Visible = false end
+    MainFrame.Visible = false
+    GlowFrame.Visible = false
 end)
 
 MinimizeButton.MouseButton1Click:Connect(function()
-    if MainFrame then 
-        if MainFrame.Size == UDim2.new(0, 1000, 0, 700) then
-            TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-                Size = UDim2.new(0, 1000, 0, 60)
-            }):Play()
-        else
-            TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-                Size = UDim2.new(0, 1000, 0, 700)
-            }):Play()
-        end
+    if MainFrame.Size == UDim2.new(0, 1000, 0, 700) then
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+            Size = UDim2.new(0, 1000, 0, 60)
+        }):Play()
+    else
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
+            Size = UDim2.new(0, 1000, 0, 700)
+        }):Play()
     end
 end)
 
@@ -1621,49 +1617,7 @@ CreateSlider(SpeedSection, "Speed Value", "SpeedValue", 16, 500, function(value)
         LocalPlayer.Character.Humanoid.WalkSpeed = value
     end
 end)
-CreateToggle(SpeedSection, "Bunny Hop", "BunnyHop", function(state)
-    Settings.BunnyHop = state
-    if state then
-        local bunnyHopConnection
-        bunnyHopConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-            if gameProcessed then return end
-            if input.KeyCode == Enum.KeyCode.Space and Settings.BunnyHop then
-                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                    local humanoid = LocalPlayer.Character.Humanoid
-                    if humanoid.FloorMaterial ~= Enum.Material.Air then
-                        -- Add upward velocity for bunny hop
-                        local bodyVelocity = Instance.new("BodyVelocity")
-                        bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
-                        bodyVelocity.Velocity = Vector3.new(0, 50, 0)
-                        bodyVelocity.Parent = LocalPlayer.Character.HumanoidRootPart
-                        
-                        game:GetService("Debris"):AddItem(bodyVelocity, 0.5)
-                        
-                        -- Add forward momentum
-                        local camera = workspace.CurrentCamera
-                        local direction = camera.CFrame.LookVector
-                        direction = Vector3.new(direction.X, 0, direction.Z).Unit
-                        
-                        local bodyPosition = Instance.new("BodyVelocity")
-                        bodyPosition.MaxForce = Vector3.new(4000, 0, 4000)
-                        bodyPosition.Velocity = direction * humanoid.WalkSpeed * 1.5
-                        bodyPosition.Parent = LocalPlayer.Character.HumanoidRootPart
-                        
-                        game:GetService("Debris"):AddItem(bodyPosition, 0.3)
-                    end
-                end
-            end
-        end)
-        
-        -- Store connection for cleanup
-        Settings.BunnyHopConnection = bunnyHopConnection
-    else
-        if Settings.BunnyHopConnection then
-            Settings.BunnyHopConnection:Disconnect()
-            Settings.BunnyHopConnection = nil
-        end
-    end
-end)
+CreateToggle(SpeedSection, "Bunny Hop", "BunnyHop")
 CreateToggle(SpeedSection, "Strafe Hack", "StrafeHack")
 
 -- Flight Sub-tab Content
@@ -2244,11 +2198,9 @@ local PlayerListFrame = TabFrames[6]
 
 local PlayerListSection = CreateSection(PlayerListFrame, "👥 Player Management", Color3.fromRGB(138, 43, 226))
 CreateToggle(PlayerListSection, "Show Player List", "ShowPlayerList", function(state)
-    if PlayerListWindow then
-        PlayerListWindow.Visible = state
-        if state then
-            RefreshPlayerList()
-        end
+    PlayerListWindow.Visible = state
+    if state then
+        RefreshPlayerList()
     end
 end)
 
@@ -2596,11 +2548,9 @@ local CarListFrame = TabFrames[8]
 
 local CarManagementSection = CreateSection(CarListFrame, "🚗 Car Management", Color3.fromRGB(120, 40, 200))
 local CarListToggle = CreateToggle(CarManagementSection, "Show Car List", "ShowCarList", function(state)
-    if CarListWindow then
-        CarListWindow.Visible = state
-        if state then
-            RefreshCarList()
-        end
+    CarListWindow.Visible = state
+    if state then
+        RefreshCarList()
     end
 end)
 
@@ -2669,23 +2619,27 @@ end)
 
 -- Window Close Connections
 PlayerListClose.MouseButton1Click:Connect(function()
-    if PlayerListWindow then
-        PlayerListWindow.Visible = false
-        Settings.ShowPlayerList = false
-    end
+    PlayerListWindow.Visible = false
+    Settings.ShowPlayerList = false
 end)
 
 CarListClose.MouseButton1Click:Connect(function()
-    if CarListWindow then
-        CarListWindow.Visible = false
-        Settings.ShowCarList = false
-        -- Update the toggle state without triggering the callback
-        if CarListToggle then
-            local toggleSwitch = CarListToggle:FindFirstChild("ToggleSwitch")
-            if toggleSwitch then
-                TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0.5, -10)}):Play()
-            end
-        end
+    CarListWindow.Visible = false
+    Settings.ShowCarList = false
+    -- Update the toggle state without triggering the callback
+    local toggleSwitch = CarListToggle:FindFirstChild("ToggleSwitch")
+    if toggleSwitch then
+        TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {
+            Position = UDim2.new(0, 2, 0.5, -8)
+        }):Play()
+        TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        }):Play()
+    end
+    local statusText = CarListToggle:FindFirstChild("StatusText")
+    if statusText then
+        statusText.Text = "OFF"
+        statusText.TextColor3 = Color3.fromRGB(180, 160, 200)
     end
 end)
 
@@ -3165,13 +3119,51 @@ spawn(function()
     end
 end)
 
--- Show UI and debug with safety checks
-if MainFrame then
-    MainFrame.Visible = true
+-- Show UI and debug
+MainFrame.Visible = true
+GlowFrame.Visible = true
+
+print("=== SPWARE V5 PREMIUM LOADED ===")
+print("UI Elements Created Successfully!")
+print("Press INSERT key to toggle menu")
+print("Navigation between tabs is working!")
+print("================================")
+
+    label.Font = Enum.Font.GothamBold
+    label.TextStrokeTransparency = 0
+    label.TextStrokeColor3 = Color3.new(0, 0, 0)
+    
+    -- RGB Animation
+    spawn(function()
+        local hue = 0
+        while esp.Parent do
+            hue = (hue + 0.01) % 1
+            label.TextColor3 = Color3.fromHSV(hue, 1, 1)
+            wait(0.1)
+        end
+    end)
+    
+    AdminESP[player] = esp
 end
-if GlowFrame then
-    GlowFrame.Visible = true
-end
+
+-- Monitor for admin players
+spawn(function()
+    while true do
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and IsAdmin(player) then
+                if not AdminPlayers[player] then
+                    AdminPlayers[player] = true
+                    CreateAdminESP(player)
+                end
+            end
+        end
+        wait(5)
+    end
+end)
+
+-- Show UI and debug
+MainFrame.Visible = true
+GlowFrame.Visible = true
 
 print("=== SPWARE V5 PREMIUM LOADED ===")
 print("UI Elements Created Successfully!")
