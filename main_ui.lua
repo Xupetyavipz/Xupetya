@@ -28,21 +28,21 @@ local currentTab = "Combat"
 local isVisible = true
 local animating = false
 
--- Premium Color Scheme (Fatality/Gamesense Style)
+-- Purple Theme Color Scheme
 local COLORS = {
-    BACKGROUND = Color3.fromRGB(17, 17, 17),
-    SURFACE = Color3.fromRGB(24, 24, 24),
-    SIDEBAR = Color3.fromRGB(20, 20, 20),
-    ACCENT = Color3.fromRGB(144, 238, 144),
-    ACCENT_HOVER = Color3.fromRGB(124, 218, 124),
-    PRIMARY = Color3.fromRGB(60, 60, 60),
-    BORDER = Color3.fromRGB(40, 40, 40),
+    BACKGROUND = Color3.fromRGB(25, 20, 35),
+    SURFACE = Color3.fromRGB(35, 30, 50),
+    SIDEBAR = Color3.fromRGB(30, 25, 45),
+    ACCENT = Color3.fromRGB(138, 43, 226),
+    ACCENT_HOVER = Color3.fromRGB(148, 53, 236),
+    PRIMARY = Color3.fromRGB(75, 60, 100),
+    BORDER = Color3.fromRGB(60, 45, 80),
     TEXT = Color3.fromRGB(255, 255, 255),
-    TEXT_DIM = Color3.fromRGB(180, 180, 180),
-    TEXT_DARK = Color3.fromRGB(120, 120, 120),
-    SUCCESS = Color3.fromRGB(144, 238, 144),
-    ERROR = Color3.fromRGB(255, 99, 99),
-    WARNING = Color3.fromRGB(255, 193, 99)
+    TEXT_DIM = Color3.fromRGB(200, 200, 200),
+    TEXT_DARK = Color3.fromRGB(150, 150, 150),
+    SUCCESS = Color3.fromRGB(138, 43, 226),
+    ERROR = Color3.fromRGB(220, 50, 80),
+    WARNING = Color3.fromRGB(255, 165, 0)
 }
 
 -- Cheat States
@@ -380,14 +380,14 @@ local function createUI()
     
     -- Create Premium Sidebar Tabs
     local tabs = {
-        {name = "Combat", icon = "⚔️"},
-        {name = "Movement", icon = "🏃"},
-        {name = "Visual", icon = "👁️"},
-        {name = "Roleplay", icon = "🎭"},
-        {name = "Blox Fruits", icon = "🥭"},
-        {name = "Player List", icon = "📋"},
-        {name = "Car List", icon = "🚗"},
-        {name = "Chat", icon = "💬"}
+        {name = "Combat", icon = "rbxassetid://75518636799674"},
+        {name = "Movement", icon = "rbxassetid://102270380454487"},
+        {name = "Visuals", icon = "rbxassetid://77345366725078"},
+        {name = "Car List", icon = "rbxassetid://111612200954692"},
+        {name = "Roleplay", icon = "rbxassetid://111612200954692"},
+        {name = "Blox Fruits", icon = "rbxassetid://111612200954692"},
+        {name = "Player List", icon = "rbxassetid://122767272714113"},
+        {name = "Chat", icon = "rbxassetid://118260954915004"}
     }
     
     for i, tab in ipairs(tabs) do
@@ -412,14 +412,12 @@ local function createUI()
         indicator.Parent = tabButton
         
         -- Tab Icon
-        local icon = Instance.new("TextLabel")
-        icon.Size = UDim2.new(0, 25, 0, 25)
-        icon.Position = UDim2.new(0, 15, 0.5, -12.5)
+        local icon = Instance.new("ImageLabel")
+        icon.Size = UDim2.new(0, 20, 0, 20)
+        icon.Position = UDim2.new(0, 15, 0.5, -10)
         icon.BackgroundTransparency = 1
-        icon.Text = tab.icon
-        icon.TextColor3 = tab.name == currentTab and COLORS.TEXT or COLORS.TEXT_DARK
-        icon.TextSize = 16
-        icon.Font = Enum.Font.Gotham
+        icon.Image = tab.icon
+        icon.ImageColor3 = tab.name == currentTab and COLORS.TEXT or COLORS.TEXT_DARK
         icon.Parent = tabButton
         
         -- Tab Label
@@ -438,7 +436,7 @@ local function createUI()
         tabButton.MouseEnter:Connect(function()
             if tab.name ~= currentTab then
                 TweenService:Create(tabButton, TweenInfo.new(0.2), {BackgroundTransparency = 0.9}):Play()
-                TweenService:Create(icon, TweenInfo.new(0.2), {TextColor3 = COLORS.TEXT_DIM}):Play()
+                TweenService:Create(icon, TweenInfo.new(0.2), {ImageColor3 = COLORS.TEXT_DIM}):Play()
                 TweenService:Create(label, TweenInfo.new(0.2), {TextColor3 = COLORS.TEXT_DIM}):Play()
             end
         end)
@@ -446,7 +444,7 @@ local function createUI()
         tabButton.MouseLeave:Connect(function()
             if tab.name ~= currentTab then
                 TweenService:Create(tabButton, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
-                TweenService:Create(icon, TweenInfo.new(0.2), {TextColor3 = COLORS.TEXT_DARK}):Play()
+                TweenService:Create(icon, TweenInfo.new(0.2), {ImageColor3 = COLORS.TEXT_DARK}):Play()
                 TweenService:Create(label, TweenInfo.new(0.2), {TextColor3 = COLORS.TEXT_DARK}):Play()
             end
         end)
@@ -461,20 +459,20 @@ local function createUI()
                 for _, otherTab in pairs(sidebar:GetChildren()) do
                     if otherTab:IsA("TextButton") and otherTab.Name:find("Tab") then
                         local otherIndicator = otherTab:FindFirstChild("Indicator")
-                        local otherIcon = otherTab:FindFirstChild("TextLabel")
-                        local otherLabel = otherTab:FindFirstChild("TextLabel") and otherTab:FindFirstChild("TextLabel").Parent:FindFirstChild("TextLabel")
+                        local otherIcon = otherTab:FindFirstChild("ImageLabel")
+                        local otherLabel = otherTab:FindFirstChild("TextLabel")
                         
                         if otherTab.Name == tab.name .. "Tab" then
                             -- Selected tab
                             TweenService:Create(otherTab, TweenInfo.new(0.3), {BackgroundTransparency = 0, BackgroundColor3 = COLORS.ACCENT}):Play()
                             if otherIndicator then otherIndicator.Visible = true end
-                            if otherIcon then TweenService:Create(otherIcon, TweenInfo.new(0.3), {TextColor3 = COLORS.TEXT}):Play() end
+                            if otherIcon then TweenService:Create(otherIcon, TweenInfo.new(0.3), {ImageColor3 = COLORS.TEXT}):Play() end
                             if otherLabel then TweenService:Create(otherLabel, TweenInfo.new(0.3), {TextColor3 = COLORS.TEXT}):Play() end
                         else
                             -- Unselected tabs
                             TweenService:Create(otherTab, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
                             if otherIndicator then otherIndicator.Visible = false end
-                            if otherIcon then TweenService:Create(otherIcon, TweenInfo.new(0.3), {TextColor3 = COLORS.TEXT_DARK}):Play() end
+                            if otherIcon then TweenService:Create(otherIcon, TweenInfo.new(0.3), {ImageColor3 = COLORS.TEXT_DARK}):Play() end
                             if otherLabel then TweenService:Create(otherLabel, TweenInfo.new(0.3), {TextColor3 = COLORS.TEXT_DARK}):Play() end
                         end
                     end
@@ -693,14 +691,46 @@ local function createUI()
             yOffset = yOffset + createSection(scrollFrame, "⚔️ Aimbot")
             yOffset = yOffset + createToggle(scrollFrame, "Aimbot", "Enable automatic aiming", function(enabled)
                 cheats.aimbot = enabled
+                if enabled then
+                    -- Real aimbot logic
+                    spawn(function()
+                        while cheats.aimbot do
+                            wait()
+                            local target = nil
+                            local shortestDistance = math.huge
+                            
+                            for _, player in pairs(Players:GetPlayers()) do
+                                if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                                    local distance = (Players.LocalPlayer.Character.HumanoidRootPart.Position - player.Character.Head.Position).Magnitude
+                                    if distance < shortestDistance then
+                                        shortestDistance = distance
+                                        target = player
+                                    end
+                                end
+                            end
+                            
+                            if target and target.Character and target.Character:FindFirstChild("Head") then
+                                workspace.CurrentCamera.CFrame = CFrame.lookAt(workspace.CurrentCamera.CFrame.Position, target.Character.Head.Position)
+                            end
+                        end
+                    end)
+                end
                 showNotification("SPWARE: " .. (enabled and "Aimbot ON" or "Aimbot OFF"))
             end)
-            yOffset = yOffset + createSlider(scrollFrame, "FOV Size", 50, 500, 120)
-            yOffset = yOffset + createSlider(scrollFrame, "Smoothness", 1, 20, 5)
+            yOffset = yOffset + createSlider(scrollFrame, "FOV Size", 50, 500, 120, function(value)
+                cheats.aimbotFOV = value
+                showNotification("SPWARE: FOV set to " .. value)
+            end)
+            yOffset = yOffset + createSlider(scrollFrame, "Smoothness", 1, 20, 5, function(value)
+                cheats.aimbotSmooth = value
+                showNotification("SPWARE: Smoothness set to " .. value)
+            end)
             yOffset = yOffset + createToggle(scrollFrame, "Silent Aim", "Invisible aim assistance", function(enabled)
+                cheats.silentAim = enabled
                 showNotification("SPWARE: Silent Aim " .. (enabled and "ON" or "OFF"))
             end)
             yOffset = yOffset + createToggle(scrollFrame, "Ragebot", "Aggressive targeting", function(enabled)
+                cheats.ragebot = enabled
                 showNotification("SPWARE: Ragebot " .. (enabled and "ON" or "OFF"))
             end)
             
@@ -714,19 +744,45 @@ local function createUI()
             -- Combat Enhancements
             yOffset = yOffset + createSection(scrollFrame, "💥 Combat Enhancements")
             yOffset = yOffset + createToggle(scrollFrame, "Hitbox Expander", "Increase hitbox size", function(enabled)
+                cheats.hitboxExpander = enabled
+                if enabled then
+                    spawn(function()
+                        while cheats.hitboxExpander do
+                            wait()
+                            for _, player in pairs(Players:GetPlayers()) do
+                                if player ~= Players.LocalPlayer and player.Character then
+                                    for _, part in pairs(player.Character:GetChildren()) do
+                                        if part:IsA("BasePart") then
+                                            part.Size = part.Size * 2
+                                            part.Transparency = 0.8
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end)
+                end
                 showNotification("SPWARE: Hitbox Expander " .. (enabled and "ON" or "OFF"))
             end)
             yOffset = yOffset + createToggle(scrollFrame, "One Shot Kill", "Instant elimination", function(enabled)
+                cheats.oneShotKill = enabled
                 showNotification("SPWARE: One Shot Kill " .. (enabled and "ON" or "OFF"))
             end)
             yOffset = yOffset + createToggle(scrollFrame, "No Recoil", "Remove weapon recoil", function(enabled)
+                cheats.noRecoil = enabled
                 showNotification("SPWARE: No Recoil " .. (enabled and "ON" or "OFF"))
             end)
             yOffset = yOffset + createToggle(scrollFrame, "No Spread", "Remove bullet spread", function(enabled)
+                cheats.noSpread = enabled
                 showNotification("SPWARE: No Spread " .. (enabled and "ON" or "OFF"))
             end)
             yOffset = yOffset + createToggle(scrollFrame, "Infinite Ammo", "Unlimited ammunition", function(enabled)
+                cheats.infiniteAmmo = enabled
                 showNotification("SPWARE: Infinite Ammo " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createSlider(scrollFrame, "Damage Multiplier", 1, 10, 1, function(value)
+                cheats.damageMultiplier = value
+                showNotification("SPWARE: Damage set to " .. value .. "x")
             end)
             
             scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
@@ -743,9 +799,14 @@ local function createUI()
             end)
             yOffset = yOffset + createToggle(scrollFrame, "Speed Hack", "Increased movement speed", function(enabled)
                 cheats.speed = enabled
+                updateWalkSpeed()
                 showNotification("SPWARE: Speed Hack " .. (enabled and "ON" or "OFF"))
             end)
-            yOffset = yOffset + createSlider(scrollFrame, "Speed Multiplier", 1, 10, 3)
+            yOffset = yOffset + createSlider(scrollFrame, "Speed Multiplier", 1, 10, 3, function(value)
+                cheats.walkSpeed = 16 * value
+                updateWalkSpeed()
+                showNotification("SPWARE: Speed set to " .. value .. "x")
+            end)
             
             yOffset = yOffset + createSection(scrollFrame, "✈️ Flight & Teleport")
             yOffset = yOffset + createToggle(scrollFrame, "Fly", "Enable flight mode", function(enabled)
@@ -753,7 +814,12 @@ local function createUI()
                 toggleFly()
                 showNotification("SPWARE: Fly " .. (enabled and "ON" or "OFF"))
             end)
+            yOffset = yOffset + createSlider(scrollFrame, "Fly Speed", 10, 200, 50, function(value)
+                cheats.flySpeed = value
+                showNotification("SPWARE: Fly Speed set to " .. value)
+            end)
             yOffset = yOffset + createToggle(scrollFrame, "Jetpack", "Jetpack mode", function(enabled)
+                cheats.jetpack = enabled
                 showNotification("SPWARE: Jetpack " .. (enabled and "ON" or "OFF"))
             end)
             yOffset = yOffset + createToggle(scrollFrame, "Noclip", "Walk through walls", function(enabled)
@@ -761,17 +827,30 @@ local function createUI()
                 toggleNoclip()
                 showNotification("SPWARE: Noclip " .. (enabled and "ON" or "OFF"))
             end)
+            yOffset = yOffset + createToggle(scrollFrame, "Infinite Jump", "Unlimited jumping", function(enabled)
+                cheats.infiniteJump = enabled
+                updateJumpPower()
+                showNotification("SPWARE: Infinite Jump " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createSlider(scrollFrame, "Jump Power", 50, 500, 50, function(value)
+                cheats.jumpPower = value
+                updateJumpPower()
+                showNotification("SPWARE: Jump Power set to " .. value)
+            end)
             yOffset = yOffset + createToggle(scrollFrame, "Teleport Kill", "Instant teleport kills", function(enabled)
+                cheats.teleportKill = enabled
                 showNotification("SPWARE: Teleport Kill " .. (enabled and "ON" or "OFF"))
             end)
             
             scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
             
-        elseif currentTab == "Visual" then
+        elseif currentTab == "Visuals" then
             local yOffset = 0
             
             yOffset = yOffset + createSection(scrollFrame, "👁️ ESP Players")
             yOffset = yOffset + createToggle(scrollFrame, "ESP Box", "Show player boxes", function(enabled)
+                cheats.esp = enabled
+                toggleESP()
                 showNotification("SPWARE: ESP Box " .. (enabled and "ON" or "OFF"))
             end)
             yOffset = yOffset + createToggle(scrollFrame, "ESP Skeleton", "Show player skeletons", function(enabled)
@@ -782,6 +861,9 @@ local function createUI()
             end)
             yOffset = yOffset + createToggle(scrollFrame, "ESP Weapons", "Show weapon ESP", function(enabled)
                 showNotification("SPWARE: ESP Weapons " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createSlider(scrollFrame, "ESP Distance", 50, 1000, 500, function(value)
+                showNotification("SPWARE: ESP Distance set to " .. value)
             end)
             
             yOffset = yOffset + createSection(scrollFrame, "🌟 Visual Effects")
@@ -838,8 +920,30 @@ local function createUI()
             yOffset = yOffset + createToggle(scrollFrame, "Super Speed Car", "Enhanced vehicle speed", function(enabled)
                 showNotification("SPWARE: Super Speed Car " .. (enabled and "ON" or "OFF"))
             end)
-            yOffset = yOffset + createToggle(scrollFrame, "Fly Car", "Flying vehicles", function(enabled)
-                showNotification("SPWARE: Fly Car " .. (enabled and "ON" or "OFF"))
+            yOffset = yOffset + createToggle(scrollFrame, "Full Bright", "Remove darkness", function(enabled)
+                cheats.fullBright = enabled
+                if enabled then
+                    game.Lighting.Brightness = 2
+                    game.Lighting.ClockTime = 14
+                    game.Lighting.FogEnd = 100000
+                    game.Lighting.GlobalShadows = false
+                    game.Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+                else
+                    game.Lighting.Brightness = 1
+                    game.Lighting.ClockTime = 12
+                    game.Lighting.FogEnd = 100000
+                    game.Lighting.GlobalShadows = true
+                    game.Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 70)
+                end
+                showNotification("SPWARE: Full Bright " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "X-Ray Vision", "See through walls", function(enabled)
+                cheats.xray = enabled
+                showNotification("SPWARE: X-Ray Vision " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createSlider(scrollFrame, "FOV Changer", 70, 120, 70, function(value)
+                workspace.CurrentCamera.FieldOfView = value
+                showNotification("SPWARE: FOV set to " .. value)
             end)
             yOffset = yOffset + createToggle(scrollFrame, "Godmode", "Invincibility mode", function(enabled)
                 showNotification("SPWARE: Godmode " .. (enabled and "ON" or "OFF"))
