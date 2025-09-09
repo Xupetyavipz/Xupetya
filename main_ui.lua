@@ -12,7 +12,7 @@ end
 
 -- Wait for game to load safely
 safeExecute(function()
-    if not game:IsLoaded() then
+    if game.IsLoaded then
         repeat wait() until game:IsLoaded()
     end
 end)
