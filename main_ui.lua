@@ -1617,7 +1617,48 @@ CreateSlider(SpeedSection, "Speed Value", "SpeedValue", 16, 500, function(value)
         LocalPlayer.Character.Humanoid.WalkSpeed = value
     end
 end)
-CreateToggle(SpeedSection, "Bunny Hop", "BunnyHop")
+CreateToggle(SpeedSection, "Bunny Hop", "BunnyHop", function(state)
+    Settings.BunnyHop = state
+    if state then
+        local bunnyHopConnection
+        bunnyHopConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if gameProcessed then return end
+            if input.KeyCode == Enum.KeyCode.Space and Settings.BunnyHop then
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                    local humanoid = LocalPlayer.Character.Humanoid
+                    if humanoid.FloorMaterial ~= Enum.Material.Air then
+                        -- Apply upward velocity
+                        local bodyVelocity = Instance.new("BodyVelocity")
+                        bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
+                        bodyVelocity.Velocity = Vector3.new(0, 50, 0)
+                        bodyVelocity.Parent = LocalPlayer.Character.HumanoidRootPart
+                        
+                        game:GetService("Debris"):AddItem(bodyVelocity, 0.5)
+                        
+                        -- Apply forward momentum
+                        local camera = workspace.CurrentCamera
+                        local direction = camera.CFrame.LookVector
+                        direction = Vector3.new(direction.X, 0, direction.Z).Unit
+                        
+                        local bodyPosition = Instance.new("BodyVelocity")
+                        bodyPosition.MaxForce = Vector3.new(4000, 0, 4000)
+                        bodyPosition.Velocity = direction * humanoid.WalkSpeed * 1.5
+                        bodyPosition.Parent = LocalPlayer.Character.HumanoidRootPart
+                        
+                        game:GetService("Debris"):AddItem(bodyPosition, 0.3)
+                    end
+                end
+            end
+        end)
+        
+        Settings.BunnyHopConnection = bunnyHopConnection
+    else
+        if Settings.BunnyHopConnection then
+            Settings.BunnyHopConnection:Disconnect()
+            Settings.BunnyHopConnection = nil
+        end
+    end
+end)
 CreateToggle(SpeedSection, "Strafe Hack", "StrafeHack")
 
 -- Flight Sub-tab Content
@@ -2568,18 +2609,51 @@ CreateButton(CarActionsSection, "Send Car to Sky", function()
     StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car sent to sky!", Duration = 2})
 end)
 
--- Aimbot Mouse2 Control
+-- Enhanced Aimbot with FOV checking
 local UserInputService = game:GetService("UserInputService")
 local mouse2Pressed = false
+
+-- Enhanced GetClosestPlayerInFOV function
+local function GetClosestPlayerInFOV()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+    local camera = workspace.CurrentCamera
+    local fovRadius = Settings.AimbotFOV or 100
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+            -- Team check
+            if Settings.TeamCheck and player.Team == LocalPlayer.Team then
+                continue
+            end
+            
+            local headPosition = player.Character.Head.Position
+            local screenPoint, onScreen = camera:WorldToScreenPoint(headPosition)
+            
+            if onScreen then
+                local mousePos = UserInputService:GetMouseLocation()
+                local distance = math.sqrt((screenPoint.X - mousePos.X)^2 + (screenPoint.Y - mousePos.Y)^2)
+                
+                -- Check if target is within FOV
+                if distance <= fovRadius and distance < shortestDistance then
+                    closestPlayer = player
+                    shortestDistance = distance
+                end
+            end
+        end
+    end
+    
+    return closestPlayer
+end
 
 UserInputService.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton2 then
         mouse2Pressed = true
         if Settings.AimbotEnabled then
-            -- Start aimbot when mouse2 is held
+            -- Start enhanced aimbot when mouse2 is held
             spawn(function()
                 while mouse2Pressed and Settings.AimbotEnabled do
-                    local target = GetClosestPlayer()
+                    local target = GetClosestPlayerInFOV()
                     if target and target.Character and target.Character:FindFirstChild("Head") then
                         local camera = workspace.CurrentCamera
                         if camera then
@@ -2587,9 +2661,18 @@ UserInputService.InputBegan:Connect(function(input)
                             local currentCFrame = camera.CFrame
                             local targetCFrame = CFrame.lookAt(currentCFrame.Position, targetPosition)
                             
-                            -- Smooth aiming based on smoothness setting
+                            -- Enhanced smooth aiming with better interpolation
                             local smoothness = Settings.AimbotSmooth or 5
-                            camera.CFrame = currentCFrame:Lerp(targetCFrame, 1/smoothness)
+                            local lerpAlpha = math.min(1/smoothness, 0.5) -- Cap lerp speed for stability
+                            
+                            -- Apply smoothing with prediction for moving targets
+                            if target.Character:FindFirstChild("HumanoidRootPart") then
+                                local velocity = target.Character.HumanoidRootPart.Velocity
+                                local predictedPosition = targetPosition + (velocity * 0.1) -- Predict 0.1 seconds ahead
+                                targetCFrame = CFrame.lookAt(currentCFrame.Position, predictedPosition)
+                            end
+                            
+                            camera.CFrame = currentCFrame:Lerp(targetCFrame, lerpAlpha)
                         end
                     end
                     wait(0.01)
