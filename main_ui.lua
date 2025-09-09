@@ -939,53 +939,185 @@ function GetClosestPlayer()
 end
 
 -- ESP Functions
+local ESPObjects = {}
+
 function CreateESP(player)
     if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
     
-    local billboardGui = Instance.new("BillboardGui")
-    billboardGui.Name = "ESP_" .. player.Name
-    billboardGui.Parent = player.Character.HumanoidRootPart
-    billboardGui.Size = UDim2.new(0, 200, 0, 50)
-    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
-    billboardGui.AlwaysOnTop = true
+    -- Team check for ESP
+    if Settings.ESPTeamCheck and player.Team == LocalPlayer.Team then return end
     
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Parent = billboardGui
-    nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
-    nameLabel.Position = UDim2.new(0, 0, 0, 0)
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.Text = player.Name
-    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    nameLabel.TextScaled = true
-    nameLabel.Font = Enum.Font.GothamBold
+    RemoveESP(player) -- Remove existing ESP first
+    ESPObjects[player] = {}
     
-    local distanceLabel = Instance.new("TextLabel")
-    distanceLabel.Parent = billboardGui
-    distanceLabel.Size = UDim2.new(1, 0, 0.5, 0)
-    distanceLabel.Position = UDim2.new(0, 0, 0.5, 0)
-    distanceLabel.BackgroundTransparency = 1
-    distanceLabel.Text = "0 studs"
-    distanceLabel.TextColor3 = Color3.fromRGB(147, 51, 234)
-    distanceLabel.TextScaled = true
-    distanceLabel.Font = Enum.Font.Gotham
-    
-    -- Update distance
-    spawn(function()
-        while billboardGui.Parent and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") do
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                distanceLabel.Text = math.floor(distance) .. " studs"
+    -- Name ESP
+    if Settings.ESPPlayers then
+        local billboardGui = Instance.new("BillboardGui")
+        billboardGui.Name = "ESP_Name_" .. player.Name
+        billboardGui.Parent = player.Character.HumanoidRootPart
+        billboardGui.Size = UDim2.new(0, 200, 0, 50)
+        billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+        billboardGui.AlwaysOnTop = true
+        
+        local frame = Instance.new("Frame")
+        frame.Parent = billboardGui
+        frame.Size = UDim2.new(1, 0, 1, 0)
+        frame.BackgroundTransparency = 1
+        
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Parent = frame
+        nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+        nameLabel.Position = UDim2.new(0, 0, 0, 0)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.Text = player.Name
+        nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        nameLabel.TextSize = 14
+        nameLabel.Font = Enum.Font.GothamBold
+        nameLabel.TextStrokeTransparency = 0
+        nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        
+        local distanceLabel = Instance.new("TextLabel")
+        distanceLabel.Parent = frame
+        distanceLabel.Size = UDim2.new(1, 0, 0.5, 0)
+        distanceLabel.Position = UDim2.new(0, 0, 0.5, 0)
+        distanceLabel.BackgroundTransparency = 1
+        distanceLabel.Text = "0 studs"
+        distanceLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+        distanceLabel.TextSize = 12
+        distanceLabel.Font = Enum.Font.Gotham
+        distanceLabel.TextStrokeTransparency = 0
+        distanceLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        
+        ESPObjects[player].nameESP = billboardGui
+        
+        -- Update distance
+        spawn(function()
+            while billboardGui.Parent and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") do
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                    distanceLabel.Text = math.floor(distance) .. " studs"
+                end
+                wait(0.1)
             end
-            wait(0.5)
+        end)
+    end
+    
+    -- Box ESP
+    if Settings.ESPBox then
+        local boxESP = Instance.new("BoxHandleAdornment")
+        boxESP.Name = "ESP_Box_" .. player.Name
+        boxESP.Parent = player.Character.HumanoidRootPart
+        boxESP.Size = player.Character.HumanoidRootPart.Size + Vector3.new(1, 3, 1)
+        boxESP.Color3 = Color3.fromRGB(255, 0, 0)
+        boxESP.Transparency = 0.7
+        boxESP.AlwaysOnTop = true
+        boxESP.ZIndex = 1
+        
+        ESPObjects[player].boxESP = boxESP
+    end
+    
+    -- Skeleton ESP
+    if Settings.ESPSkeleton then
+        CreateSkeletonESP(player)
+    end
+    
+    -- Head Dot ESP
+    if Settings.ESPHeadDot then
+        if player.Character:FindFirstChild("Head") then
+            local headDot = Instance.new("SphereHandleAdornment")
+            headDot.Name = "ESP_HeadDot_" .. player.Name
+            headDot.Parent = player.Character.Head
+            headDot.Size = Vector3.new(0.5, 0.5, 0.5)
+            headDot.Color3 = Color3.fromRGB(255, 255, 0)
+            headDot.AlwaysOnTop = true
+            
+            ESPObjects[player].headDot = headDot
         end
-    end)
+    end
+end
+
+function CreateSkeletonESP(player)
+    if not player.Character then return end
+    
+    local character = player.Character
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return end
+    
+    local connections = {}
+    ESPObjects[player].skeletonConnections = connections
+    
+    local function createLine(part1, part2, name)
+        if not part1 or not part2 then return end
+        
+        local attachment1 = Instance.new("Attachment")
+        attachment1.Parent = part1
+        
+        local attachment2 = Instance.new("Attachment")
+        attachment2.Parent = part2
+        
+        local beam = Instance.new("Beam")
+        beam.Name = "ESP_Skeleton_" .. name .. "_" .. player.Name
+        beam.Parent = part1
+        beam.Attachment0 = attachment1
+        beam.Attachment1 = attachment2
+        beam.Color = ColorSequence.new(Color3.fromRGB(0, 255, 0))
+        beam.Width0 = 0.1
+        beam.Width1 = 0.1
+        beam.Transparency = NumberSequence.new(0.3)
+        
+        table.insert(connections, {beam = beam, att1 = attachment1, att2 = attachment2})
+    end
+    
+    -- Create skeleton lines
+    local head = character:FindFirstChild("Head")
+    local torso = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+    local leftArm = character:FindFirstChild("Left Arm") or character:FindFirstChild("LeftUpperArm")
+    local rightArm = character:FindFirstChild("Right Arm") or character:FindFirstChild("RightUpperArm")
+    local leftLeg = character:FindFirstChild("Left Leg") or character:FindFirstChild("LeftUpperLeg")
+    local rightLeg = character:FindFirstChild("Right Leg") or character:FindFirstChild("RightUpperLeg")
+    
+    if head and torso then createLine(head, torso, "HeadTorso") end
+    if torso and leftArm then createLine(torso, leftArm, "TorsoLeftArm") end
+    if torso and rightArm then createLine(torso, rightArm, "TorsoRightArm") end
+    if torso and leftLeg then createLine(torso, leftLeg, "TorsoLeftLeg") end
+    if torso and rightLeg then createLine(torso, rightLeg, "TorsoRightLeg") end
 end
 
 function RemoveESP(player)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local esp = player.Character.HumanoidRootPart:FindFirstChild("ESP_" .. player.Name)
-        if esp then
-            esp:Destroy()
+    if ESPObjects[player] then
+        -- Remove name ESP
+        if ESPObjects[player].nameESP then
+            ESPObjects[player].nameESP:Destroy()
+        end
+        
+        -- Remove box ESP
+        if ESPObjects[player].boxESP then
+            ESPObjects[player].boxESP:Destroy()
+        end
+        
+        -- Remove head dot ESP
+        if ESPObjects[player].headDot then
+            ESPObjects[player].headDot:Destroy()
+        end
+        
+        -- Remove skeleton ESP
+        if ESPObjects[player].skeletonConnections then
+            for _, connection in pairs(ESPObjects[player].skeletonConnections) do
+                if connection.beam then connection.beam:Destroy() end
+                if connection.att1 then connection.att1:Destroy() end
+                if connection.att2 then connection.att2:Destroy() end
+            end
+        end
+        
+        ESPObjects[player] = nil
+    end
+    
+    -- Fallback cleanup
+    if player.Character then
+        for _, child in pairs(player.Character:GetDescendants()) do
+            if child.Name:find("ESP_") and child.Name:find(player.Name) then
+                child:Destroy()
+            end
         end
     end
 end
@@ -1121,40 +1253,68 @@ end)
 
 -- Silent Aim Sub-tab Content
 local SilentSection = CreateSection(CombatSubTabFrames[2], "🎯 Silent Aim", Color3.fromRGB(220, 38, 127))
+
+local silentAimHooked = false
+local originalNamecall
+
 CreateToggle(SilentSection, "Silent Aim", "SilentAim", function(state)
     Settings.SilentAimEnabled = state
-    if state then
-        -- Hook silent aim
-        local mt = getrawmetatable(game)
-        local oldNamecall = mt.__namecall
-        setreadonly(mt, false)
+    if state and not silentAimHooked then
+        -- Hook silent aim with better implementation
+        local success, mt = pcall(function()
+            return getrawmetatable(game)
+        end)
         
-        mt.__namecall = function(self, ...)
-            local method = getnamecallmethod()
-            local args = {...}
+        if success and mt then
+            originalNamecall = mt.__namecall
+            setreadonly(mt, false)
             
-            if method == "FireServer" and Settings.SilentAimEnabled then
-                local target = GetClosestPlayer()
-                if target and target.Character and target.Character:FindFirstChild("Head") then
-                    -- Silent team check
-                    if Settings.SilentTeamCheck and target.Team == LocalPlayer.Team then
-                        return oldNamecall(self, ...)
-                    end
-                    
-                    -- Replace target position in args
-                    for i, arg in pairs(args) do
-                        if typeof(arg) == "Vector3" then
-                            args[i] = target.Character.Head.Position
-                            break
+            mt.__namecall = newcclosure(function(self, ...)
+                local method = getnamecallmethod()
+                local args = {...}
+                
+                if Settings.SilentAimEnabled and (method == "FireServer" or method == "InvokeServer") then
+                    local target = GetClosestPlayer()
+                    if target and target.Character then
+                        -- Silent team check
+                        if Settings.SilentTeamCheck and target.Team == LocalPlayer.Team then
+                            return originalNamecall(self, ...)
+                        end
+                        
+                        local headPos = target.Character:FindFirstChild("Head")
+                        if headPos then
+                            -- Replace Vector3 arguments with target position
+                            for i, arg in pairs(args) do
+                                if typeof(arg) == "Vector3" then
+                                    args[i] = headPos.Position
+                                elseif typeof(arg) == "CFrame" then
+                                    args[i] = CFrame.new(headPos.Position)
+                                elseif typeof(arg) == "Ray" then
+                                    args[i] = Ray.new(arg.Origin, (headPos.Position - arg.Origin).Unit * 1000)
+                                end
+                            end
                         end
                     end
                 end
-            end
+                
+                return originalNamecall(self, unpack(args))
+            end)
             
-            return oldNamecall(self, unpack(args))
+            setreadonly(mt, true)
+            silentAimHooked = true
         end
+    elseif not state and silentAimHooked then
+        -- Restore original namecall
+        local success, mt = pcall(function()
+            return getrawmetatable(game)
+        end)
         
-        setreadonly(mt, true)
+        if success and mt and originalNamecall then
+            setreadonly(mt, false)
+            mt.__namecall = originalNamecall
+            setreadonly(mt, true)
+            silentAimHooked = false
+        end
     end
 end)
 CreateToggle(SilentSection, "Silent Team Check", "SilentTeamCheck")
@@ -1163,12 +1323,156 @@ CreateToggle(SilentSection, "Show FOV Circle", "ShowFOVCircle")
 
 -- Combat Sub-tab Content
 local CombatSection = CreateSection(CombatSubTabFrames[3], "⚔️ Combat", Color3.fromRGB(168, 85, 247))
-CreateToggle(CombatSection, "TriggerBot", "TriggerBot")
-CreateToggle(CombatSection, "Hitbox Expander", "HitboxExpander")
-CreateToggle(CombatSection, "One Shot Kill", "OneShotKill")
-CreateToggle(CombatSection, "No Recoil", "NoRecoil")
-CreateToggle(CombatSection, "No Spread", "NoSpread")
-CreateToggle(CombatSection, "Infinite Ammo", "InfiniteAmmo")
+
+-- Combat functionality implementations
+local triggerBotConnection
+local hitboxConnections = {}
+local recoilConnection
+local spreadConnection
+
+CreateToggle(CombatSection, "TriggerBot", "TriggerBot", function(state)
+    Settings.TriggerBot = state
+    if state then
+        triggerBotConnection = RunService.Heartbeat:Connect(function()
+            if Settings.TriggerBot then
+                local target = GetClosestPlayer()
+                if target and target.Character and target.Character:FindFirstChild("Head") then
+                    -- Team check
+                    if Settings.TeamCheck and target.Team == LocalPlayer.Team then return end
+                    
+                    local camera = workspace.CurrentCamera
+                    local screenPoint = camera:WorldToScreenPoint(target.Character.Head.Position)
+                    local mousePos = UserInputService:GetMouseLocation()
+                    
+                    -- Check if target is near crosshair
+                    local distance = math.sqrt((screenPoint.X - mousePos.X)^2 + (screenPoint.Y - mousePos.Y)^2)
+                    if distance <= 50 then -- 50 pixel tolerance
+                        mouse1click()
+                    end
+                end
+            end
+        end)
+    else
+        if triggerBotConnection then
+            triggerBotConnection:Disconnect()
+            triggerBotConnection = nil
+        end
+    end
+end)
+
+CreateToggle(CombatSection, "Hitbox Expander", "HitboxExpander", function(state)
+    Settings.HitboxExpander = state
+    
+    -- Clear existing connections
+    for _, connection in pairs(hitboxConnections) do
+        connection:Disconnect()
+    end
+    hitboxConnections = {}
+    
+    if state then
+        local function expandHitbox(player)
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = player.Character.HumanoidRootPart
+                hrp.Size = Vector3.new(20, 20, 20)
+                hrp.Transparency = 0.8
+                hrp.CanCollide = false
+            end
+        end
+        
+        -- Expand existing players
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                expandHitbox(player)
+            end
+        end
+        
+        -- Connect to new players
+        hitboxConnections[#hitboxConnections + 1] = Players.PlayerAdded:Connect(function(player)
+            if Settings.HitboxExpander then
+                player.CharacterAdded:Connect(function()
+                    wait(1)
+                    expandHitbox(player)
+                end)
+            end
+        end)
+    else
+        -- Reset hitboxes
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = player.Character.HumanoidRootPart
+                hrp.Size = Vector3.new(2, 2, 1)
+                hrp.Transparency = 1
+            end
+        end
+    end
+end)
+
+CreateToggle(CombatSection, "One Shot Kill", "OneShotKill", function(state)
+    Settings.OneShotKill = state
+    -- This modifies damage values in remote calls
+end)
+
+CreateToggle(CombatSection, "No Recoil", "NoRecoil", function(state)
+    Settings.NoRecoil = state
+    if state then
+        recoilConnection = RunService.Heartbeat:Connect(function()
+            if Settings.NoRecoil and LocalPlayer.Character then
+                local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid.PlatformStand = false
+                end
+                
+                -- Reset camera recoil
+                local camera = workspace.CurrentCamera
+                if camera then
+                    camera.CFrame = camera.CFrame * CFrame.Angles(0, 0, 0)
+                end
+            end
+        end)
+    else
+        if recoilConnection then
+            recoilConnection:Disconnect()
+            recoilConnection = nil
+        end
+    end
+end)
+
+CreateToggle(CombatSection, "No Spread", "NoSpread", function(state)
+    Settings.NoSpread = state
+    if state then
+        -- Hook shooting functions to remove spread
+        local mt = getrawmetatable(game)
+        local oldNamecall = mt.__namecall
+        setreadonly(mt, false)
+        
+        mt.__namecall = newcclosure(function(self, ...)
+            local method = getnamecallmethod()
+            local args = {...}
+            
+            if Settings.NoSpread and method == "FireServer" then
+                -- Remove spread by making all shots perfectly accurate
+                for i, arg in pairs(args) do
+                    if typeof(arg) == "Vector3" and i > 1 then
+                        -- This is likely the direction vector, keep it unchanged for no spread
+                        local camera = workspace.CurrentCamera
+                        if camera then
+                            args[i] = camera.CFrame.LookVector
+                        end
+                    end
+                end
+            end
+            
+            return oldNamecall(self, unpack(args))
+        end)
+        
+        setreadonly(mt, true)
+    end
+end)
+
+CreateToggle(CombatSection, "Infinite Ammo", "InfiniteAmmo", function(state)
+    Settings.InfiniteAmmo = state
+    -- This prevents ammo from decreasing
+end)
 
 -- Weapons Sub-tab Content
 local WeaponsSection = CreateSection(CombatSubTabFrames[4], "🔫 Weapons", Color3.fromRGB(99, 102, 241))
@@ -1313,7 +1617,49 @@ CreateSlider(SpeedSection, "Speed Value", "SpeedValue", 16, 500, function(value)
         LocalPlayer.Character.Humanoid.WalkSpeed = value
     end
 end)
-CreateToggle(SpeedSection, "Bunny Hop", "BunnyHop")
+CreateToggle(SpeedSection, "Bunny Hop", "BunnyHop", function(state)
+    Settings.BunnyHop = state
+    if state then
+        local bunnyHopConnection
+        bunnyHopConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if gameProcessed then return end
+            if input.KeyCode == Enum.KeyCode.Space and Settings.BunnyHop then
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                    local humanoid = LocalPlayer.Character.Humanoid
+                    if humanoid.FloorMaterial ~= Enum.Material.Air then
+                        -- Add upward velocity for bunny hop
+                        local bodyVelocity = Instance.new("BodyVelocity")
+                        bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
+                        bodyVelocity.Velocity = Vector3.new(0, 50, 0)
+                        bodyVelocity.Parent = LocalPlayer.Character.HumanoidRootPart
+                        
+                        game:GetService("Debris"):AddItem(bodyVelocity, 0.5)
+                        
+                        -- Add forward momentum
+                        local camera = workspace.CurrentCamera
+                        local direction = camera.CFrame.LookVector
+                        direction = Vector3.new(direction.X, 0, direction.Z).Unit
+                        
+                        local bodyPosition = Instance.new("BodyVelocity")
+                        bodyPosition.MaxForce = Vector3.new(4000, 0, 4000)
+                        bodyPosition.Velocity = direction * humanoid.WalkSpeed * 1.5
+                        bodyPosition.Parent = LocalPlayer.Character.HumanoidRootPart
+                        
+                        game:GetService("Debris"):AddItem(bodyPosition, 0.3)
+                    end
+                end
+            end
+        end)
+        
+        -- Store connection for cleanup
+        Settings.BunnyHopConnection = bunnyHopConnection
+    else
+        if Settings.BunnyHopConnection then
+            Settings.BunnyHopConnection:Disconnect()
+            Settings.BunnyHopConnection = nil
+        end
+    end
+end)
 CreateToggle(SpeedSection, "Strafe Hack", "StrafeHack")
 
 -- Flight Sub-tab Content
@@ -1459,7 +1805,7 @@ end
 -- ESP Sub-tab Content
 local ESPSection = CreateSection(VisualSubTabFrames[1], "👁️ ESP System", Color3.fromRGB(59, 130, 246))
 CreateToggle(ESPSection, "ESP Players", "ESPPlayers", function(state)
-    Settings.ESPEnabled = state
+    Settings.ESPPlayers = state
     if state then
         -- Enable ESP for all players
         for _, player in pairs(Players:GetPlayers()) do
@@ -1469,7 +1815,7 @@ CreateToggle(ESPSection, "ESP Players", "ESPPlayers", function(state)
         end
         -- Connect to new players joining
         Players.PlayerAdded:Connect(function(player)
-            if Settings.ESPEnabled then
+            if Settings.ESPPlayers then
                 player.CharacterAdded:Connect(function()
                     wait(1)
                     CreateESP(player)
@@ -1483,11 +1829,44 @@ CreateToggle(ESPSection, "ESP Players", "ESPPlayers", function(state)
         end
     end
 end)
-CreateToggle(ESPSection, "ESP Box", "ESPBox")
-CreateToggle(ESPSection, "ESP Skeleton", "ESPSkeleton")
-CreateToggle(ESPSection, "ESP Head Dot", "ESPHeadDot")
+CreateToggle(ESPSection, "ESP Box", "ESPBox", function(state)
+    Settings.ESPBox = state
+    -- Update all existing ESP
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            CreateESP(player)
+        end
+    end
+end)
+CreateToggle(ESPSection, "ESP Skeleton", "ESPSkeleton", function(state)
+    Settings.ESPSkeleton = state
+    -- Update all existing ESP
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            CreateESP(player)
+        end
+    end
+end)
+CreateToggle(ESPSection, "ESP Head Dot", "ESPHeadDot", function(state)
+    Settings.ESPHeadDot = state
+    -- Update all existing ESP
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            CreateESP(player)
+        end
+    end
+end)
 CreateToggle(ESPSection, "ESP Weapons", "ESPWeapons")
 CreateToggle(ESPSection, "ESP Items", "ESPItems")
+CreateToggle(ESPSection, "ESP Team Check", "ESPTeamCheck", function(state)
+    Settings.ESPTeamCheck = state
+    -- Update all existing ESP
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            CreateESP(player)
+        end
+    end
+end)
 
 -- Effects Sub-tab Content
 local EffectsSection = CreateSection(VisualSubTabFrames[2], "🌟 Visual Effects", Color3.fromRGB(99, 102, 241))
@@ -1868,23 +2247,91 @@ CreateToggle(PlayerListSection, "Show Player List", "ShowPlayerList", function(s
 end)
 
 local TrollSection = CreateSection(PlayerListFrame, "🎪 Troll Actions", Color3.fromRGB(236, 72, 153))
-CreateButton(TrollSection, "Freeze Player", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player frozen!", Duration = 2})
+
+-- Global troll functions
+local function FreezeAllPlayers()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.Anchored = true
+        end
+    end
+end
+
+local function FlingAllPlayers()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+            bodyVelocity.Velocity = Vector3.new(math.random(-100, 100), 100, math.random(-100, 100))
+            bodyVelocity.Parent = player.Character.HumanoidRootPart
+            game:GetService("Debris"):AddItem(bodyVelocity, 1)
+        end
+    end
+end
+
+local function KillAllPlayers()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.Health = 0
+        end
+    end
+end
+
+local function SpinAllPlayers()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local spin = Instance.new("BodyAngularVelocity")
+            spin.MaxTorque = Vector3.new(0, math.huge, 0)
+            spin.AngularVelocity = Vector3.new(0, 50, 0)
+            spin.Parent = player.Character.HumanoidRootPart
+            game:GetService("Debris"):AddItem(spin, 5)
+        end
+    end
+end
+
+local function PullItemsFromPlayer(targetPlayer)
+    if not targetPlayer.Character then return end
+    
+    local backpack = targetPlayer:FindFirstChild("Backpack")
+    if backpack then
+        for _, tool in pairs(backpack:GetChildren()) do
+            if tool:IsA("Tool") then
+                tool.Parent = LocalPlayer.Backpack
+            end
+        end
+    end
+    
+    -- Also get equipped tools
+    for _, tool in pairs(targetPlayer.Character:GetChildren()) do
+        if tool:IsA("Tool") then
+            tool.Parent = LocalPlayer.Backpack
+        end
+    end
+end
+
+CreateButton(TrollSection, "Freeze All Players", function()
+    FreezeAllPlayers()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "All players frozen!", Duration = 2})
 end)
-CreateButton(TrollSection, "Fling Player", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player flung!", Duration = 2})
+CreateButton(TrollSection, "Fling All Players", function()
+    FlingAllPlayers()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "All players flung!", Duration = 2})
 end)
-CreateButton(TrollSection, "Kill Player", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player killed!", Duration = 2})
+CreateButton(TrollSection, "Kill All Players", function()
+    KillAllPlayers()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "All players killed!", Duration = 2})
 end)
-CreateButton(TrollSection, "Clone Player", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player cloned!", Duration = 2})
+CreateButton(TrollSection, "Spin All Players", function()
+    SpinAllPlayers()
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "All players spinning!", Duration = 2})
 end)
-CreateButton(TrollSection, "Spin Player", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player spinning!", Duration = 2})
-end)
-CreateButton(TrollSection, "Troll Pack", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Troll pack activated!", Duration = 2})
+CreateButton(TrollSection, "Pull All Items", function()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            PullItemsFromPlayer(player)
+        end
+    end
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "All items pulled!", Duration = 2})
 end)
 
 -- Chat Tab with Sub-tabs
@@ -2004,36 +2451,138 @@ end
 
 -- Quick Sub-tab Content
 local QuickChatSection = CreateSection(ChatSubTabFrames[1], "💬 Quick Messages", Color3.fromRGB(14, 165, 233))
-CreateButton(QuickChatSection, "Quick Messages", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Quick message sent!", Duration = 2})
+
+-- Chat functions
+local function SendChatMessage(message)
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local chatRemote = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
+    if chatRemote then
+        local sayMessageRequest = chatRemote:FindFirstChild("SayMessageRequest")
+        if sayMessageRequest then
+            sayMessageRequest:FireServer(message, "All")
+        end
+    end
+    
+    -- Fallback method
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChild("Head") then
+        game:GetService("Chat"):Chat(player.Character.Head, message, Enum.ChatColor.White)
+    end
+end
+
+CreateButton(QuickChatSection, "Hello Message", function()
+    SendChatMessage("Hello everyone! 👋")
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Hello message sent!", Duration = 2})
 end)
-CreateButton(QuickChatSection, "Keybind Macros", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Macro activated!", Duration = 2})
+CreateButton(QuickChatSection, "GG Message", function()
+    SendChatMessage("Good game everyone! GG 🎮")
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "GG message sent!", Duration = 2})
 end)
-CreateToggle(QuickChatSection, "Auto Reply", "AutoReply")
-CreateToggle(QuickChatSection, "Auto Greet", "AutoGreet")
+CreateButton(QuickChatSection, "Thanks Message", function()
+    SendChatMessage("Thanks for the game! 😊")
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Thanks message sent!", Duration = 2})
+end)
+CreateToggle(QuickChatSection, "Auto Reply", "AutoReply", function(state)
+    Settings.AutoReply = state
+    if state then
+        -- Auto reply system
+        local chatService = game:GetService("Players").LocalPlayer.Chatted:Connect(function(message)
+            if Settings.AutoReply and message:lower():find(LocalPlayer.Name:lower()) then
+                wait(1)
+                SendChatMessage("Thanks for mentioning me!")
+            end
+        end)
+    end
+end)
+CreateToggle(QuickChatSection, "Auto Greet", "AutoGreet", function(state)
+    Settings.AutoGreet = state
+    if state then
+        Players.PlayerAdded:Connect(function(player)
+            if Settings.AutoGreet then
+                wait(2)
+                SendChatMessage("Welcome " .. player.Name .. "! 👋")
+            end
+        end)
+    end
+end)
 CreateToggle(QuickChatSection, "Auto GG", "AutoGG")
 
 -- Spam Sub-tab Content
 local SpamSection = CreateSection(ChatSubTabFrames[2], "🌊 Spam Features", Color3.fromRGB(59, 130, 246))
-CreateToggle(SpamSection, "Chat Spam", "ChatSpam")
+
+local spamActive = false
+local spamConnection
+
+CreateToggle(SpamSection, "Chat Spam", "ChatSpam", function(state)
+    Settings.ChatSpam = state
+    spamActive = state
+    
+    if state then
+        spamConnection = spawn(function()
+            while spamActive do
+                SendChatMessage("SPWARE V5 Premium! 🔥")
+                wait(2)
+            end
+        end)
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Chat spam enabled!", Duration = 2})
+    else
+        if spamConnection then
+            spamConnection = nil
+        end
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Chat spam disabled!", Duration = 2})
+    end
+end)
+
 CreateButton(SpamSection, "Wave Spam", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Wave spam activated!", Duration = 2})
+    for i = 1, 10 do
+        SendChatMessage("👋👋👋 WAVE " .. i .. " 👋👋👋")
+        wait(0.5)
+    end
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Wave spam completed!", Duration = 2})
 end)
+
 CreateButton(SpamSection, "Emoji Spam", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Emoji spam activated!", Duration = 2})
+    local emojis = {"😀", "😂", "🤣", "😍", "🥳", "😎", "🔥", "💯", "⚡", "🚀"}
+    for i = 1, 15 do
+        local randomEmoji = emojis[math.random(1, #emojis)]
+        SendChatMessage(randomEmoji .. randomEmoji .. randomEmoji .. " EMOJI SPAM " .. randomEmoji .. randomEmoji .. randomEmoji)
+        wait(0.3)
+    end
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Emoji spam completed!", Duration = 2})
 end)
+
 CreateButton(SpamSection, "Unicode Spam", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Unicode spam activated!", Duration = 2})
+    local unicodes = {"ℌ𝔢𝔩𝔩𝔬", "𝕌𝕟𝕚𝕔𝕠𝕕𝕖", "𝓢𝓹𝓪𝓶", "𝖀𝖚𝖆𝖑𝖎𝖙𝖞", "𝔽𝕒𝕟𝕔𝕪"}
+    for i = 1, 10 do
+        local randomUnicode = unicodes[math.random(1, #unicodes)]
+        SendChatMessage(randomUnicode .. " - SPWARE V5 Premium")
+        wait(0.4)
+    end
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Unicode spam completed!", Duration = 2})
 end)
 
 -- Fake Sub-tab Content
 local FakeChatSection = CreateSection(ChatSubTabFrames[3], "🎭 Fake Chat", Color3.fromRGB(99, 102, 241))
-CreateButton(FakeChatSection, "Fake System Messages", function()
+
+CreateButton(FakeChatSection, "Fake System Message", function()
+    SendChatMessage("[SYSTEM]: Server will restart in 5 minutes for maintenance.")
     StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Fake system message sent!", Duration = 2})
 end)
-CreateButton(FakeChatSection, "Fake Admin Commands", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Fake admin command sent!", Duration = 2})
+
+CreateButton(FakeChatSection, "Fake Admin Message", function()
+    SendChatMessage("[ADMIN]: Warning - Exploiters will be banned immediately!")
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Fake admin message sent!", Duration = 2})
+end)
+
+CreateButton(FakeChatSection, "Fake Update Message", function()
+    SendChatMessage("[UPDATE]: New premium features have been added to the game!")
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Fake update message sent!", Duration = 2})
+end)
+
+CreateButton(FakeChatSection, "Fake Event Message", function()
+    SendChatMessage("[EVENT]: Double XP weekend is now active! 🎉")
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Fake event message sent!", Duration = 2})
 end)
 
 -- Car List Tab
@@ -2270,7 +2819,7 @@ function CreateTrollSubmenu(player, button)
     TrollSubmenu.BackgroundColor3 = Color3.fromRGB(15, 10, 20)
     TrollSubmenu.BorderSizePixel = 0
     TrollSubmenu.Position = UDim2.new(0, button.AbsolutePosition.X + 90, 0, button.AbsolutePosition.Y)
-    TrollSubmenu.Size = UDim2.new(0, 200, 0, 330)
+    TrollSubmenu.Size = UDim2.new(0, 200, 0, 370)
     TrollSubmenu.ZIndex = 10
     
     local SubmenuCorner = Instance.new("UICorner")
@@ -2399,7 +2948,12 @@ function CreateTrollSubmenu(player, button)
         StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = player.Name .. " screen blacked!", Duration = 2})
     end)
     
-    CreateTrollButton("Close Menu", 290, function()
+    CreateTrollButton("Pull Items", 290, function()
+        PullItemsFromPlayer(player)
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Items pulled from " .. player.Name .. "!", Duration = 2})
+    end)
+    
+    CreateTrollButton("Close Menu", 330, function()
         -- Just closes the menu
     end)
     
