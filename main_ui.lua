@@ -380,14 +380,14 @@ local function createUI()
     
     -- Create Premium Sidebar Tabs
     local tabs = {
-        {name = "Combat", icon = "rbxassetid://75518636799674"},
-        {name = "Movement", icon = "rbxassetid://102270380454487"},
-        {name = "Visuals", icon = "rbxassetid://77345366725078"},
-        {name = "Car List", icon = "rbxassetid://111612200954692"},
-        {name = "Roleplay", icon = "rbxassetid://111612200954692"},
-        {name = "Blox Fruits", icon = "rbxassetid://111612200954692"},
-        {name = "Player List", icon = "rbxassetid://122767272714113"},
-        {name = "Chat", icon = "rbxassetid://118260954915004"}
+        {name = "Combat", icon = "⚔️"},
+        {name = "Movement", icon = "🏃"},
+        {name = "Visual", icon = "👁️"},
+        {name = "Roleplay", icon = "🎭"},
+        {name = "Blox Fruits", icon = "🥭"},
+        {name = "Player List", icon = "📋"},
+        {name = "Car List", icon = "🚗"},
+        {name = "Chat", icon = "💬"}
     }
     
     for i, tab in ipairs(tabs) do
@@ -827,61 +827,81 @@ local function createUI()
             end)
             
             scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
-                updateJumpPower()
+            
+        elseif currentTab == "Roleplay" then
+            local yOffset = 0
+            
+            yOffset = yOffset + createSection(scrollFrame, "🎭 Roleplay Features")
+            yOffset = yOffset + createToggle(scrollFrame, "Spawn Cars", "Spawn any vehicle", function(enabled)
+                showNotification("SPWARE: Spawn Cars " .. (enabled and "ON" or "OFF"))
             end)
-            yPos = yPos + 60
-            
-        elseif currentTab == "Visual" then
-            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "ESP", function(state)
-                cheats.esp = state
-                toggleESP()
-                notify("ESP", state and "Enabled" or "Disabled")
+            yOffset = yOffset + createToggle(scrollFrame, "Super Speed Car", "Enhanced vehicle speed", function(enabled)
+                showNotification("SPWARE: Super Speed Car " .. (enabled and "ON" or "OFF"))
             end)
-            yPos = yPos + 50
-            
-            createToggle(scrollFrame, UDim2.new(0, 0, 0, yPos), "Fullbright", function(state)
-                cheats.fullbright = state
-                toggleFullbright()
-                notify("Fullbright", state and "Enabled" or "Disabled")
+            yOffset = yOffset + createToggle(scrollFrame, "Fly Car", "Flying vehicles", function(enabled)
+                showNotification("SPWARE: Fly Car " .. (enabled and "ON" or "OFF"))
             end)
-            yPos = yPos + 50
+            yOffset = yOffset + createToggle(scrollFrame, "Godmode", "Invincibility mode", function(enabled)
+                showNotification("SPWARE: Godmode " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Invisible Mode", "Player invisibility", function(enabled)
+                showNotification("SPWARE: Invisible Mode " .. (enabled and "ON" or "OFF"))
+            end)
             
-        elseif currentTab == "Player" then
-            local playerLabel = Instance.new("TextLabel")
-            playerLabel.Size = UDim2.new(1, -20, 0, 30)
-            playerLabel.Position = UDim2.new(0, 0, 0, yPos)
-            playerLabel.BackgroundTransparency = 1
-            playerLabel.Text = "Player: " .. player.Name
-            playerLabel.TextColor3 = COLORS.TEXT
-            playerLabel.TextSize = 16
-            playerLabel.Font = Enum.Font.GothamBold
-            playerLabel.TextXAlignment = Enum.TextXAlignment.Left
-            playerLabel.Parent = scrollFrame
-            yPos = yPos + 40
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
             
-        elseif currentTab == "Misc" then
-            local miscLabel = Instance.new("TextLabel")
-            miscLabel.Size = UDim2.new(1, -20, 0, 30)
-            miscLabel.Position = UDim2.new(0, 0, 0, yPos)
-            miscLabel.BackgroundTransparency = 1
-            miscLabel.Text = "Miscellaneous Features"
-            miscLabel.TextColor3 = COLORS.TEXT
-            miscLabel.TextSize = 16
-            miscLabel.Font = Enum.Font.GothamBold
-            miscLabel.TextXAlignment = Enum.TextXAlignment.Left
-            miscLabel.Parent = scrollFrame
-            yPos = yPos + 40
+        elseif currentTab == "Blox Fruits" then
+            local yOffset = 0
+            
+            yOffset = yOffset + createSection(scrollFrame, "🥭 Auto Farm")
+            yOffset = yOffset + createToggle(scrollFrame, "Auto Farm Level", "Automatic leveling", function(enabled)
+                showNotification("SPWARE: Auto Farm Level " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Auto Farm Boss", "Boss farming", function(enabled)
+                showNotification("SPWARE: Auto Farm Boss " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Auto Farm Fruits", "Fruit collection", function(enabled)
+                showNotification("SPWARE: Auto Farm Fruits " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Kill Aura", "Attack nearby enemies", function(enabled)
+                showNotification("SPWARE: Kill Aura " .. (enabled and "ON" or "OFF"))
+            end)
+            yOffset = yOffset + createToggle(scrollFrame, "Walk on Water", "Water walking ability", function(enabled)
+                showNotification("SPWARE: Walk on Water " .. (enabled and "ON" or "OFF"))
+            end)
+            
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
+            
+        elseif currentTab == "Car List" then
+            local yOffset = 0
+            
+            yOffset = yOffset + createSection(scrollFrame, "🚗 Car List")
+            yOffset = yOffset + createButton(scrollFrame, "Spawn Car", "Spawn selected vehicle", function()
+                showNotification("SPWARE: Car Spawned")
+            end)
+            yOffset = yOffset + createButton(scrollFrame, "Clone Car", "Clone existing vehicle", function()
+                showNotification("SPWARE: Car Cloned")
+            end)
+            yOffset = yOffset + createButton(scrollFrame, "TP to Car", "Teleport to vehicle", function()
+                showNotification("SPWARE: Teleported to Car")
+            end)
+            yOffset = yOffset + createButton(scrollFrame, "Delete Car", "Remove vehicle", function()
+                showNotification("SPWARE: Car Deleted")
+            end)
+            
+            scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
         end
-        
-        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yPos + 20)
     end
     
-    -- Make draggable
+    -- Initialize UI
+    updateTabContent(contentArea)
+    
+    -- Drag functionality
     local dragging = false
     local dragStart = nil
     local startPos = nil
     
-    header.InputBegan:Connect(function(input)
+    titleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
@@ -889,46 +909,31 @@ local function createUI()
         end
     end)
     
-    UserInputService.InputChanged:Connect(function(input)
+    titleBar.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
             mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
     
-    UserInputService.InputEnded:Connect(function(input)
+    titleBar.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
     end)
-    
-    updateContent()
 end
 
--- Toggle UI
-UserInputService.InputBegan:Connect(function(input)
+-- Initialize the UI
+createUI()
+
+-- Toggle UI with INSERT key
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.Insert then
         if mainFrame then
             isVisible = not isVisible
             mainFrame.Visible = isVisible
+            showNotification("SPWARE " .. (isVisible and "Opened" or "Closed"))
         end
     end
 end)
-
--- Player events
-Players.PlayerAdded:Connect(function(newPlayer)
-    if cheats.esp then
-        wait(1)
-        createESP(newPlayer)
-    end
-end)
-
-Players.PlayerRemoving:Connect(function(leavingPlayer)
-    if espObjects[leavingPlayer] then
-        removeESP(leavingPlayer)
-    end
-end)
-
--- Initialize
-createUI()
-notify("SPWARE V2", "Loaded! Press INSERT to toggle")
