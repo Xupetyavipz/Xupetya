@@ -100,10 +100,10 @@ ScreenGui.IgnoreGuiInset = true
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 15)
+MainFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
 MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.5, -450, 0.5, -325)
-MainFrame.Size = UDim2.new(0, 900, 0, 650)
+MainFrame.Position = UDim2.new(0.5, -500, 0.5, -350)
+MainFrame.Size = UDim2.new(0, 1000, 0, 700)
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -111,8 +111,8 @@ MainFrame.Draggable = true
 -- Main Frame Gradient
 local MainGradient = Instance.new("UIGradient")
 MainGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(12, 12, 15)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 15, 25))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 8, 12)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 10, 20))
 }
 MainGradient.Rotation = 45
 MainGradient.Parent = MainFrame
@@ -154,15 +154,15 @@ GlowImage.SliceCenter = Rect.new(10, 10, 118, 118)
 local HeaderFrame = Instance.new("Frame")
 HeaderFrame.Name = "HeaderFrame"
 HeaderFrame.Parent = MainFrame
-HeaderFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+HeaderFrame.BackgroundColor3 = Color3.fromRGB(15, 10, 20)
 HeaderFrame.BorderSizePixel = 0
 HeaderFrame.Size = UDim2.new(1, 0, 0, 60)
 
 -- Header Gradient
 local HeaderGradient = Instance.new("UIGradient")
 HeaderGradient.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 25)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 51, 234))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 10, 20)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(120, 40, 200))
 }
 HeaderGradient.Rotation = 90
 HeaderGradient.Parent = HeaderFrame
@@ -219,61 +219,98 @@ local MinimizeCorner = Instance.new("UICorner")
 MinimizeCorner.CornerRadius = UDim.new(0, 6)
 MinimizeCorner.Parent = MinimizeButton
 
+-- Sidebar Frame
+local SidebarFrame = Instance.new("Frame")
+SidebarFrame.Name = "SidebarFrame"
+SidebarFrame.Parent = MainFrame
+SidebarFrame.BackgroundColor3 = Color3.fromRGB(12, 8, 18)
+SidebarFrame.BorderSizePixel = 0
+SidebarFrame.Position = UDim2.new(0, 0, 0, 60)
+SidebarFrame.Size = UDim2.new(0, 200, 1, -60)
+
+local SidebarCorner = Instance.new("UICorner")
+SidebarCorner.CornerRadius = UDim.new(0, 8)
+SidebarCorner.Parent = SidebarFrame
+
+local SidebarGradient = Instance.new("UIGradient")
+SidebarGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(12, 8, 18)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 15, 25))
+}
+SidebarGradient.Rotation = 90
+SidebarGradient.Parent = SidebarFrame
+
 -- Content Frame
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Name = "ContentFrame"
 ContentFrame.Parent = MainFrame
 ContentFrame.BackgroundTransparency = 1
-ContentFrame.Position = UDim2.new(0, 0, 0, 60)
-ContentFrame.Size = UDim2.new(1, 0, 1, -60)
+ContentFrame.Position = UDim2.new(0, 210, 0, 60)
+ContentFrame.Size = UDim2.new(1, -220, 1, -60)
 
 -- Tab System
 local TabsData = {
-    {name = "Combat", icon = "⚔️", color = Color3.fromRGB(239, 68, 68)},
-    {name = "Movement", icon = "🏃", color = Color3.fromRGB(34, 197, 94)},
-    {name = "Visual", icon = "👁️", color = Color3.fromRGB(59, 130, 246)},
-    {name = "Roleplay", icon = "🎭", color = Color3.fromRGB(168, 85, 247)},
-    {name = "Blox Fruits", icon = "🍎", color = Color3.fromRGB(245, 158, 11)},
-    {name = "Player List", icon = "📋", color = Color3.fromRGB(236, 72, 153)},
-    {name = "Chat", icon = "💬", color = Color3.fromRGB(14, 165, 233)},
-    {name = "Car List", icon = "🚗", color = Color3.fromRGB(249, 115, 22)}
+    {name = "Combat", icon = "⚔️", color = Color3.fromRGB(147, 51, 234)},
+    {name = "Movement", icon = "🏃", color = Color3.fromRGB(120, 40, 200)},
+    {name = "Visual", icon = "👁️", color = Color3.fromRGB(138, 43, 226)},
+    {name = "Roleplay", icon = "🎭", color = Color3.fromRGB(147, 51, 234)},
+    {name = "Blox Fruits", icon = "🍎", color = Color3.fromRGB(120, 40, 200)},
+    {name = "Player List", icon = "📋", color = Color3.fromRGB(138, 43, 226)},
+    {name = "Chat", icon = "💬", color = Color3.fromRGB(147, 51, 234)},
+    {name = "Car List", icon = "🚗", color = Color3.fromRGB(120, 40, 200)}
 }
 
--- Tab Container
-local TabContainer = Instance.new("Frame")
+-- Tab Container (Sidebar)
+local TabContainer = Instance.new("ScrollingFrame")
 TabContainer.Name = "TabContainer"
-TabContainer.Parent = ContentFrame
+TabContainer.Parent = SidebarFrame
 TabContainer.BackgroundTransparency = 1
-TabContainer.Size = UDim2.new(1, 0, 0, 50)
+TabContainer.Position = UDim2.new(0, 10, 0, 10)
+TabContainer.Size = UDim2.new(1, -20, 1, -20)
+TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+TabContainer.ScrollBarThickness = 4
+TabContainer.ScrollBarImageColor3 = Color3.fromRGB(147, 51, 234)
 
 local TabLayout = Instance.new("UIListLayout")
 TabLayout.Parent = TabContainer
-TabLayout.FillDirection = Enum.FillDirection.Horizontal
-TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+TabLayout.FillDirection = Enum.FillDirection.Vertical
+TabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-TabLayout.Padding = UDim.new(0, 5)
+TabLayout.Padding = UDim.new(0, 8)
 
 -- Tab Buttons and Frames
 local TabButtons = {}
 local TabFrames = {}
 local CurrentTab = 1
 
--- Create Tab Buttons
+-- Create Tab Buttons (Sidebar Style)
 for i, tabData in ipairs(TabsData) do
     local TabButton = Instance.new("TextButton")
     TabButton.Name = tabData.name .. "Tab"
     TabButton.Parent = TabContainer
-    TabButton.BackgroundColor3 = i == 1 and tabData.color or Color3.fromRGB(25, 25, 30)
+    TabButton.BackgroundColor3 = i == 1 and tabData.color or Color3.fromRGB(18, 12, 25)
     TabButton.BorderSizePixel = 0
-    TabButton.Size = UDim2.new(0, 110, 1, 0)
+    TabButton.Size = UDim2.new(1, 0, 0, 45)
     TabButton.Font = Enum.Font.GothamBold
     TabButton.Text = tabData.icon .. " " .. tabData.name
-    TabButton.TextColor3 = i == 1 and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(156, 163, 175)
-    TabButton.TextSize = 12
+    TabButton.TextColor3 = i == 1 and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 160, 200)
+    TabButton.TextSize = 14
+    TabButton.TextXAlignment = Enum.TextXAlignment.Left
     
     local TabCorner = Instance.new("UICorner")
     TabCorner.CornerRadius = UDim.new(0, 8)
     TabCorner.Parent = TabButton
+    
+    local TabStroke = Instance.new("UIStroke")
+    TabStroke.Color = i == 1 and tabData.color or Color3.fromRGB(40, 30, 50)
+    TabStroke.Thickness = 1
+    TabStroke.Transparency = i == 1 and 0.3 or 0.7
+    TabStroke.Parent = TabButton
+    
+    -- Add padding for text
+    local TabPadding = Instance.new("UIPadding")
+    TabPadding.PaddingLeft = UDim.new(0, 15)
+    TabPadding.Parent = TabButton
     
     TabButtons[i] = TabButton
 end
@@ -284,8 +321,8 @@ for i, tabData in ipairs(TabsData) do
     TabFrame.Name = tabData.name .. "Frame"
     TabFrame.Parent = ContentFrame
     TabFrame.BackgroundTransparency = 1
-    TabFrame.Position = UDim2.new(0, 10, 0, 60)
-    TabFrame.Size = UDim2.new(1, -20, 1, -70)
+    TabFrame.Position = UDim2.new(0, 10, 0, 10)
+    TabFrame.Size = UDim2.new(1, -20, 1, -20)
     TabFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     TabFrame.ScrollBarThickness = 6
     TabFrame.ScrollBarImageColor3 = Color3.fromRGB(147, 51, 234)
@@ -310,18 +347,31 @@ local function SwitchTab(tabIndex)
     
     -- Update tab buttons
     for i, button in pairs(TabButtons) do
+        local stroke = button:FindFirstChild("UIStroke")
         if i == tabIndex then
             -- Active tab
             TweenService:Create(button, TweenInfo.new(0.2), {
                 BackgroundColor3 = TabsData[i].color,
                 TextColor3 = Color3.fromRGB(255, 255, 255)
             }):Play()
+            if stroke then
+                TweenService:Create(stroke, TweenInfo.new(0.2), {
+                    Color = TabsData[i].color,
+                    Transparency = 0.3
+                }):Play()
+            end
         else
             -- Inactive tab
             TweenService:Create(button, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(25, 25, 30),
-                TextColor3 = Color3.fromRGB(156, 163, 175)
+                BackgroundColor3 = Color3.fromRGB(18, 12, 25),
+                TextColor3 = Color3.fromRGB(180, 160, 200)
             }):Play()
+            if stroke then
+                TweenService:Create(stroke, TweenInfo.new(0.2), {
+                    Color = Color3.fromRGB(40, 30, 50),
+                    Transparency = 0.7
+                }):Play()
+            end
         end
     end
     
@@ -622,7 +672,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         
         if MainFrame.Visible then
             TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
-                Size = UDim2.new(0, 900, 0, 650)
+                Size = UDim2.new(0, 1000, 0, 700)
             }):Play()
         end
     end
@@ -635,16 +685,234 @@ CloseButton.MouseButton1Click:Connect(function()
 end)
 
 MinimizeButton.MouseButton1Click:Connect(function()
-    if MainFrame.Size == UDim2.new(0, 900, 0, 650) then
+    if MainFrame.Size == UDim2.new(0, 1000, 0, 700) then
         TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-            Size = UDim2.new(0, 900, 0, 60)
+            Size = UDim2.new(0, 1000, 0, 60)
         }):Play()
     else
         TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-            Size = UDim2.new(0, 900, 0, 650)
+            Size = UDim2.new(0, 1000, 0, 700)
         }):Play()
     end
 end)
+
+-- Player List Window
+local PlayerListWindow = Instance.new("Frame")
+PlayerListWindow.Name = "PlayerListWindow"
+PlayerListWindow.Parent = ScreenGui
+PlayerListWindow.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+PlayerListWindow.BorderSizePixel = 0
+PlayerListWindow.Position = UDim2.new(0.5, -300, 0.5, -250)
+PlayerListWindow.Size = UDim2.new(0, 600, 0, 500)
+PlayerListWindow.Visible = false
+PlayerListWindow.Active = true
+PlayerListWindow.Draggable = true
+
+local PlayerListCorner = Instance.new("UICorner")
+PlayerListCorner.CornerRadius = UDim.new(0, 12)
+PlayerListCorner.Parent = PlayerListWindow
+
+local PlayerListGradient = Instance.new("UIGradient")
+PlayerListGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 8, 12)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 10, 20))
+}
+PlayerListGradient.Rotation = 45
+PlayerListGradient.Parent = PlayerListWindow
+
+local PlayerListStroke = Instance.new("UIStroke")
+PlayerListStroke.Color = Color3.fromRGB(147, 51, 234)
+PlayerListStroke.Thickness = 2
+PlayerListStroke.Transparency = 0.3
+PlayerListStroke.Parent = PlayerListWindow
+
+-- Player List Header
+local PlayerListHeader = Instance.new("Frame")
+PlayerListHeader.Name = "Header"
+PlayerListHeader.Parent = PlayerListWindow
+PlayerListHeader.BackgroundColor3 = Color3.fromRGB(15, 10, 20)
+PlayerListHeader.BorderSizePixel = 0
+PlayerListHeader.Size = UDim2.new(1, 0, 0, 50)
+
+local PlayerListHeaderCorner = Instance.new("UICorner")
+PlayerListHeaderCorner.CornerRadius = UDim.new(0, 12)
+PlayerListHeaderCorner.Parent = PlayerListHeader
+
+local PlayerListTitle = Instance.new("TextLabel")
+PlayerListTitle.Name = "Title"
+PlayerListTitle.Parent = PlayerListHeader
+PlayerListTitle.BackgroundTransparency = 1
+PlayerListTitle.Position = UDim2.new(0, 15, 0, 0)
+PlayerListTitle.Size = UDim2.new(1, -60, 1, 0)
+PlayerListTitle.Font = Enum.Font.GothamBold
+PlayerListTitle.Text = "📋 Player List"
+PlayerListTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+PlayerListTitle.TextSize = 18
+PlayerListTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local PlayerListClose = Instance.new("TextButton")
+PlayerListClose.Name = "Close"
+PlayerListClose.Parent = PlayerListHeader
+PlayerListClose.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
+PlayerListClose.BorderSizePixel = 0
+PlayerListClose.Position = UDim2.new(1, -40, 0.5, -15)
+PlayerListClose.Size = UDim2.new(0, 30, 0, 30)
+PlayerListClose.Font = Enum.Font.GothamBold
+PlayerListClose.Text = "X"
+PlayerListClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+PlayerListClose.TextSize = 14
+
+local PlayerListCloseCorner = Instance.new("UICorner")
+PlayerListCloseCorner.CornerRadius = UDim.new(0, 6)
+PlayerListCloseCorner.Parent = PlayerListClose
+
+-- Search Box
+local SearchBox = Instance.new("TextBox")
+SearchBox.Name = "SearchBox"
+SearchBox.Parent = PlayerListWindow
+SearchBox.BackgroundColor3 = Color3.fromRGB(18, 12, 25)
+SearchBox.BorderSizePixel = 0
+SearchBox.Position = UDim2.new(0, 15, 0, 65)
+SearchBox.Size = UDim2.new(1, -30, 0, 35)
+SearchBox.Font = Enum.Font.Gotham
+SearchBox.PlaceholderText = "🔍 Search players..."
+SearchBox.Text = ""
+SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBox.TextSize = 14
+SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+
+local SearchCorner = Instance.new("UICorner")
+SearchCorner.CornerRadius = UDim.new(0, 8)
+SearchCorner.Parent = SearchBox
+
+local SearchPadding = Instance.new("UIPadding")
+SearchPadding.PaddingLeft = UDim.new(0, 10)
+SearchPadding.Parent = SearchBox
+
+-- Player List ScrollFrame
+local PlayerListScroll = Instance.new("ScrollingFrame")
+PlayerListScroll.Name = "PlayerList"
+PlayerListScroll.Parent = PlayerListWindow
+PlayerListScroll.BackgroundTransparency = 1
+PlayerListScroll.Position = UDim2.new(0, 15, 0, 115)
+PlayerListScroll.Size = UDim2.new(1, -30, 1, -130)
+PlayerListScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+PlayerListScroll.ScrollBarThickness = 6
+PlayerListScroll.ScrollBarImageColor3 = Color3.fromRGB(147, 51, 234)
+
+local PlayerListLayout = Instance.new("UIListLayout")
+PlayerListLayout.Parent = PlayerListScroll
+PlayerListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+PlayerListLayout.Padding = UDim.new(0, 5)
+
+-- Car List Window
+local CarListWindow = Instance.new("Frame")
+CarListWindow.Name = "CarListWindow"
+CarListWindow.Parent = ScreenGui
+CarListWindow.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+CarListWindow.BorderSizePixel = 0
+CarListWindow.Position = UDim2.new(0.5, -300, 0.5, -250)
+CarListWindow.Size = UDim2.new(0, 600, 0, 500)
+CarListWindow.Visible = false
+CarListWindow.Active = true
+CarListWindow.Draggable = true
+
+local CarListCorner = Instance.new("UICorner")
+CarListCorner.CornerRadius = UDim.new(0, 12)
+CarListCorner.Parent = CarListWindow
+
+local CarListGradient = Instance.new("UIGradient")
+CarListGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 8, 12)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 10, 20))
+}
+CarListGradient.Rotation = 45
+CarListGradient.Parent = CarListWindow
+
+local CarListStroke = Instance.new("UIStroke")
+CarListStroke.Color = Color3.fromRGB(147, 51, 234)
+CarListStroke.Thickness = 2
+CarListStroke.Transparency = 0.3
+CarListStroke.Parent = CarListWindow
+
+-- Car List Header
+local CarListHeader = Instance.new("Frame")
+CarListHeader.Name = "Header"
+CarListHeader.Parent = CarListWindow
+CarListHeader.BackgroundColor3 = Color3.fromRGB(15, 10, 20)
+CarListHeader.BorderSizePixel = 0
+CarListHeader.Size = UDim2.new(1, 0, 0, 50)
+
+local CarListHeaderCorner = Instance.new("UICorner")
+CarListHeaderCorner.CornerRadius = UDim.new(0, 12)
+CarListHeaderCorner.Parent = CarListHeader
+
+local CarListTitle = Instance.new("TextLabel")
+CarListTitle.Name = "Title"
+CarListTitle.Parent = CarListHeader
+CarListTitle.BackgroundTransparency = 1
+CarListTitle.Position = UDim2.new(0, 15, 0, 0)
+CarListTitle.Size = UDim2.new(1, -60, 1, 0)
+CarListTitle.Font = Enum.Font.GothamBold
+CarListTitle.Text = "🚗 Car List"
+CarListTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+CarListTitle.TextSize = 18
+CarListTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local CarListClose = Instance.new("TextButton")
+CarListClose.Name = "Close"
+CarListClose.Parent = CarListHeader
+CarListClose.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
+CarListClose.BorderSizePixel = 0
+CarListClose.Position = UDim2.new(1, -40, 0.5, -15)
+CarListClose.Size = UDim2.new(0, 30, 0, 30)
+CarListClose.Font = Enum.Font.GothamBold
+CarListClose.Text = "X"
+CarListClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+CarListClose.TextSize = 14
+
+local CarListCloseCorner = Instance.new("UICorner")
+CarListCloseCorner.CornerRadius = UDim.new(0, 6)
+CarListCloseCorner.Parent = CarListClose
+
+-- Car Search Box
+local CarSearchBox = Instance.new("TextBox")
+CarSearchBox.Name = "SearchBox"
+CarSearchBox.Parent = CarListWindow
+CarSearchBox.BackgroundColor3 = Color3.fromRGB(18, 12, 25)
+CarSearchBox.BorderSizePixel = 0
+CarSearchBox.Position = UDim2.new(0, 15, 0, 65)
+CarSearchBox.Size = UDim2.new(1, -30, 0, 35)
+CarSearchBox.Font = Enum.Font.Gotham
+CarSearchBox.PlaceholderText = "🔍 Search cars..."
+CarSearchBox.Text = ""
+CarSearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+CarSearchBox.TextSize = 14
+CarSearchBox.TextXAlignment = Enum.TextXAlignment.Left
+
+local CarSearchCorner = Instance.new("UICorner")
+CarSearchCorner.CornerRadius = UDim.new(0, 8)
+CarSearchCorner.Parent = CarSearchBox
+
+local CarSearchPadding = Instance.new("UIPadding")
+CarSearchPadding.PaddingLeft = UDim.new(0, 10)
+CarSearchPadding.Parent = CarSearchBox
+
+-- Car List ScrollFrame
+local CarListScroll = Instance.new("ScrollingFrame")
+CarListScroll.Name = "CarList"
+CarListScroll.Parent = CarListWindow
+CarListScroll.BackgroundTransparency = 1
+CarListScroll.Position = UDim2.new(0, 15, 0, 115)
+CarListScroll.Size = UDim2.new(1, -30, 1, -130)
+CarListScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+CarListScroll.ScrollBarThickness = 6
+CarListScroll.ScrollBarImageColor3 = Color3.fromRGB(147, 51, 234)
+
+local CarListLayout = Instance.new("UIListLayout")
+CarListLayout.Parent = CarListScroll
+CarListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+CarListLayout.Padding = UDim.new(0, 5)
 
 -- Tab Content Creation
 -- Combat Tab
@@ -809,15 +1077,13 @@ end)
 -- Player List Tab
 local PlayerListFrame = TabFrames[6]
 
-local PlayerListSection = CreateSection(PlayerListFrame, "👥 Player Management", Color3.fromRGB(236, 72, 153))
-CreateButton(PlayerListSection, "Refresh Players", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Player list refreshed!", Duration = 2})
-end)
-CreateButton(PlayerListSection, "Teleport to Player", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Select a player first!", Duration = 2})
-end)
-CreateButton(PlayerListSection, "Spectate Player", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Spectating player!", Duration = 2})
+local PlayerListSection = CreateSection(PlayerListFrame, "👥 Player Management", Color3.fromRGB(138, 43, 226))
+CreateToggle(PlayerListSection, "Show Player List", "ShowPlayerList", function(state)
+    PlayerListWindow.Visible = state
+    if state then
+        -- Refresh player list when opened
+        RefreshPlayerList()
+    end
 end)
 
 local TrollSection = CreateSection(PlayerListFrame, "🎪 Troll Actions", Color3.fromRGB(236, 72, 153))
@@ -878,15 +1144,13 @@ end)
 -- Car List Tab
 local CarListFrame = TabFrames[8]
 
-local CarManagementSection = CreateSection(CarListFrame, "🚗 Car Management", Color3.fromRGB(249, 115, 22))
-CreateButton(CarManagementSection, "Refresh Car List", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car list refreshed!", Duration = 2})
-end)
-CreateButton(CarManagementSection, "Spawn Selected Car", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Car spawned!", Duration = 2})
-end)
-CreateButton(CarManagementSection, "TP to Car", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Teleported to car!", Duration = 2})
+local CarManagementSection = CreateSection(CarListFrame, "🚗 Car Management", Color3.fromRGB(120, 40, 200))
+CreateToggle(CarManagementSection, "Show Car List", "ShowCarList", function(state)
+    CarListWindow.Visible = state
+    if state then
+        -- Refresh car list when opened
+        RefreshCarList()
+    end
 end)
 
 local CarActionsSection = CreateSection(CarListFrame, "🔧 Car Actions", Color3.fromRGB(249, 115, 22))
@@ -913,6 +1177,336 @@ spawn(function()
             Duration = 3
         })
     end)
+end)
+
+-- Window Close Connections
+PlayerListClose.MouseButton1Click:Connect(function()
+    PlayerListWindow.Visible = false
+    Settings.ShowPlayerList = false
+end)
+
+CarListClose.MouseButton1Click:Connect(function()
+    CarListWindow.Visible = false
+    Settings.ShowCarList = false
+end)
+
+-- Player List Functions
+local selectedPlayer = nil
+
+function RefreshPlayerList()
+    -- Clear existing players
+    for _, child in pairs(PlayerListScroll:GetChildren()) do
+        if child:IsA("Frame") then
+            child:Destroy()
+        end
+    end
+    
+    -- Add current players
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            CreatePlayerEntry(player)
+        end
+    end
+end
+
+function CreatePlayerEntry(player)
+    local PlayerEntry = Instance.new("Frame")
+    PlayerEntry.Name = player.Name
+    PlayerEntry.Parent = PlayerListScroll
+    PlayerEntry.BackgroundColor3 = Color3.fromRGB(18, 12, 25)
+    PlayerEntry.BorderSizePixel = 0
+    PlayerEntry.Size = UDim2.new(1, 0, 0, 80)
+    
+    local EntryCorner = Instance.new("UICorner")
+    EntryCorner.CornerRadius = UDim.new(0, 8)
+    EntryCorner.Parent = PlayerEntry
+    
+    local EntryStroke = Instance.new("UIStroke")
+    EntryStroke.Color = Color3.fromRGB(147, 51, 234)
+    EntryStroke.Thickness = 1
+    EntryStroke.Transparency = 0.7
+    EntryStroke.Parent = PlayerEntry
+    
+    local PlayerName = Instance.new("TextLabel")
+    PlayerName.Name = "PlayerName"
+    PlayerName.Parent = PlayerEntry
+    PlayerName.BackgroundTransparency = 1
+    PlayerName.Position = UDim2.new(0, 15, 0, 5)
+    PlayerName.Size = UDim2.new(1, -120, 0, 25)
+    PlayerName.Font = Enum.Font.GothamBold
+    PlayerName.Text = player.Name
+    PlayerName.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PlayerName.TextSize = 14
+    PlayerName.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local PlayerDistance = Instance.new("TextLabel")
+    PlayerDistance.Name = "Distance"
+    PlayerDistance.Parent = PlayerEntry
+    PlayerDistance.BackgroundTransparency = 1
+    PlayerDistance.Position = UDim2.new(0, 15, 0, 30)
+    PlayerDistance.Size = UDim2.new(1, -120, 0, 20)
+    PlayerDistance.Font = Enum.Font.Gotham
+    PlayerDistance.Text = "Distance: Calculating..."
+    PlayerDistance.TextColor3 = Color3.fromRGB(180, 160, 200)
+    PlayerDistance.TextSize = 12
+    PlayerDistance.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local TrollButton = Instance.new("TextButton")
+    TrollButton.Name = "TrollButton"
+    TrollButton.Parent = PlayerEntry
+    TrollButton.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
+    TrollButton.BorderSizePixel = 0
+    TrollButton.Position = UDim2.new(1, -100, 0, 10)
+    TrollButton.Size = UDim2.new(0, 80, 0, 25)
+    TrollButton.Font = Enum.Font.GothamBold
+    TrollButton.Text = "Troll"
+    TrollButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TrollButton.TextSize = 12
+    
+    local TrollCorner = Instance.new("UICorner")
+    TrollCorner.CornerRadius = UDim.new(0, 6)
+    TrollCorner.Parent = TrollButton
+    
+    local TPButton = Instance.new("TextButton")
+    TPButton.Name = "TPButton"
+    TPButton.Parent = PlayerEntry
+    TPButton.BackgroundColor3 = Color3.fromRGB(34, 197, 94)
+    TPButton.BorderSizePixel = 0
+    TPButton.Position = UDim2.new(1, -100, 0, 45)
+    TPButton.Size = UDim2.new(0, 80, 0, 25)
+    TPButton.Font = Enum.Font.GothamBold
+    TPButton.Text = "TP to"
+    TPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TPButton.TextSize = 12
+    
+    local TPCorner = Instance.new("UICorner")
+    TPCorner.CornerRadius = UDim.new(0, 6)
+    TPCorner.Parent = TPButton
+    
+    -- Button connections
+    TrollButton.MouseButton1Click:Connect(function()
+        selectedPlayer = player
+        StarterGui:SetCore("SendNotification", {
+            Title = "SPWARE V5",
+            Text = "Trolling " .. player.Name .. "!",
+            Duration = 2
+        })
+    end)
+    
+    TPButton.MouseButton1Click:Connect(function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame
+            StarterGui:SetCore("SendNotification", {
+                Title = "SPWARE V5",
+                Text = "Teleported to " .. player.Name .. "!",
+                Duration = 2
+            })
+        end
+    end)
+    
+    -- Update distance
+    spawn(function()
+        while PlayerEntry.Parent and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") do
+            local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            PlayerDistance.Text = "Distance: " .. math.floor(distance) .. " studs"
+            wait(1)
+        end
+    end)
+end
+
+-- Car List Functions
+function RefreshCarList()
+    -- Clear existing cars
+    for _, child in pairs(CarListScroll:GetChildren()) do
+        if child:IsA("Frame") then
+            child:Destroy()
+        end
+    end
+    
+    -- Find cars in workspace
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("VehicleSeat") or (obj:IsA("Model") and obj:FindFirstChild("VehicleSeat")) then
+            CreateCarEntry(obj)
+        end
+    end
+end
+
+function CreateCarEntry(car)
+    local carName = car.Name
+    if car:IsA("Model") then
+        carName = car.Name
+    elseif car.Parent then
+        carName = car.Parent.Name
+    end
+    
+    local CarEntry = Instance.new("Frame")
+    CarEntry.Name = carName
+    CarEntry.Parent = CarListScroll
+    CarEntry.BackgroundColor3 = Color3.fromRGB(18, 12, 25)
+    CarEntry.BorderSizePixel = 0
+    CarEntry.Size = UDim2.new(1, 0, 0, 80)
+    
+    local EntryCorner = Instance.new("UICorner")
+    EntryCorner.CornerRadius = UDim.new(0, 8)
+    EntryCorner.Parent = CarEntry
+    
+    local EntryStroke = Instance.new("UIStroke")
+    EntryStroke.Color = Color3.fromRGB(147, 51, 234)
+    EntryStroke.Thickness = 1
+    EntryStroke.Transparency = 0.7
+    EntryStroke.Parent = CarEntry
+    
+    local CarName = Instance.new("TextLabel")
+    CarName.Name = "CarName"
+    CarName.Parent = CarEntry
+    CarName.BackgroundTransparency = 1
+    CarName.Position = UDim2.new(0, 15, 0, 5)
+    CarName.Size = UDim2.new(1, -120, 0, 25)
+    CarName.Font = Enum.Font.GothamBold
+    CarName.Text = carName
+    CarName.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CarName.TextSize = 14
+    CarName.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local CarStatus = Instance.new("TextLabel")
+    CarStatus.Name = "Status"
+    CarStatus.Parent = CarEntry
+    CarStatus.BackgroundTransparency = 1
+    CarStatus.Position = UDim2.new(0, 15, 0, 30)
+    CarStatus.Size = UDim2.new(1, -120, 0, 20)
+    CarStatus.Font = Enum.Font.Gotham
+    CarStatus.Text = "Status: Available"
+    CarStatus.TextColor3 = Color3.fromRGB(34, 197, 94)
+    CarStatus.TextSize = 12
+    CarStatus.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local TPCarButton = Instance.new("TextButton")
+    TPCarButton.Name = "TPButton"
+    TPCarButton.Parent = CarEntry
+    TPCarButton.BackgroundColor3 = Color3.fromRGB(34, 197, 94)
+    TPCarButton.BorderSizePixel = 0
+    TPCarButton.Position = UDim2.new(1, -100, 0, 10)
+    TPCarButton.Size = UDim2.new(0, 80, 0, 25)
+    TPCarButton.Font = Enum.Font.GothamBold
+    TPCarButton.Text = "TP to Car"
+    TPCarButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TPCarButton.TextSize = 12
+    
+    local TPCarCorner = Instance.new("UICorner")
+    TPCarCorner.CornerRadius = UDim.new(0, 6)
+    TPCarCorner.Parent = TPCarButton
+    
+    local ExplodeButton = Instance.new("TextButton")
+    ExplodeButton.Name = "ExplodeButton"
+    ExplodeButton.Parent = CarEntry
+    ExplodeButton.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
+    ExplodeButton.BorderSizePixel = 0
+    ExplodeButton.Position = UDim2.new(1, -100, 0, 45)
+    ExplodeButton.Size = UDim2.new(0, 80, 0, 25)
+    ExplodeButton.Font = Enum.Font.GothamBold
+    ExplodeButton.Text = "Explode"
+    ExplodeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ExplodeButton.TextSize = 12
+    
+    local ExplodeCorner = Instance.new("UICorner")
+    ExplodeCorner.CornerRadius = UDim.new(0, 6)
+    ExplodeCorner.Parent = ExplodeButton
+    
+    -- Button connections
+    TPCarButton.MouseButton1Click:Connect(function()
+        local carPart = car
+        if car:IsA("Model") and car:FindFirstChild("VehicleSeat") then
+            carPart = car.VehicleSeat
+        end
+        
+        if carPart and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = carPart.CFrame + Vector3.new(0, 5, 0)
+            StarterGui:SetCore("SendNotification", {
+                Title = "SPWARE V5",
+                Text = "Teleported to " .. carName .. "!",
+                Duration = 2
+            })
+        end
+    end)
+    
+    ExplodeButton.MouseButton1Click:Connect(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "SPWARE V5",
+            Text = carName .. " exploded!",
+            Duration = 2
+        })
+    end)
+end
+
+-- ESP Admin System
+local AdminESP = {}
+local AdminPlayers = {}
+
+-- Check if player is admin (basic check)
+local function IsAdmin(player)
+    -- Basic admin detection methods
+    if player.Name:lower():find("admin") or player.Name:lower():find("mod") then
+        return true
+    end
+    -- Add more admin detection logic here
+    return false
+end
+
+-- Create ESP for admin
+local function CreateAdminESP(player)
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+    
+    local esp = Instance.new("BillboardGui")
+    esp.Name = "AdminESP"
+    esp.Parent = player.Character.HumanoidRootPart
+    esp.Size = UDim2.new(0, 200, 0, 50)
+    esp.StudsOffset = Vector3.new(0, 3, 0)
+    esp.AlwaysOnTop = true
+    
+    local frame = Instance.new("Frame")
+    frame.Parent = esp
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundTransparency = 1
+    
+    local label = Instance.new("TextLabel")
+    label.Parent = frame
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = "👑 ADMIN - " .. player.Name
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextSize = 16
+    label.Font = Enum.Font.GothamBold
+    label.TextStrokeTransparency = 0
+    label.TextStrokeColor3 = Color3.new(0, 0, 0)
+    
+    -- RGB Animation
+    spawn(function()
+        local hue = 0
+        while esp.Parent do
+            hue = (hue + 0.01) % 1
+            label.TextColor3 = Color3.fromHSV(hue, 1, 1)
+            wait(0.1)
+        end
+    end)
+    
+    AdminESP[player] = esp
+end
+
+-- Monitor for admin players
+spawn(function()
+    while true do
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and IsAdmin(player) then
+                if not AdminPlayers[player] then
+                    AdminPlayers[player] = true
+                    CreateAdminESP(player)
+                end
+            end
+        end
+        wait(5)
+    end
 end)
 
 -- Show UI and debug
