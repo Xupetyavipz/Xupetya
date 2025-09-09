@@ -789,8 +789,6 @@ local function createUI()
             scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset + 50)
             
         elseif currentTab == "Movement" then
-            local yOffset = 0
-            
             yOffset = yOffset + createSection(scrollFrame, "🏃 Movement Hacks")
             yOffset = yOffset + createToggle(scrollFrame, "Bunny Hop", "Auto bunny hopping", function(enabled)
                 showNotification("SPWARE: Bunny Hop " .. (enabled and "ON" or "OFF"))
