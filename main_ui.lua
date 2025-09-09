@@ -1,29 +1,22 @@
--- SPWARE V5 | Premium Roblox Script - FIXED VERSION
+-- SPWARE V5 | Premium Roblox Script
 -- Ultra Modern Design with Advanced UI
 
 -- Wait for game to load
-if not game:IsLoaded() then
-    game.Loaded:Wait()
-end
+repeat wait() until game:IsLoaded()
 
+-- Services
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 local StarterGui = game:GetService("StarterGui")
 local Lighting = game:GetService("Lighting")
 
+-- Wait for LocalPlayer
 local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
-local Mouse = LocalPlayer:GetMouse()
+repeat wait() until LocalPlayer and LocalPlayer.Character
 
--- Ensure LocalPlayer exists
-if not LocalPlayer then
-    warn("LocalPlayer not found!")
-    return
-end
+local Mouse = LocalPlayer:GetMouse()
 
 -- Settings
 local Settings = {
@@ -100,12 +93,8 @@ local Settings = {
     AutoGG = false
 }
 
--- Create ScreenGui with better error handling
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui", 10)
-if not PlayerGui then
-    warn("PlayerGui not found!")
-    return
-end
+-- Get PlayerGui safely
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SPWARE_V5"
