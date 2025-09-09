@@ -89,12 +89,21 @@ local Settings = {
     AutoGG = false
 }
 
--- Create ScreenGui
+-- Create ScreenGui with error handling
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SPWARE_V5"
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 ScreenGui.ResetOnSpawn = false
+
+-- Wait for PlayerGui and parent the ScreenGui
+local success, err = pcall(function()
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end)
+
+if not success then
+    warn("Failed to create ScreenGui: " .. tostring(err))
+    return
+end
 
 -- Main Frame with Gradient Background
 local MainFrame = Instance.new("Frame")
@@ -1983,11 +1992,18 @@ spawn(function()
     end
 end)
 
--- Initial notification
+-- Initial notification and debug
+wait(1) -- Wait for UI to fully load
 StarterGui:SetCore("SendNotification", {
     Title = "SPWARE V5 Premium",
     Text = "Loaded successfully! Press INSERT to toggle",
     Duration = 5
 })
 
+-- Debug: Show UI immediately for testing
+MainFrame.Visible = true
+GlowFrame.Visible = true
+
+-- Debug print
 print("SPWARE V5 Premium Edition Loaded Successfully!")
+print("UI should now be visible. Press INSERT to toggle.")
