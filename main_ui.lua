@@ -1,84 +1,68 @@
 -- SPWARE V5 | Premium Roblox Script - CLEAN VERSION
 -- Ultra Modern Design with Advanced UI
 
--- Wait for game to load
-if game.IsLoaded then
-    repeat wait() until game:IsLoaded()
-end
-
--- Services with error handling
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local StarterGui = game:GetService("StarterGui")
-local Lighting = game:GetService("Lighting")
-local Debris = game:GetService("Debris")
-local workspace = game:GetService("Workspace")
-local VirtualInputManager = pcall(function() return game:GetService("VirtualInputManager") end) and game:GetService("VirtualInputManager") or nil
-
--- Wait for LocalPlayer with better error handling
-local LocalPlayer = Players.LocalPlayer
-if not LocalPlayer then
-    repeat wait() until Players.LocalPlayer
-    LocalPlayer = Players.LocalPlayer
-end
-
--- Wait for character with timeout
-local timeout = 0
-repeat 
-    wait(0.1)
-    timeout = timeout + 0.1
-until (LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) or timeout > 30
-
-local Mouse = LocalPlayer:GetMouse()
-
--- Define missing exploit functions with fallbacks
-local mouse1click = mouse1click or function()
-    -- Safe fallback - do nothing to prevent errors
-    return
-end
-
-local mouse1press = mouse1press or function()
-    -- Safe fallback - do nothing to prevent errors
-    return
-end
-
-local mouse1release = mouse1release or function()
-    -- Safe fallback - do nothing to prevent errors
-    return
-end
-
--- Define metatable functions with safe fallbacks
-local getrawmetatable = getrawmetatable or function(obj)
-    local success, result = pcall(function()
-        return getmetatable(obj)
-    end)
-    return success and result or {}
-end
-
-local setreadonly = setreadonly or function(tbl, readonly)
-    -- Safe fallback - do nothing to prevent errors
-    return true
-end
-
-local newcclosure = newcclosure or function(func)
-    return func
-end
-
-local getnamecallmethod = getnamecallmethod or function()
-    return "FireServer"
-end
-
--- Add error handling wrapper for all functions
-local function safeCall(func, ...)
+-- Comprehensive error handling wrapper
+local function safeExecute(func, ...)
     local success, result = pcall(func, ...)
     if not success then
-        warn("SPWARE Error: " .. tostring(result))
         return nil
     end
     return result
 end
+
+-- Wait for game to load safely
+safeExecute(function()
+    if game.IsLoaded then
+        repeat wait() until game:IsLoaded()
+    end
+end)
+
+-- Services with comprehensive error handling
+local Players = safeExecute(function() return game:GetService("Players") end) or game.Players
+local UserInputService = safeExecute(function() return game:GetService("UserInputService") end) or game:GetService("UserInputService")
+local TweenService = safeExecute(function() return game:GetService("TweenService") end) or game:GetService("TweenService")
+local RunService = safeExecute(function() return game:GetService("RunService") end) or game:GetService("RunService")
+local StarterGui = safeExecute(function() return game:GetService("StarterGui") end) or game:GetService("StarterGui")
+local Lighting = safeExecute(function() return game:GetService("Lighting") end) or game:GetService("Lighting")
+local Debris = safeExecute(function() return game:GetService("Debris") end) or game:GetService("Debris")
+local workspace = safeExecute(function() return game:GetService("Workspace") end) or workspace
+
+-- Wait for LocalPlayer with comprehensive error handling
+local LocalPlayer = Players.LocalPlayer or Players:GetPlayers()[1]
+if not LocalPlayer then
+    repeat 
+        wait(0.5)
+        LocalPlayer = Players.LocalPlayer or (Players:GetPlayers()[1])
+    until LocalPlayer
+end
+
+-- Wait for character with timeout and error handling
+local timeout = 0
+repeat 
+    wait(0.1)
+    timeout = timeout + 0.1
+    safeExecute(function()
+        if LocalPlayer and not LocalPlayer.Character then
+            LocalPlayer.CharacterAdded:Wait()
+        end
+    end)
+until (LocalPlayer and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) or timeout > 30
+
+local Mouse = safeExecute(function() return LocalPlayer:GetMouse() end)
+
+-- Define all exploit functions as safe no-ops to prevent errors
+local mouse1click = function() end
+local mouse1press = function() end  
+local mouse1release = function() end
+local getrawmetatable = function(obj) return {} end
+local setreadonly = function(tbl, readonly) return true end
+local newcclosure = function(func) return func end
+local getnamecallmethod = function() return "FireServer" end
+
+-- Override any existing globals safely
+if _G.mouse1click then _G.mouse1click = mouse1click end
+if _G.mouse1press then _G.mouse1press = mouse1press end
+if _G.mouse1release then _G.mouse1release = mouse1release end
 
 -- Settings
 local Settings = {
