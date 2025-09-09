@@ -59,13 +59,18 @@ local cheats = {
     flySpeed = 50
 }
 
--- Notification System
-local function notify(title, text)
+-- Notification Function
+local function showNotification(message)
     StarterGui:SetCore("SendNotification", {
-        Title = title,
-        Text = text,
+        Title = "SPWARE",
+        Text = message,
         Duration = 3
     })
+end
+
+-- Player List Window Function
+local function createPlayerListWindow()
+    showNotification("Player List window opened")
 end
 
 -- ESP System
@@ -377,11 +382,12 @@ local function createUI()
     local tabs = {
         {name = "Combat", icon = "rbxassetid://75518636799674"},
         {name = "Movement", icon = "rbxassetid://102270380454487"},
-        {name = "Visual", icon = "rbxassetid://77345366725078"},
-        {name = "Roleplay", icon = "rbxassetid://122767272714113"},
-        {name = "Blox Fruits", icon = "🥭"},
-        {name = "Player List", icon = "📋"},
-        {name = "Chat", icon = "💬"}
+        {name = "Visuals", icon = "rbxassetid://77345366725078"},
+        {name = "Car List", icon = "rbxassetid://111612200954692"},
+        {name = "Roleplay", icon = "rbxassetid://111612200954692"},
+        {name = "Blox Fruits", icon = "rbxassetid://111612200954692"},
+        {name = "Player List", icon = "rbxassetid://122767272714113"},
+        {name = "Chat", icon = "rbxassetid://118260954915004"}
     }
     
     for i, tab in ipairs(tabs) do
@@ -481,11 +487,30 @@ local function createUI()
         end)
     end
     
-    -- Toggle Function
-    local function createToggle(parent, position, text, callback)
+    -- Helper Functions
+    local function createSection(parent, title)
+        local sectionFrame = Instance.new("Frame")
+        sectionFrame.Size = UDim2.new(1, 0, 0, 35)
+        sectionFrame.BackgroundTransparency = 1
+        sectionFrame.Parent = parent
+        
+        local sectionLabel = Instance.new("TextLabel")
+        sectionLabel.Size = UDim2.new(1, -20, 1, 0)
+        sectionLabel.Position = UDim2.new(0, 10, 0, 0)
+        sectionLabel.BackgroundTransparency = 1
+        sectionLabel.Text = title
+        sectionLabel.TextColor3 = COLORS.ACCENT
+        sectionLabel.TextSize = 16
+        sectionLabel.Font = Enum.Font.GothamBold
+        sectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+        sectionLabel.Parent = sectionFrame
+        
+        return 35
+    end
+    
+    local function createToggle(parent, text, description, callback)
         local toggleFrame = Instance.new("Frame")
-        toggleFrame.Size = UDim2.new(1, -20, 0, 40)
-        toggleFrame.Position = position
+        toggleFrame.Size = UDim2.new(1, 0, 0, 40)
         toggleFrame.BackgroundColor3 = COLORS.BORDER
         toggleFrame.BorderSizePixel = 0
         toggleFrame.Parent = parent
@@ -525,17 +550,15 @@ local function createUI()
             isToggled = not isToggled
             toggleButton.BackgroundColor3 = isToggled and COLORS.SUCCESS or COLORS.ERROR
             toggleButton.Text = isToggled and "ON" or "OFF"
-            callback(isToggled)
+            if callback then callback(isToggled) end
         end)
         
-        return toggleFrame
+        return 40
     end
     
-    -- Slider Function
-    local function createSlider(parent, position, text, min, max, default, callback)
+    local function createSlider(parent, text, min, max, default, callback)
         local sliderFrame = Instance.new("Frame")
-        sliderFrame.Size = UDim2.new(1, -20, 0, 50)
-        sliderFrame.Position = position
+        sliderFrame.Size = UDim2.new(1, 0, 0, 50)
         sliderFrame.BackgroundColor3 = COLORS.BORDER
         sliderFrame.BorderSizePixel = 0
         sliderFrame.Parent = parent
@@ -579,7 +602,7 @@ local function createUI()
         local sliderButton = Instance.new("TextButton")
         sliderButton.Size = UDim2.new(0, 16, 0, 16)
         sliderButton.Position = UDim2.new((default - min) / (max - min), -8, 0.5, -8)
-        sliderButton.BackgroundColor3 = COLORS.TEXT
+        sliderButton.BackgroundColor3 = COLORS.ACCENT
         sliderButton.Text = ""
         sliderButton.BorderSizePixel = 0
         sliderButton.Parent = sliderBar
@@ -608,11 +631,33 @@ local function createUI()
                 sliderButton.Position = UDim2.new(relativePos, -8, 0.5, -8)
                 label.Text = text .. ": " .. value
                 
-                callback(value)
+                if callback then callback(value) end
             end
         end)
         
-        return sliderFrame
+        return 50
+    end
+    
+    local function createButton(parent, text, description, callback)
+        local buttonFrame = Instance.new("TextButton")
+        buttonFrame.Size = UDim2.new(1, 0, 0, 35)
+        buttonFrame.BackgroundColor3 = COLORS.PRIMARY
+        buttonFrame.BorderSizePixel = 0
+        buttonFrame.Text = text
+        buttonFrame.TextColor3 = COLORS.TEXT
+        buttonFrame.TextSize = 14
+        buttonFrame.Font = Enum.Font.Gotham
+        buttonFrame.Parent = parent
+        
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = UDim.new(0, 6)
+        buttonCorner.Parent = buttonFrame
+        
+        buttonFrame.MouseButton1Click:Connect(function()
+            if callback then callback() end
+        end)
+        
+        return 35
     end
     
     -- Premium Tab Content Updates
