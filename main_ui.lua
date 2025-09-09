@@ -796,9 +796,10 @@ PlayerListScroll.Parent = PlayerListWindow
 PlayerListScroll.BackgroundTransparency = 1
 PlayerListScroll.Position = UDim2.new(0, 15, 0, 115)
 PlayerListScroll.Size = UDim2.new(1, -30, 1, -130)
-PlayerListScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+PlayerListScroll.CanvasSize = UDim2.new(0, 0, 2, 0)
 PlayerListScroll.ScrollBarThickness = 6
 PlayerListScroll.ScrollBarImageColor3 = Color3.fromRGB(147, 51, 234)
+PlayerListScroll.ScrollingEnabled = true
 
 local PlayerListLayout = Instance.new("UIListLayout")
 PlayerListLayout.Parent = PlayerListScroll
@@ -1030,8 +1031,27 @@ CreateToggle(UtilitySection, "Auto Collect Items", "AutoCollectItems")
 CreateToggle(UtilitySection, "Auto Daily Rewards", "AutoDailyRewards")
 CreateToggle(UtilitySection, "Auto Buy", "AutoBuy")
 CreateToggle(UtilitySection, "Disable Gravity", "DisableGravity")
+CreateButton(UtilitySection, "Pull All Items", function()
+    -- Pull all items from server to inventory
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Tool") or obj:IsA("Accessory") or (obj:IsA("Model") and obj:FindFirstChild("Handle")) then
+            pcall(function()
+                if obj.Parent ~= LocalPlayer.Backpack and obj.Parent ~= LocalPlayer.Character then
+                    obj.Parent = LocalPlayer.Backpack
+                end
+            end)
+        end
+    end
+    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "All items pulled to inventory!", Duration = 2})
+end)
 CreateButton(UtilitySection, "Light Control", function()
-    StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Light control activated!", Duration = 2})
+    if Lighting.ClockTime == 14 then
+        Lighting.ClockTime = 0
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Night mode activated!", Duration = 2})
+    else
+        Lighting.ClockTime = 14
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = "Day mode activated!", Duration = 2})
+    end
 end)
 
 -- Blox Fruits Tab
@@ -1081,7 +1101,6 @@ local PlayerListSection = CreateSection(PlayerListFrame, "👥 Player Management
 CreateToggle(PlayerListSection, "Show Player List", "ShowPlayerList", function(state)
     PlayerListWindow.Visible = state
     if state then
-        -- Refresh player list when opened
         RefreshPlayerList()
     end
 end)
@@ -1145,10 +1164,9 @@ end)
 local CarListFrame = TabFrames[8]
 
 local CarManagementSection = CreateSection(CarListFrame, "🚗 Car Management", Color3.fromRGB(120, 40, 200))
-CreateToggle(CarManagementSection, "Show Car List", "ShowCarList", function(state)
+local CarListToggle = CreateToggle(CarManagementSection, "Show Car List", "ShowCarList", function(state)
     CarListWindow.Visible = state
     if state then
-        -- Refresh car list when opened
         RefreshCarList()
     end
 end)
@@ -1188,6 +1206,21 @@ end)
 CarListClose.MouseButton1Click:Connect(function()
     CarListWindow.Visible = false
     Settings.ShowCarList = false
+    -- Update the toggle state without triggering the callback
+    local toggleSwitch = CarListToggle:FindFirstChild("ToggleSwitch")
+    if toggleSwitch then
+        TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {
+            Position = UDim2.new(0, 2, 0.5, -8)
+        }):Play()
+        TweenService:Create(toggleSwitch, TweenInfo.new(0.2), {
+            BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+        }):Play()
+    end
+    local statusText = CarListToggle:FindFirstChild("StatusText")
+    if statusText then
+        statusText.Text = "OFF"
+        statusText.TextColor3 = Color3.fromRGB(180, 160, 200)
+    end
 end)
 
 -- Player List Functions
@@ -1286,11 +1319,7 @@ function CreatePlayerEntry(player)
     -- Button connections
     TrollButton.MouseButton1Click:Connect(function()
         selectedPlayer = player
-        StarterGui:SetCore("SendNotification", {
-            Title = "SPWARE V5",
-            Text = "Trolling " .. player.Name .. "!",
-            Duration = 2
-        })
+        CreateTrollSubmenu(player, TrollButton)
     end)
     
     TPButton.MouseButton1Click:Connect(function()
@@ -1310,6 +1339,111 @@ function CreatePlayerEntry(player)
             local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
             PlayerDistance.Text = "Distance: " .. math.floor(distance) .. " studs"
             wait(1)
+        end
+    end)
+end
+
+-- Troll Submenu Function
+function CreateTrollSubmenu(player, button)
+    -- Check if submenu already exists and destroy it
+    local existingSubmenu = ScreenGui:FindFirstChild("TrollSubmenu")
+    if existingSubmenu then
+        existingSubmenu:Destroy()
+    end
+    
+    local TrollSubmenu = Instance.new("Frame")
+    TrollSubmenu.Name = "TrollSubmenu"
+    TrollSubmenu.Parent = ScreenGui
+    TrollSubmenu.BackgroundColor3 = Color3.fromRGB(15, 10, 20)
+    TrollSubmenu.BorderSizePixel = 0
+    TrollSubmenu.Position = UDim2.new(0, button.AbsolutePosition.X + 90, 0, button.AbsolutePosition.Y)
+    TrollSubmenu.Size = UDim2.new(0, 200, 0, 250)
+    TrollSubmenu.ZIndex = 10
+    
+    local SubmenuCorner = Instance.new("UICorner")
+    SubmenuCorner.CornerRadius = UDim.new(0, 10)
+    SubmenuCorner.Parent = TrollSubmenu
+    
+    local SubmenuStroke = Instance.new("UIStroke")
+    SubmenuStroke.Color = Color3.fromRGB(147, 51, 234)
+    SubmenuStroke.Thickness = 2
+    SubmenuStroke.Parent = TrollSubmenu
+    
+    local SubmenuTitle = Instance.new("TextLabel")
+    SubmenuTitle.Parent = TrollSubmenu
+    SubmenuTitle.BackgroundTransparency = 1
+    SubmenuTitle.Position = UDim2.new(0, 0, 0, 0)
+    SubmenuTitle.Size = UDim2.new(1, 0, 0, 40)
+    SubmenuTitle.Font = Enum.Font.GothamBold
+    SubmenuTitle.Text = "Troll " .. player.Name
+    SubmenuTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SubmenuTitle.TextSize = 14
+    
+    local function CreateTrollButton(text, position, callback)
+        local btn = Instance.new("TextButton")
+        btn.Parent = TrollSubmenu
+        btn.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
+        btn.BorderSizePixel = 0
+        btn.Position = UDim2.new(0, 10, 0, position)
+        btn.Size = UDim2.new(1, -20, 0, 30)
+        btn.Font = Enum.Font.GothamBold
+        btn.Text = text
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.TextSize = 12
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 6)
+        btnCorner.Parent = btn
+        
+        btn.MouseButton1Click:Connect(function()
+            callback()
+            TrollSubmenu:Destroy()
+        end)
+        
+        return btn
+    end
+    
+    CreateTrollButton("Kill Player", 50, function()
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.Health = 0
+        end
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = player.Name .. " killed!", Duration = 2})
+    end)
+    
+    CreateTrollButton("Fling Player", 90, function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+            bodyVelocity.Velocity = Vector3.new(math.random(-100, 100), 100, math.random(-100, 100))
+            bodyVelocity.Parent = player.Character.HumanoidRootPart
+            game:GetService("Debris"):AddItem(bodyVelocity, 1)
+        end
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = player.Name .. " flung!", Duration = 2})
+    end)
+    
+    CreateTrollButton("Freeze Player", 130, function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.Anchored = true
+        end
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = player.Name .. " frozen!", Duration = 2})
+    end)
+    
+    CreateTrollButton("Unfreeze Player", 170, function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.Anchored = false
+        end
+        StarterGui:SetCore("SendNotification", {Title = "SPWARE V5", Text = player.Name .. " unfrozen!", Duration = 2})
+    end)
+    
+    CreateTrollButton("Close Menu", 210, function()
+        -- Just closes the menu
+    end)
+    
+    -- Auto-close after 10 seconds
+    spawn(function()
+        wait(10)
+        if TrollSubmenu and TrollSubmenu.Parent then
+            TrollSubmenu:Destroy()
         end
     end)
 end
