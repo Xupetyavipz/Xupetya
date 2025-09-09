@@ -20,6 +20,55 @@ repeat wait() until LocalPlayer and LocalPlayer.Character
 
 local Mouse = LocalPlayer:GetMouse()
 
+-- Define missing exploit functions with fallbacks
+local mouse1click = mouse1click or function()
+    -- Fallback implementation using VirtualInputManager
+    pcall(function()
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        if VirtualInputManager then
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+            wait(0.01)
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+        end
+    end)
+end
+
+local mouse1press = mouse1press or function()
+    pcall(function()
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        if VirtualInputManager then
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+        end
+    end)
+end
+
+local mouse1release = mouse1release or function()
+    pcall(function()
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        if VirtualInputManager then
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+        end
+    end)
+end
+
+-- Define metatable functions with fallbacks
+local getrawmetatable = getrawmetatable or function(obj)
+    return getmetatable(obj)
+end
+
+local setreadonly = setreadonly or function(tbl, readonly)
+    -- Fallback - some executors don't have this function
+    return true
+end
+
+local newcclosure = newcclosure or function(func)
+    return func
+end
+
+local getnamecallmethod = getnamecallmethod or function()
+    return "FireServer"
+end
+
 -- Settings
 local Settings = {
     -- Combat
