@@ -567,16 +567,7 @@ local function CreateSection(parent, title, color)
     Section.BackgroundColor3 = Color3.fromRGB(18, 18, 25)
     Section.BackgroundTransparency = 0.1
     Section.BorderSizePixel = 0
-    Section.Size = UDim2.new(1, 0, 0, 0)
-    
-    -- Section Gradient
-    local SectionGradient = Instance.new("UIGradient")
-    SectionGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(18, 18, 25)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 22, 30))
-    }
-    SectionGradient.Rotation = 135
-    SectionGradient.Parent = Section
+    Section.Size = UDim2.new(1, 0, 0, 250)
     
     local SectionCorner = Instance.new("UICorner")
     SectionCorner.CornerRadius = UDim.new(0, 12)
@@ -594,57 +585,47 @@ local function CreateSection(parent, title, color)
     HeaderFrame.BackgroundColor3 = color or Color3.fromRGB(147, 51, 234)
     HeaderFrame.BackgroundTransparency = 0.9
     HeaderFrame.Position = UDim2.new(0, 0, 0, 0)
-    HeaderFrame.Size = UDim2.new(1, 0, 0, 60)
+    HeaderFrame.Size = UDim2.new(1, 0, 0, 50)
     
     local HeaderCorner = Instance.new("UICorner")
-    HeaderCorner.CornerRadius = UDim.new(0, 15)
+    HeaderCorner.CornerRadius = UDim.new(0, 12)
     HeaderCorner.Parent = HeaderFrame
     
     local HeaderText = Instance.new("TextLabel")
     HeaderText.Name = "HeaderText"
     HeaderText.Parent = HeaderFrame
     HeaderText.BackgroundTransparency = 1
-    HeaderText.Position = UDim2.new(0, 25, 0, 0)
-    HeaderText.Size = UDim2.new(1, -50, 1, 0)
+    HeaderText.Position = UDim2.new(0, 20, 0, 0)
+    HeaderText.Size = UDim2.new(1, -40, 1, 0)
     HeaderText.Font = Enum.Font.GothamBold
     HeaderText.Text = title
     HeaderText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    HeaderText.TextSize = 18
+    HeaderText.TextSize = 16
     HeaderText.TextXAlignment = Enum.TextXAlignment.Left
     HeaderText.TextYAlignment = Enum.TextYAlignment.Center
     
-    -- Grid Layout for toggles/buttons
-    local GridFrame = Instance.new("Frame")
-    GridFrame.Name = "GridFrame"
-    GridFrame.Parent = Section
-    GridFrame.BackgroundTransparency = 1
-    GridFrame.Position = UDim2.new(0, 0, 0, 70)
-    GridFrame.Size = UDim2.new(1, 0, 1, -80)
+    local SectionLayout = Instance.new("UIListLayout")
+    SectionLayout.Parent = Section
+    SectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SectionLayout.Padding = UDim.new(0, 10)
     
-    local GridLayout = Instance.new("UIGridLayout")
-    GridLayout.Parent = GridFrame
-    GridLayout.CellPadding = UDim2.new(0, 15, 0, 15)
-    GridLayout.CellSize = UDim2.new(0, 180, 0, 60)
-    GridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    local SectionPadding = Instance.new("UIPadding")
+    SectionPadding.Parent = Section
+    SectionPadding.PaddingTop = UDim.new(0, 60)
+    SectionPadding.PaddingLeft = UDim.new(0, 15)
+    SectionPadding.PaddingRight = UDim.new(0, 15)
+    SectionPadding.PaddingBottom = UDim.new(0, 15)
     
-    local GridPadding = Instance.new("UIPadding")
-    GridPadding.Parent = GridFrame
-    GridPadding.PaddingTop = UDim.new(0, 15)
-    GridPadding.PaddingLeft = UDim.new(0, 20)
-    GridPadding.PaddingRight = UDim.new(0, 20)
-    GridPadding.PaddingBottom = UDim.new(0, 15)
-    
-    Section.GridFrame = GridFrame
     return Section
 end
 
 local function CreateToggle(parent, text, setting, callback)
     local Toggle = Instance.new("TextButton")
     Toggle.Name = text .. "Toggle"
-    Toggle.Parent = parent.GridFrame or parent
+    Toggle.Parent = parent
     Toggle.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
     Toggle.BorderSizePixel = 0
-    Toggle.Size = UDim2.new(0, 180, 0, 60)
+    Toggle.Size = UDim2.new(1, -10, 0, 60)
     Toggle.AutoButtonColor = false
     Toggle.Text = ""
     
@@ -765,26 +746,208 @@ local function CreateToggle(parent, text, setting, callback)
     KnobCorner.CornerRadius = UDim.new(1, 0)
     KnobCorner.Parent = SwitchKnob
     
-    ToggleButton.MouseButton1Click:Connect(function()
+    Toggle.MouseButton1Click:Connect(function()
         Settings[setting] = not Settings[setting]
         
-        local newColor = Settings[setting] and Color3.fromRGB(147, 51, 234) or Color3.fromRGB(45, 45, 55)
-        local newPosition = Settings[setting] and UDim2.new(1, -22, 0, 3) or UDim2.new(0, 3, 0, 3)
-        local newStatusColor = Settings[setting] and Color3.fromRGB(34, 197, 94) or Color3.fromRGB(239, 68, 68)
+        -- Update status text
+        StatusText.Text = Settings[setting] and "✓ ENABLED" or "✗ DISABLED"
+        StatusText.TextColor3 = Settings[setting] and Color3.fromRGB(34, 197, 94) or Color3.fromRGB(156, 163, 175)
         
-        TweenService:Create(ToggleButton, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {BackgroundColor3 = newColor}):Play()
-        TweenService:Create(ToggleCircle, TweenInfo.new(0.3, Enum.EasingStyle.Back), {Position = newPosition}):Play()
-        TweenService:Create(StatusText, TweenInfo.new(0.2), {TextColor3 = newStatusColor}):Play()
+        -- Update toggle switch
+        ToggleSwitch.BackgroundColor3 = Settings[setting] and Color3.fromRGB(147, 51, 234) or Color3.fromRGB(55, 65, 81)
+        SwitchKnob.Position = Settings[setting] and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
         
-        StatusText.Text = Settings[setting] and "ON" or "OFF"
+        -- Update stroke
+        ToggleStroke.Transparency = Settings[setting] and 0.3 or 0.8
         
-        if Settings[setting] then
-            ToggleGradient.Color = ColorSequence.new{
-                ColorSequenceKeypoint.new(0, Color3.fromRGB(147, 51, 234)),
-                ColorSequenceKeypoint.new(1, Color3.fromRGB(168, 85, 247))
-            }
-        else
-            ToggleGradient.Color = ColorSequence.new{
+        -- Animate changes
+        TweenService:Create(ToggleSwitch, TweenInfo.new(0.3), {
+            BackgroundColor3 = Settings[setting] and Color3.fromRGB(147, 51, 234) or Color3.fromRGB(55, 65, 81)
+        }):Play()
+        
+        TweenService:Create(SwitchKnob, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+            Position = Settings[setting] and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
+        }):Play()
+        
+        TweenService:Create(ToggleStroke, TweenInfo.new(0.2), {
+            Transparency = Settings[setting] and 0.3 or 0.8
+        }):Play()
+        
+        -- Notification
+        StarterGui:SetCore("SendNotification", {
+            Title = "SPWARE V5",
+            Text = text .. " " .. (Settings[setting] and "enabled" or "disabled"),
+            Duration = 1
+        })
+        
+        if callback then callback() end
+    end)
+    
+    return Toggle
+end
+
+local function CreateButton(parent, text, callback)
+    local Button = Instance.new("TextButton")
+    Button.Name = text .. "Button"
+    Button.Parent = parent
+    Button.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
+    Button.BorderSizePixel = 0
+    Button.Size = UDim2.new(1, -10, 0, 45)
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 14
+    Button.AutoButtonColor = false
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 8)
+    ButtonCorner.Parent = Button
+    
+    local ButtonGradient = Instance.new("UIGradient")
+    ButtonGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(147, 51, 234)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(168, 85, 247))
+    })
+    ButtonGradient.Rotation = 45
+    ButtonGradient.Parent = Button
+    
+    Button.MouseEnter:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.2), {
+            Size = UDim2.new(1, -5, 0, 45)
+        }):Play()
+    end)
+    
+    Button.MouseLeave:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.2), {
+            Size = UDim2.new(1, -10, 0, 45)
+        }):Play()
+    end)
+    
+    Button.MouseButton1Click:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.1), {
+            Size = UDim2.new(1, -15, 0, 42)
+        }):Play()
+        
+        wait(0.1)
+        
+        TweenService:Create(Button, TweenInfo.new(0.1), {
+            Size = UDim2.new(1, -10, 0, 45)
+        }):Play()
+        
+        if callback then callback() end
+    end)
+    
+    return Button
+end
+
+local function CreateSlider(parent, text, setting, min, max, callback)
+    local Slider = Instance.new("Frame")
+    Slider.Name = text .. "Slider"
+    Slider.Parent = parent
+    Slider.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+    Slider.BorderSizePixel = 0
+    Slider.Size = UDim2.new(1, -10, 0, 70)
+    
+    local SliderCorner = Instance.new("UICorner")
+    SliderCorner.CornerRadius = UDim.new(0, 8)
+    SliderCorner.Parent = Slider
+    
+    local SliderText = Instance.new("TextLabel")
+    SliderText.Name = "SliderText"
+    SliderText.Parent = Slider
+    SliderText.BackgroundTransparency = 1
+    SliderText.Position = UDim2.new(0, 15, 0, 5)
+    SliderText.Size = UDim2.new(1, -30, 0, 25)
+    SliderText.Font = Enum.Font.GothamBold
+    SliderText.Text = text
+    SliderText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SliderText.TextSize = 13
+    SliderText.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local ValueText = Instance.new("TextLabel")
+    ValueText.Name = "ValueText"
+    ValueText.Parent = Slider
+    ValueText.BackgroundTransparency = 1
+    ValueText.Position = UDim2.new(1, -60, 0, 5)
+    ValueText.Size = UDim2.new(0, 50, 0, 25)
+    ValueText.Font = Enum.Font.Gotham
+    ValueText.Text = tostring(Settings[setting])
+    ValueText.TextColor3 = Color3.fromRGB(147, 51, 234)
+    ValueText.TextSize = 12
+    ValueText.TextXAlignment = Enum.TextXAlignment.Right
+    
+    local SliderTrack = Instance.new("Frame")
+    SliderTrack.Name = "SliderTrack"
+    SliderTrack.Parent = Slider
+    SliderTrack.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    SliderTrack.BorderSizePixel = 0
+    SliderTrack.Position = UDim2.new(0, 15, 0, 40)
+    SliderTrack.Size = UDim2.new(1, -30, 0, 6)
+    
+    local TrackCorner = Instance.new("UICorner")
+    TrackCorner.CornerRadius = UDim.new(1, 0)
+    TrackCorner.Parent = SliderTrack
+    
+    local SliderFill = Instance.new("Frame")
+    SliderFill.Name = "SliderFill"
+    SliderFill.Parent = SliderTrack
+    SliderFill.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
+    SliderFill.BorderSizePixel = 0
+    SliderFill.Position = UDim2.new(0, 0, 0, 0)
+    SliderFill.Size = UDim2.new((Settings[setting] - min) / (max - min), 0, 1, 0)
+    
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(1, 0)
+    FillCorner.Parent = SliderFill
+    
+    local SliderKnob = Instance.new("Frame")
+    SliderKnob.Name = "SliderKnob"
+    SliderKnob.Parent = SliderTrack
+    SliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    SliderKnob.BorderSizePixel = 0
+    SliderKnob.Position = UDim2.new((Settings[setting] - min) / (max - min), -6, 0.5, -6)
+    SliderKnob.Size = UDim2.new(0, 12, 0, 12)
+    
+    local KnobCorner = Instance.new("UICorner")
+    KnobCorner.CornerRadius = UDim.new(1, 0)
+    KnobCorner.Parent = SliderKnob
+    
+    local dragging = false
+    
+    SliderTrack.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+        end
+    end)
+    
+    SliderTrack.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mouse = Mouse
+            local trackPos = SliderTrack.AbsolutePosition.X
+            local trackSize = SliderTrack.AbsoluteSize.X
+            local mousePos = mouse.X
+            
+            local percent = math.clamp((mousePos - trackPos) / trackSize, 0, 1)
+            local value = math.floor(min + (max - min) * percent)
+            
+            Settings[setting] = value
+            ValueText.Text = tostring(value)
+            
+            SliderFill.Size = UDim2.new(percent, 0, 1, 0)
+            SliderKnob.Position = UDim2.new(percent, -6, 0.5, -6)
+            
+            if callback then callback(value) end
+        end
+    end)
+    
+    return Slider
+end
                 ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 45, 55)),
                 ColorSequenceKeypoint.new(1, Color3.fromRGB(55, 55, 65))
             }
